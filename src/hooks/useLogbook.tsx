@@ -217,7 +217,8 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
 
           const checkIn = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(startMin / 60), startMin % 60);
           const checkOut = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(endMin / 60), endMin % 60);
-          await insertSession(checkIn, note, cat);
+          const id = await insertSession(checkIn, note, cat);
+          await completeSession(id, checkOut);
           cursor = endMin + randInt(45, 90);
         }
       }
