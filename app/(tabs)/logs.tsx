@@ -49,7 +49,7 @@ export default function LogsScreen() {
     <ScrollView
       style={{ backgroundColor: theme.canvas }}
       contentContainerStyle={styles.container}>
-      {categorySuggestions.length > 0 && (
+      {suggestions.length > 0 && (
         <View style={styles.filterRow}>
           <Pressable
             style={[styles.filterChip, categoryFilter === null && { backgroundColor: theme.accent }]}
