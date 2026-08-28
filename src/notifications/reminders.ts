@@ -10,14 +10,26 @@
  * development builds.
  */
 
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
 type NotificationsModule = typeof import('expo-notifications');
 
 let cached: NotificationsModule | null = null;
 let unavailable = false;
 
+/** Android Expo Go cannot host expo-notifications at all (removed in SDK 53) — don't even try. */
+function notificationsSupportedHere(): boolean {
+  const inExpoGo = Constants.executionEnvironment === 'storeClient';
+  return !(Platform.OS === 'android' && inExpoGo);
+}
+
 async function loadNotifications(): Promise<NotificationsModule | null> {
   if (cached) return cached;
-  if (unavailable) return null;
+  if (unavailable || !notificationsSupportedHere()) {
+    unavailable = true;
+    return null;
+  }
   try {
     const mod = await import('expo-notifications');
     mod.setNotificationHandler({

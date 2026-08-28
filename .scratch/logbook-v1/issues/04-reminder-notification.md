@@ -12,4 +12,4 @@ Parent spec: `.scratch/logbook-v1/spec.md`
 - [x] Checking out cancels the pending notification — it never fires after checkout
 - [x] On Android 13+, `requestPermissionsAsync()` is called before scheduling; denial doesn't break check-in
 - [ ] Manually verified on device with a low threshold: the notification fires while the app is backgrounded *(pending user verification on phone — set threshold to 1h in DB or wait for Settings screen in ticket 07)*
-- [x] No remote push, no dev build — local notifications only, Expo Go compatible
+- [x] No remote push, no dev build — local notifications only, Expo Go compatible *(caveat found on-device: expo-notifications will not load at all on Android Expo Go — reminders silently skip there; works on iOS Expo Go and dev builds; see the lazy-import fix in reminders.ts)*
