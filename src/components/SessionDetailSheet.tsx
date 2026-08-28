@@ -150,6 +150,10 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
 
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <View style={{ backgroundColor: theme.canvas, borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
+      <View style={styles.grabberRow}>
+        <View style={[styles.grabber, { backgroundColor: '#D4D4D8' }]} />
+      </View>
       <ScrollView
         style={{ backgroundColor: theme.canvas }}
         contentContainerStyle={styles.container}>
@@ -185,14 +189,16 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           placeholderTextColor={theme.muted}
           autoCapitalize="none"
         />
-        {suggestions
-          .filter((s) => s.length > 0 && s !== category)
-          .slice(0, 6)
-          .map((s) => (
-            <Pressable key={s} onPress={() => setCategory(s)}>
-              <Text style={{ color: theme.accent, fontSize: 13, paddingVertical: 2 }}>{s}</Text>
-            </Pressable>
-          ))}
+        <View style={styles.suggestions}>
+          {suggestions
+            .filter((s) => s.length > 0 && s !== category)
+            .slice(0, 6)
+            .map((s) => (
+              <Pressable key={s} onPress={() => setCategory(s)}>
+                <Text style={{ color: theme.accent, fontSize: 13, paddingVertical: 2 }}>{s}</Text>
+              </Pressable>
+            ))}
+        </View>
 
         <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('note')}</Text>
         <TextInput
@@ -223,6 +229,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           </Pressable>
         </View>
       </ScrollView>
+      </View>
     </Modal>
   );
 }
@@ -230,27 +237,42 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    gap: 12,
+    paddingBottom: 48,
+    gap: 16,
+  },
+  grabberRow: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  grabber: {
+    width: 40,
+    height: 6,
+    borderRadius: 999,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     textAlign: 'center',
+    marginBottom: 8,
   },
   fieldGroup: {
     gap: 8,
   },
   field: {
-    padding: 14,
-    borderRadius: RADIUS.control,
+    padding: 16,
+    borderRadius: RADIUS.card,
   },
   fieldDisabled: {
     opacity: 0.4,
   },
   fieldLabel: {
     fontSize: 12,
+    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginHorizontal: 8,
   },
   fieldValue: {
     fontSize: 16,
@@ -260,26 +282,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: RADIUS.control,
-    padding: 14,
+    borderRadius: RADIUS.card,
+    padding: 16,
+    marginBottom: 16,
   },
   runningLabel: {
     fontSize: 15,
   },
   noteInput: {
-    borderRadius: RADIUS.control,
-    padding: 12,
+    borderRadius: RADIUS.card,
+    padding: 16,
     fontSize: 15,
   },
   noteTall: {
-    minHeight: 70,
+    height: 70,
+  },
+  suggestions: {
+    gap: 16,
+    marginHorizontal: 8,
   },
   error: {
     fontSize: 14,
   },
   button: {
-    padding: 14,
-    borderRadius: RADIUS.card,
+    paddingVertical: 16,
+    borderRadius: RADIUS.control,
     alignItems: 'center',
     marginTop: 8,
   },
@@ -289,6 +316,7 @@ const styles = StyleSheet.create({
   },
   durationPreview: {
     fontSize: 14,
+    marginBottom: 24,
     fontVariant: ['tabular-nums'],
     textAlign: 'center',
   },
@@ -300,7 +328,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   deleteText: {
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

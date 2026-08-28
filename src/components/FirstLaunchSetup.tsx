@@ -49,7 +49,7 @@ export function FirstLaunchSetup() {
         </Text>
 
         <Text style={[styles.label, { color: theme.muted }]}>{t('weekStartQ')}</Text>
-        <WeekdayPicker value={weekStartDay} onChange={(day) => setWeekStartDay(day as Weekday)} />
+        <WeekdayPicker variant="setup" value={weekStartDay} onChange={(day) => setWeekStartDay(day as Weekday)} />
 
         <Text style={[styles.label, { color: theme.muted }]}>{t('weeklyTarget')}</Text>
         <TextInput
@@ -81,40 +81,44 @@ export function FirstLaunchSetup() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    paddingTop: '18%',
-    justifyContent: 'flex-start',
+    paddingHorizontal: 24,
+    paddingBottom: 48,
+    justifyContent: 'center',
     gap: 12,
   },
   title: {
     fontSize: 26,
     fontWeight: '700',
     textAlign: 'center',
+    marginBottom: 12,
   },
   intro: {
     fontSize: 15,
     opacity: 0.7,
     textAlign: 'center',
+    marginHorizontal: 8,
+    marginBottom: 48,
   },
   label: {
     fontSize: 13,
+    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: 8,
+    letterSpacing: 1,
+    marginBottom: 16,
   },
   input: {
     borderRadius: RADIUS.control,
-    padding: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     fontSize: 16,
   },
   error: {
     fontSize: 14,
   },
   primaryButton: {
-    borderRadius: RADIUS.control,
-    padding: 14,
+    borderRadius: RADIUS.card,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 8,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -126,6 +130,7 @@ const styles = StyleSheet.create({
   skipText: {
     textAlign: 'center',
     fontSize: 14,
+    fontWeight: '500',
     paddingVertical: 8,
   },
 });
