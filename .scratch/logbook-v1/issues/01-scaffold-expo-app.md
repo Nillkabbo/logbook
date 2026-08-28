@@ -6,10 +6,10 @@ Parent spec: `.scratch/logbook-v1/spec.md`
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `create-expo-app` TypeScript project scaffolded with expo-router; runs in Expo Go on a physical device with no runtime errors
-- [ ] Three tabs navigable (Home, Logs, Settings) with placeholder content
-- [ ] Workspace is a git repository with an initial commit
-- [ ] Vitest installed and a trivial test passes in plain Node (no React Native test machinery)
-- [ ] The entire v1 stays compatible with Expo Go — no dev build required
+- [ ] `create-expo-app` TypeScript project scaffolded with expo-router; runs in Expo Go on a physical device with no runtime errors *(bundle export + expo-doctor 21/21 pass; physical-device launch pending user verification)*
+- [x] Three tabs navigable (Home, Logs, Settings) with placeholder content
+- [x] Workspace is a git repository with an initial commit
+- [x] Vitest installed and a trivial test passes in plain Node (no React Native test machinery)
+- [x] The entire v1 stays compatible with Expo Go — no dev build required
