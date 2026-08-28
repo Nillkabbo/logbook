@@ -137,7 +137,8 @@ const styles = StyleSheet.create({
   },
   pillSetup: {
     borderRadius: RADIUS.control,
-    paddingVertical: 8,
+    height: 44,
+    justifyContent: 'center',
   },
   pillTextSetup: {
     fontSize: 15,

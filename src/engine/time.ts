@@ -40,3 +40,12 @@ export function formatDateTime(date: Date, locale: string, hour12 = false): stri
   const day = date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
   return `${weekday}, ${day}, ${formatTimeOfDay(date, hour12)}`;
 }
+
+/** A spoken-style stamp: `3h 28m` (minutes omitted when zero). */
+export function formatDurationWords(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  if (minutes === 0) return `${hours}h`;
+  if (hours === 0) return `${minutes}m`;
+  return `${hours}h ${minutes}m`;
+}

@@ -13,6 +13,7 @@ export function ChipRow({
   onSelect,
   labelOf,
   size = 'md',
+  selectedStyle = 'accent',
   accessibilityLabel,
 }: {
   options: readonly string[];
@@ -23,6 +24,8 @@ export function ChipRow({
   /** Display text per option; defaults to the option itself. */
   labelOf?: (option: string) => string;
   size?: 'md' | 'lg';
+  /** dark = text-color fill (reserved for non-category selections like filters). */
+  selectedStyle?: 'accent' | 'dark';
   /** Optional row label for screen readers. */
   accessibilityLabel?: string;
 }) {
@@ -41,10 +44,16 @@ export function ChipRow({
             style={[
               styles.chip,
               size === 'lg' && styles.chipLg,
-              { backgroundColor: active ? theme.accent : theme.inset },
+              {
+                backgroundColor: active
+                  ? selectedStyle === 'dark'
+                    ? theme.text
+                    : theme.accent
+                  : theme.inset,
+              },
             ]}
             onPress={() => onSelect(option)}>
-            <Text style={[styles.text, size === 'lg' && styles.textLg, { color: active ? theme.onAccent : theme.text }]}>
+            <Text style={[styles.text, size === 'lg' && styles.textLg, { color: active ? (selectedStyle === 'dark' ? theme.surface : theme.onAccent) : theme.text }]}>
               {labelOf ? labelOf(option) : option}
             </Text>
           </Pressable>

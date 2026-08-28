@@ -16,10 +16,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DateTimeField } from '@/components/DateTimeField';
-import { formatDuration } from '@/engine/time';
+import { formatDuration, formatDurationWords } from '@/engine/time';
 import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
-import { cardStyle, RADIUS, useTheme } from '@/theme';
+import { cardStyle, RADIUS, softPill, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
 import { useI18n, type StringKey } from '@/ui/i18n';
 
@@ -145,10 +145,10 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         {renderField('out')}
 
         {(checkOut === null || checkOut.getTime() > checkIn.getTime()) && (
-          <Text style={[styles.durationPreview, { color: theme.muted }]}>
+          <Text style={[styles.durationPreview, { color: theme.text }]}>
             {checkOut === null
-              ? `${formatDuration(Math.floor((Date.now() - checkIn.getTime()) / 1000))} ${t('soFar')}`
-              : formatDuration(Math.floor((checkOut.getTime() - checkIn.getTime()) / 1000))}
+              ? `${formatDurationWords(Math.floor((Date.now() - checkIn.getTime()) / 1000))} ${t('soFar')}`
+              : formatDurationWords(Math.floor((checkOut.getTime() - checkIn.getTime()) / 1000))}
           </Text>
         )}
 
@@ -166,8 +166,12 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
             .filter((s) => s.length > 0 && s !== category)
             .slice(0, 6)
             .map((s) => (
-              <Pressable key={s} hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }} onPress={() => setCategory(s)}>
-                <Text style={{ color: theme.accent, fontSize: 13, paddingVertical: 2 }}>{s}</Text>
+              <Pressable
+                key={s}
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                style={softPill(theme)}
+                onPress={() => setCategory(s)}>
+                <Text style={{ color: theme.accent, fontSize: 13, fontWeight: '500' }}>{s}</Text>
               </Pressable>
             ))}
         </View>
@@ -276,8 +280,9 @@ const styles = StyleSheet.create({
     height: 70,
   },
   suggestions: {
-    gap: 16,
-    marginHorizontal: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   error: {
     fontSize: 14,
@@ -293,10 +298,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   durationPreview: {
-    fontSize: 14,
-    marginBottom: 24,
-    fontVariant: ['tabular-nums'],
+    fontSize: 20,
+    fontWeight: '600',
     textAlign: 'center',
+    fontVariant: ['tabular-nums'],
+    marginBottom: 24,
   },
   buttonDisabled: {
     opacity: 0.6,

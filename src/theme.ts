@@ -79,7 +79,7 @@ const light: Theme = {
 const dark: Theme = {
   surface: '#27272A',
   canvas: '#18181B',
-  inset: '#3F3F46',
+  inset: '#52525B',
   text: '#FAFAFA',
   muted: 'rgba(250,250,250,0.75)',
   cardShadow: {

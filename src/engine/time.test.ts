@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDateTime, formatDuration, formatElapsed, formatTimeOfDay,
+import { formatDateTime, formatDuration, formatDurationWords, formatElapsed, formatTimeOfDay,
 } from './time';
 
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
@@ -57,5 +57,15 @@ describe('formatDateTime', () => {
     const d = new Date(2026, 7, 27, 14, 47);
     expect(formatDateTime(d, 'en-US')).toBe('Thu, Aug 27, 14:47');
     expect(formatDateTime(d, 'en-US', true)).toBe('Thu, Aug 27, 2:47 PM');
+  });
+});
+
+describe('formatDurationWords', () => {
+  it('renders hours and minutes', () => {
+    expect(formatDurationWords(12480)).toBe('3h 28m');
+  });
+  it('omits zero minutes and zero hours', () => {
+    expect(formatDurationWords(7200)).toBe('2h');
+    expect(formatDurationWords(600)).toBe('10m');
   });
 });

@@ -43,7 +43,7 @@ function buildRows(weeks: LogWeek[], isExpanded: (week: LogWeek) => boolean): Ro
 export default function LogsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const { t, locale } = useI18n();
+  const { t, locale, weekdayShortName } = useI18n();
   const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings } =
     useLogbook();
 
@@ -103,19 +103,30 @@ export default function LogsScreen() {
         row
         earningsLabel={week.earningsLabel}
       />
-      <View style={styles.bars}>
-        {week.dayBars.map((bar) => (
-          <View
-            key={bar.key}
-            style={[
-              styles.bar,
-              {
-                height: 3 + bar.intensity * 28,
-                backgroundColor: bar.isToday ? theme.accent : theme.inset,
-              },
-            ]}
-          />
-        ))}
+      <View>
+        <View style={styles.bars}>
+          {week.dayBars.map((bar) => (
+            <View key={bar.key} style={styles.barCol}>
+              <View
+                style={[
+                  styles.bar,
+                  {
+                    height: 3 + bar.intensity * 28,
+                    backgroundColor: bar.isToday ? theme.text : theme.inset,
+                  },
+                ]}
+              />
+              <View style={[styles.todayDot, { backgroundColor: bar.isToday ? theme.accent : 'transparent' }]} />
+            </View>
+          ))}
+        </View>
+        <View style={styles.barLabels}>
+          {week.dayBars.map((bar, i) => (
+            <Text key={bar.key} style={styles.barLabel}>
+              {Array.from(weekdayShortName((week.range.start.getDay() + i) % 7))[0]}
+            </Text>
+          ))}
+        </View>
       </View>
       {week.categoryBreakdown.length > 0 && (
         <View style={[styles.breakdown, { borderTopColor: theme.canvas }]}>
@@ -198,6 +209,7 @@ export default function LogsScreen() {
           options={[t('all'), ...suggestions]}
           isSelected={(option) => (categoryFilter === null ? option === t('all') : option === categoryFilter)}
           onSelect={(option) => setCategoryFilter(option === t('all') ? null : option)}
+          selectedStyle="dark"
         />
       </View>
 
@@ -228,10 +240,11 @@ export default function LogsScreen() {
   );
 }
 
-/** The breakdown dot palette — emerald first, then muted zinc steps. */
+/** The breakdown dot palette — neutral zinc steps. Green is reserved for the
+ *  working state (progress, earnings, today), never a category. */
 function dotColor(theme: ReturnType<typeof useTheme>, index: number): string {
-  if (index === 0) return theme.accent;
-  return index === 1 ? '#71717A' : theme.inset;
+  const steps = ['#52525B', '#71717A', '#A1A1AA'];
+  return steps[index % steps.length];
 }
 
 const styles = StyleSheet.create({
@@ -293,9 +306,30 @@ const styles = StyleSheet.create({
     height: 32,
     marginTop: 8,
   },
-  bar: {
+  barCol: {
     flex: 1,
+    alignItems: 'center',
+    gap: 3,
+  },
+  bar: {
+    alignSelf: 'stretch',
     borderRadius: 2,
+  },
+  todayDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 999,
+  },
+  barLabels: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 2,
+  },
+  barLabel: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 10,
+    opacity: 0.5,
   },
   breakdown: {
     gap: 12,
