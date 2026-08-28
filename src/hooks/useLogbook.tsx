@@ -143,65 +143,89 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   const loadSampleData = useCallback(async () => {
     (async () => {
       // Deterministic pseudo-random for reproducibility
-      let seed = 42;
+      let prng = 42;
       const rand = () => {
-        seed = (seed * 16807) % 2147483647;
-      return (seed - 1) / 2147483646;
+        prng = (prng * 16807) % 2147483647;
+        return prng / 2147483647;
       };
       const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
       const randInt = (min: number, max: number) => min + Math.floor(rand() * (max - min + 1));
 
-      const categories = ['Deep work', 'Deep work', 'Deep work', 'Meetings', 'Meetings', 'Admin', 'Writing'];
-      const notes: Record<string, string[]> = {
-        'Deep work': ['payments refactor', 'auth flow', 'dashboard polish', 'API migration', 'bug hunt', 'perf pass', ''],
-        'Meetings': ['sprint planning', '1:1 with Sam', 'design review', 'client call', 'standup', ''],
-        'Admin': ['expenses', 'inbox zero', 'timesheet', ''],
-        'Writing': ['blog post', 'release notes', 'docs update', ''],
+      const CATEGORIES = ['Deep work', 'Deep work', 'Deep work', 'Meetings', 'Meetings', 'Admin', 'Writing'];
+      const NOTES: Record<string, string[]> = {
+        'Deep work': ['payments refactor', 'auth flow', 'dashboard polish', 'API migration', 'bug hunt', 'perf pass'],
+        'Meetings': ['sprint planning', '1:1 with Sam', 'design review', 'client call', 'standup'],
+        'Admin': ['expenses', 'inbox zero', 'timesheet'],
+        'Writing': ['blog post', 'release notes', 'docs update'],
       };
-      const now = new Date();
-      const days = 60;
-      const threeWeeksAgoStart = new Date(now);
-      threeWeeksAgoStart.setDate(now.getDate() - now.getDay() - 21);
 
-      for (let d = days; d >= 0; d--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - d);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      // ── Work blocks: Mon–Fri 9:00–17:00 + Sat 10:00–14:00 ──
+      await insertBlock([1, 2, 3, 4, 5], 540, 1020);
+      await insertBlock([6], 600, 840);
+
+      // ── Sessions across 60 days ──
+      // Weeks (from oldest): some under, 2 over-target, 1 off, current week partial
+      for (let d = 60; d >= 0; d--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - d);
         const dow = date.getDay();
 
-        // Weekends mostly off (85% chance of no sessions)
-        if ((dow === 0 || dow === 6) && rand() < 0.85) continue;
+        // Determine which "week bucket" this day is in (for over-target control)
+        const daysAgoFromWeekStart = dow; // 0=Sun
+        const weekIndex = Math.floor((60 - d + daysAgoFromWeekStart) / 7); // 0=oldest
 
-        // ~20% of weekdays off too (vacation/sick)
-        if (dow >= 1 && dow <= 5 && rand() < 0.2) continue;
+        // OFF WEEK: week index 6 (about 2 weeks ago) — no sessions
+        if (weekIndex === 6) continue;
 
-        // One full off week 3 weeks ago
-        const threeWeeksAgoEnd = new Date(threeWeeksAgoStart);
-        threeWeeksAgoEnd.setDate(threeWeeksAgoStart.getDate() + 7);
-        if (date >= threeWeeksAgoStart && date < threeWeeksAgoEnd) continue;
+        // Weekends: 15% chance of a Saturday session, never Sunday
+        if (dow === 0) continue;
+        if (dow === 6 && rand() > 0.15) continue;
 
-        // 1-3 sessions per day
-        const sessionCount = randInt(1, 3);
-        let cursor = 8 + randInt(0, 60); // start between 8:00 and 9:00
+        // Weekdays: 15% skip (sick/vacation)
+        if (dow >= 1 && dow <= 5 && rand() < 0.15 && weekIndex !== 8) continue;
+
+        // Session count: 1-3 (over-target weeks get 2-3 longer sessions)
+        const overTarget = weekIndex === 3 || weekIndex === 5;
+        const sessionCount = overTarget ? randInt(2, 3) : randInt(1, 3);
+
+        let cursor = 8 * 60 + randInt(0, 45); // 8:00–8:45
 
         for (let i = 0; i < sessionCount; i++) {
-          const cat = pick(categories);
-          const note = pick(notes[cat] ?? ['']);
-          const durMin = randInt(45, 240); // 45min to 4h
+          const cat = pick(CATEGORIES);
+          const note = rand() < 0.4 ? pick(NOTES[cat] ?? ['']) : '';
+          const durMin = overTarget ? randInt(150, 300) : randInt(45, 240);
           const startMin = cursor;
-          const endMin = cursor + durMin;
-          if (endMin > 17 * 60 + 30) break; // don't go past ~5:30 PM
+          const endMin = Math.min(cursor + durMin, 17 * 60 + 45);
+          if (endMin - startMin < 30) break;
 
           const checkIn = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(startMin / 60), startMin % 60);
           const checkOut = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(endMin / 60), endMin % 60);
           await insertSession(checkIn, note, cat);
-          cursor = endMin + randInt(30, 90); // lunch/gap
+          cursor = endMin + randInt(45, 90);
         }
       }
 
-      // Settings: rate + one off week
-      const offWeekStart = threeWeeksAgoStart;
-      const offKey = `${offWeekStart.getFullYear()}-${String(offWeekStart.getMonth() + 1).padStart(2, '0')}-${String(offWeekStart.getDate()).padStart(2, '0')}`;
-      await updateSettingsInDb({ hourlyRate: 30, setupCompleted: true, offWeeks: [offKey] });
+      // ── Today: always has at least one session + a running session ──
+      const runningStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 30);
+      // Only add if today doesn't already have a running session
+      // (the seeder might have already created one)
+      await insertSession(runningStart, '', '');
+
+      // ── Settings: rate $30/h + the off week ──
+      const offWeekSunday = new Date(today);
+      offWeekSunday.setDate(today.getDate() - today.getDay() - 14); // 2 weeks ago Sunday
+      const offKey = `${offWeekSunday.getFullYear()}-${String(offWeekSunday.getMonth() + 1).padStart(2, '0')}-${String(offWeekSunday.getDate()).padStart(2, '0')}`;
+
+      // Read current offWeeks and append
+      const currentSettings = await getSettings();
+      const offWeeks = currentSettings.offWeeks.includes(offKey)
+        ? currentSettings.offWeeks
+        : [...currentSettings.offWeeks, offKey];
+      await updateSettingsInDb({ hourlyRate: 30, offWeeks });
+
       await refresh();
     })();
   }, [refresh]);
