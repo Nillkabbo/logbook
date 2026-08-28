@@ -19,14 +19,14 @@ export const unstable_settings = {
 // Prevent the splash screen from auto-hiding before the first render.
 SplashScreen.preventAutoHideAsync();
 
-// Foreground notifications (the check-in reminder) show as banners, not silence.
-initNotificationHandling();
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
     SplashScreen.hideAsync();
+    // Foreground reminders show as banners, not silence. Lazy: on Android
+    // Expo Go the notifications module is unavailable and this no-ops.
+    initNotificationHandling();
   }, []);
 
   return (
