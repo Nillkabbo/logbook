@@ -9,7 +9,8 @@ export type Language = 'en' | 'bn';
 
 const en = {
   tabHome: 'Home', tabLogs: 'Logs', tabSettings: 'Settings',
-  checkIn: 'Check in', checkOut: 'Check out',
+  checkIn: 'Check in', checkOut: 'Check out', since: 'since',
+  sessionEnded: 'Session ended', undo: 'Undo',
   today: 'Today', thisWeek: 'This week', offWeek: 'Off week',
   nextBlock: 'Next block', blockInProgress: 'Work block in progress — checked in yet?',
   emptyHome: 'Nothing logged yet today.\nTap Check in when you start working.',
@@ -81,7 +82,8 @@ export type StringKey = keyof typeof en;
 // typecheck gate catches, not a runtime undefined.
 const bn: Record<StringKey, string> = {
   tabHome: 'হোম', tabLogs: 'লগ', tabSettings: 'সেটিংস',
-  checkIn: 'চেক ইন', checkOut: 'চেক আউট',
+  checkIn: 'চেক ইন', checkOut: 'চেক আউট', since: 'শুরু',
+  sessionEnded: 'সেশন শেষ', undo: 'ফিরিয়ে আনুন',
   today: 'আজ', thisWeek: 'এই সপ্তাহ', offWeek: 'অফ সপ্তাহ',
   nextBlock: 'পরের ব্লক', blockInProgress: 'কাজের ব্লক চলছে — চেক ইন করেছেন?',
   emptyHome: 'আজ এখনো কিছু লেখা হয়নি।\nকাজ শুরু করার সময় চেক ইন চাপুন।',

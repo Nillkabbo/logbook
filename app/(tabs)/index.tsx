@@ -1,6 +1,6 @@
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -11,7 +11,7 @@ import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { homeModel } from '@/engine/home';
-import { formatTimeOfDay } from '@/engine/time';
+import { formatDurationWords, formatTimeOfDay } from '@/engine/time';
 import { formatDayLabel } from '@/engine/weeks';
 import { categorySuggestions } from '@/engine/sessions';
 import { nextBlockOccurrence } from '@/engine/schedule';
@@ -29,6 +29,16 @@ export default function HomeScreen() {
     useLogbook();
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<Session | null>(null);
+  // The just-ended session + a timer handle for the undo toast.
+  const [undoable, setUndoable] = useState<Session | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+    },
+    [],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -46,7 +56,12 @@ export default function HomeScreen() {
     setBusy(true);
     try {
       if (model.running) {
+        const ended = model.running;
         await checkOut();
+        // Q7: a 5s undo bar catches accidental check-outs gracefully.
+        if (undoTimer.current) clearTimeout(undoTimer.current);
+        setUndoable(ended);
+        undoTimer.current = setTimeout(() => setUndoable(null), 5000);
       } else {
         await checkIn();
       }
@@ -55,6 +70,20 @@ export default function HomeScreen() {
     } finally {
       setBusy(false);
     }
+  };
+
+  // Undo a check-out: set checkOut back to null, making it running again.
+  const undoCheckOut = async () => {
+    if (!undoable) return;
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    setUndoable(null);
+    await saveSession(undoable.id, {
+      checkIn: undoable.checkIn,
+      checkOut: null,
+      note: undoable.note,
+      category: undoable.category,
+    });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   };
 
   const setRunningCategory = async (category: string) => {
@@ -71,10 +100,17 @@ export default function HomeScreen() {
   return (
     <View style={[styles.screen, { backgroundColor: theme.canvas, paddingTop: Math.max(16, insets.top + 8) }]}>
       <View style={styles.header}>
-        {model.running && model.elapsedLabel ? (
-          <Text style={[styles.elapsed, { color: theme.text }]}>{model.elapsedLabel}</Text>
+        {model.running ? (
+          <Text style={[styles.sinceCaption, { color: theme.muted }]}>
+            {t('since')} {formatTimeOfDay(model.running.checkIn, hour12)}
+          </Text>
         ) : null}
-        <CheckInToggle running={model.running !== null} disabled={busy} onPress={onToggle} />
+        <CheckInToggle
+          running={model.running !== null}
+          disabled={busy}
+          onPress={onToggle}
+          elapsedLabel={model.elapsedLabel}
+        />
       </View>
 
       {runningUncategorised && (
@@ -107,12 +143,18 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.totals}>
-        <View style={styles.totalItem}>
+        <Pressable
+          accessibilityRole="button"
+          style={styles.totalItem}
+          onPress={() => router.push('/(tabs)/logs')}>
           <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('today')}</Text>
           <Text style={[styles.totalValue, { color: theme.text }]}>{model.todayTotalLabel}</Text>
-        </View>
+        </Pressable>
         <View style={[styles.divider, { backgroundColor: theme.inset }]} />
-        <View style={styles.totalItem}>
+        <Pressable
+          accessibilityRole="button"
+          style={styles.totalItem}
+          onPress={() => router.push('/(tabs)/logs')}>
           <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('thisWeek')}</Text>
           <WeekProgress
             totalLabel={model.weekToDateLabel}
@@ -124,7 +166,7 @@ export default function HomeScreen() {
             emphasized
             earningsLabel={model.earningsLabel}
           />
-        </View>
+        </Pressable>
       </View>
 
       <BlockBanner onCheckIn={onToggle} busy={busy} />
@@ -161,6 +203,21 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
+      {undoable && (
+        <View style={styles.undoWrap} pointerEvents="box-none">
+          <View style={[styles.undoBar, { backgroundColor: theme.text }]}>
+            <Text style={[styles.undoText, { color: theme.surface }]}>
+              {t('sessionEnded')} · {formatDurationWords(
+                Math.floor((undoable.checkOut!.getTime() - undoable.checkIn.getTime()) / 1000),
+              )}
+            </Text>
+            <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={undoCheckOut}>
+              <Text style={[styles.undoAction, { color: theme.accent }]}>{t('undo')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       {selected && (
         <SessionDetailSheet
           session={selected}
@@ -186,8 +243,9 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     gap: 8,
   },
-  elapsed: {
-    ...TYPE.display,
+  sinceCaption: {
+    fontSize: 13,
+    fontWeight: '500',
     fontVariant: ['tabular-nums'],
   },
   dateCaption: {
@@ -273,5 +331,34 @@ const styles = StyleSheet.create({
   },
   rowPressed: {
     opacity: 0.7,
+  },
+  undoWrap: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+  },
+  undoBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    borderRadius: RADIUS.pill,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  undoText: {
+    fontSize: 14,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
+  },
+  undoAction: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

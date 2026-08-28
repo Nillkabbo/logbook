@@ -15,10 +15,13 @@ export function CheckInToggle({
   running,
   disabled,
   onPress,
+  elapsedLabel = null,
 }: {
   running: boolean;
   disabled: boolean;
   onPress: () => void;
+  /** Live H:MM:SS while running — rendered inside the circle. */
+  elapsedLabel?: string | null;
 }) {
   const theme = useTheme();
   const { t } = useI18n();
@@ -60,7 +63,11 @@ export function CheckInToggle({
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 6 }).start();
   const press = () => {
     // A denied/unavailable haptic must never block the toggle.
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    // Check-in is assertive (Medium); check-out is weightier (Heavy) — two
+    // physically distinct signatures for two mentally different moments.
+    Haptics.impactAsync(
+      running ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Medium,
+    ).catch(() => {});
     onPress();
   };
 
@@ -89,7 +96,14 @@ export function CheckInToggle({
           disabled={disabled}>
           {running ? (
             <View style={[styles.circle, { backgroundColor: theme.stop, boxShadow: theme.stopGlow }]}>
-              <Text style={[styles.label, { color: theme.onStop }]}>{t('checkOut')}</Text>
+              {elapsedLabel ? (
+                <>
+                  <Text style={[styles.elapsedText, { color: theme.onStop }]}>{elapsedLabel}</Text>
+                  <Text style={[styles.actionLabel, { color: theme.onStop }]}>{t('checkOut')}</Text>
+                </>
+              ) : (
+                <Text style={[styles.label, { color: theme.onStop }]}>{t('checkOut')}</Text>
+              )}
             </View>
           ) : (
             <LinearGradient
@@ -130,5 +144,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 26,
     fontWeight: '700',
+  },
+  elapsedText: {
+    fontSize: 36,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -1,
+  },
+  actionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 4,
+    opacity: 0.8,
   },
 });
