@@ -7,6 +7,7 @@ import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { weekKey } from '@/engine/weeks';
+import { categorySuggestions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
 import { logsModel } from '@/engine/logs';
 import type { Session } from '@/engine/types';
@@ -35,9 +36,7 @@ export default function LogsScreen() {
   );
 
   const weeks = logsModel(sessions, settings, now, categoryFilter ?? undefined, locale);
-  const categorySuggestions = [...new Set(sessions.map((s) => s.category))].filter(
-    (c) => c.length > 0,
-  );
+  const suggestions = categorySuggestions(sessions);
 
   return (
     <ScrollView
@@ -50,7 +49,7 @@ export default function LogsScreen() {
             onPress={() => setCategoryFilter(null)}>
             <Text style={[styles.filterText, { color: categoryFilter === null ? theme.onAccent : theme.text }]}>{t('all')}</Text>
           </Pressable>
-          {categorySuggestions.map((chip) => {
+          {suggestions.map((chip) => {
             const active = categoryFilter === chip;
             return (
               <Pressable
@@ -151,7 +150,7 @@ export default function LogsScreen() {
       {selected && (
         <SessionDetailSheet
           session={selected}
-          suggestions={categorySuggestions}
+          suggestions={suggestions}
           onSave={(patch) => saveSession(selected.id, patch)}
           onDelete={removeSession}
           onClose={() => setSelected(null)}

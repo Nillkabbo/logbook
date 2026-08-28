@@ -3,46 +3,31 @@ import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-import { SessionDetailSheet } from '@/components/SessionDetailSheet';
-
+import { BackupBanner, BlockBanner, QuickCategoryRow } from '@/components/HomeBanners';
 import { CheckInToggle } from '@/components/CheckInToggle';
+import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { homeModel } from '@/engine/home';
 import { formatTimeOfDay } from '@/engine/time';
 import { formatDayLabel } from '@/engine/weeks';
-import { isBackupDue } from '@/engine/backup';
+import { categorySuggestions } from '@/engine/sessions';
+import { nextBlockOccurrence } from '@/engine/schedule';
+import type { Session } from '@/engine/types';
 import { useHour12 } from '@/ui/clock';
 import { useI18n } from '@/ui/i18n';
-import type { Session } from '@/engine/types';
-import { blockOccurring, nextBlockOccurrence } from '@/engine/schedule';
 import { RADIUS, TYPE, useTheme } from '@/theme';
 
 export default function HomeScreen() {
   const theme = useTheme();
-  const hour12 = useHour12();
   const { t, locale } = useI18n();
-  const { refresh, checkIn, checkOut, sessions, settings, now, exportBackup, blocks,
-    saveSession, removeSession } = useLogbook();
-  const [selected, setSelected] = useState<Session | null>(null);
+  const hour12 = useHour12();
+  const { refresh, checkIn, checkOut, sessions, settings, now, saveSession, removeSession, blocks } =
+    useLogbook();
   const [busy, setBusy] = useState(false);
-  const [backupDismissed, setBackupDismissed] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const [selected, setSelected] = useState<Session | null>(null);
 
-  const backupDue = sessions.length > 0 && isBackupDue(settings.lastExportAt, now);
-
-  const runBackup = async () => {
-    if (exporting) return;
-    setExporting(true);
-    try {
-      await exportBackup();
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  // Re-read on focus so data written elsewhere (or app restarts) is reflected.
   useFocusEffect(
     useCallback(() => {
       refresh();
@@ -52,26 +37,7 @@ export default function HomeScreen() {
   // The store's `now` ticks every second while a session runs, re-driving this model.
   const model = homeModel(sessions, settings, now);
   const nextBlock = nextBlockOccurrence(blocks, now);
-  const currentBlock = model.running ? null : blockOccurring(blocks, now);
-
-  // Fast path: categorise the running session in one tap — four most recent
-  // categories plus '…' into the full sheet. Shown only while uncategorised.
   const runningUncategorised = model.running !== null && model.running.category === '';
-  const recentCategories = [
-    ...new Set([...sessions].reverse().map((s) => s.category)),
-  ]
-    .filter((c) => c.length > 0)
-    .slice(0, 4);
-  const setRunningCategory = async (category: string) => {
-    if (!model.running) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    await saveSession(model.running.id, {
-      checkIn: model.running.checkIn,
-      checkOut: null,
-      note: model.running.note,
-      category,
-    });
-  };
 
   const onToggle = async () => {
     if (busy) return;
@@ -89,6 +55,17 @@ export default function HomeScreen() {
     }
   };
 
+  const setRunningCategory = async (category: string) => {
+    if (!model.running) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    await saveSession(model.running.id, {
+      checkIn: model.running.checkIn,
+      checkOut: null,
+      note: model.running.note,
+      category,
+    });
+  };
+
   return (
     <View style={[styles.screen, { backgroundColor: theme.subtle }]}>
       <View style={styles.header}>
@@ -99,19 +76,11 @@ export default function HomeScreen() {
       </View>
 
       {runningUncategorised && (
-        <View style={styles.quickCategoryRow}>
-          {recentCategories.map((category) => (
-            <Pressable
-              key={category}
-              style={[styles.quickChip, { borderColor: theme.accent }]}
-              onPress={() => setRunningCategory(category)}>
-              <Text style={[styles.quickChipText, { color: theme.accent }]}>{category}</Text>
-            </Pressable>
-          ))}
-          <Pressable onPress={() => setSelected(model.running)}>
-            <Text style={[styles.quickMore, { color: theme.muted }]}>…</Text>
-          </Pressable>
-        </View>
+        <QuickCategoryRow
+          categories={categorySuggestions(sessions, 4)}
+          onPick={setRunningCategory}
+          onMore={() => setSelected(model.running)}
+        />
       )}
 
       <View style={styles.totals}>
@@ -144,46 +113,13 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {backupDue && !backupDismissed && (
-        <View
-          style={[
-            styles.backupBanner,
-            { backgroundColor: theme.surface, borderColor: theme.accent },
-          ]}>
-          <Text style={[styles.backupText, { color: theme.text }]}>
-            {t('backupTitle')}
-          </Text>
-          <View style={styles.backupActions}>
-            <Pressable
-              style={[styles.backupButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
-              disabled={exporting}
-              onPress={runBackup}>
-              <Text style={[styles.backupButtonText, { color: theme.onAccent }]}>{t('exportNow')}</Text>
-            </Pressable>
-            <Pressable onPress={() => setBackupDismissed(true)}>
-              <Text style={[styles.backupDismiss, { color: theme.muted }]}>{t('dismiss')}</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
+      <BlockBanner onCheckIn={onToggle} busy={busy} />
+      <BackupBanner />
 
-      {currentBlock && (
-        <View
-          style={[styles.blockBanner, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
-          <Text style={[styles.backupText, { color: theme.text }]}>
-            {t('blockInProgress')}
-          </Text>
-          <Pressable
-            style={[styles.backupButton, { backgroundColor: theme.accent }]}
-            disabled={busy}
-            onPress={onToggle}>
-            <Text style={[styles.backupButtonText, { color: theme.onAccent }]}>{t('checkIn')}</Text>
-          </Pressable>
-        </View>
-      )}
       {nextBlock && (
         <Text style={[styles.nextBlock, { color: theme.muted }]}>
-          {t('nextBlock')}: {formatDayLabel(nextBlock.startsAt, locale)}, {formatTimeOfDay(nextBlock.startsAt, hour12)}
+          {t('nextBlock')}: {formatDayLabel(nextBlock.startsAt, locale)},{' '}
+          {formatTimeOfDay(nextBlock.startsAt, hour12)}
         </Text>
       )}
 
@@ -198,16 +134,17 @@ export default function HomeScreen() {
           </Pressable>
         ))}
         {model.todaySessions.length === 0 && (
-          <Text style={[styles.empty, { color: theme.muted }]}>
-{t('emptyHome')}
-          </Text>
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyIcon}>🕘</Text>
+            <Text style={[styles.empty, { color: theme.muted }]}>{t('emptyHome')}</Text>
+          </View>
         )}
       </ScrollView>
 
       {selected && (
         <SessionDetailSheet
           session={selected}
-          suggestions={[...new Set(sessions.map((s) => s.category))].filter((c) => c.length > 0)}
+          suggestions={categorySuggestions(sessions)}
           onSave={(patch) => saveSession(selected.id, patch)}
           onDelete={removeSession}
           onClose={() => setSelected(null)}
@@ -260,39 +197,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
-  list: {
-    gap: 8,
-    paddingBottom: 24,
-  },
-  empty: {
-    textAlign: 'center',
-    paddingVertical: 16,
-    lineHeight: 22,
-  },
-  rowPressed: {
-    opacity: 0.7,
-  },
-  quickCategoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  quickChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 18,
-    borderWidth: 1,
-  },
-  quickChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  quickMore: {
-    fontSize: 16,
-    paddingHorizontal: 6,
-  },
   offRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -310,6 +214,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
+  offBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  nextBlock: {
+    fontSize: 13,
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
+  },
+  list: {
+    gap: 8,
+    paddingBottom: 24,
+  },
   emptyWrap: {
     alignItems: 'center',
     gap: 8,
@@ -318,49 +235,11 @@ const styles = StyleSheet.create({
   emptyIcon: {
     fontSize: 40,
   },
-  offBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  backupBanner: {
-    borderRadius: RADIUS.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
-    gap: 10,
-  },
-  backupText: {
-    fontSize: 14,
-  },
-  backupActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  backupButton: {
-    borderRadius: RADIUS.pill,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-  },
-  backupButtonText: {
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  backupDismiss: {
-    fontSize: 14,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  blockBanner: {
-    borderRadius: RADIUS.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
-    gap: 10,
-    alignItems: 'flex-start',
-  },
-  nextBlock: {
-    fontSize: 13,
+  empty: {
     textAlign: 'center',
-    fontVariant: ['tabular-nums'],
+    lineHeight: 22,
+  },
+  rowPressed: {
+    opacity: 0.7,
   },
 });

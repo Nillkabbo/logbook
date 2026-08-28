@@ -15,3 +15,16 @@ export function sumCompletedSessions(sessions: Session[]): number {
     .filter((s) => s.checkOut !== null)
     .reduce((sum, s) => sum + sessionDurationSeconds(s), 0);
 }
+
+/** Distinct categories in most-recently-used order (empty labels never included). */
+export function categorySuggestions(sessions: Session[], limit?: number): string[] {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  for (const session of [...sessions].reverse()) {
+    const category = session.category;
+    if (category.length === 0 || seen.has(category)) continue;
+    seen.add(category);
+    ordered.push(category);
+  }
+  return limit === undefined ? ordered : ordered.slice(0, limit);
+}

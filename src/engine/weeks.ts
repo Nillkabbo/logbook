@@ -1,3 +1,5 @@
+import { formatDuration } from './time';
+import { formatMoney } from './money';
 import type { Weekday } from './types';
 
 export interface WeekRange {
@@ -25,12 +27,15 @@ function shortDate(date: Date, locale: string): string {
   return date.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-/** Local-day identity key `YYYY-MM-DD` — the Week's storage identity for Off weeks. */
-export function weekKey(date: Date): string {
+/** Local-day identity key `YYYY-MM-DD` — the one day-key in the codebase. */
+export function localDayKey(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${date.getFullYear()}-${month}-${day}`;
 }
+
+/** Alias: the key of a week is its start day's key. */
+export const weekKey = localDayKey;
 
 /** Labels a single day, e.g. "Wed, Aug 26" (or the given locale's equivalent). */
 export function formatDayLabel(date: Date, locale = 'en-US'): string {
@@ -60,5 +65,35 @@ export function weekProgress(totalSeconds: number, targetSeconds: number): WeekP
   return {
     progress: targetSeconds === 0 ? 0 : totalSeconds / targetSeconds,
     overTarget: totalSeconds > targetSeconds,
+  };
+}
+
+export interface WeekSummary {
+  /** Fraction of target reached; exceeds 1 in an over-target week. */
+  progress: number;
+  overTarget: boolean;
+  /** Clock-style overage (e.g. "0:15") in an over-target week; null otherwise. */
+  overByLabel: string | null;
+  /** Week earnings at the given rate; null when no rate is set. */
+  earningsLabel: string | null;
+}
+
+/**
+ * Every week-display judgment in one place: target progress and Over-target
+ * (suspended for Off weeks), the overage label, and earnings. Both screen
+ * models call this — no rule lives twice.
+ */
+export function weekSummary(
+  totalSeconds: number,
+  targetSeconds: number,
+  off: boolean,
+  hourlyRate: number,
+): WeekSummary {
+  const judged = off ? { progress: 0, overTarget: false } : weekProgress(totalSeconds, targetSeconds);
+  return {
+    progress: judged.progress,
+    overTarget: judged.overTarget,
+    overByLabel: judged.overTarget ? formatDuration(totalSeconds - targetSeconds) : null,
+    earningsLabel: hourlyRate > 0 ? formatMoney((totalSeconds / 3600) * hourlyRate) : null,
   };
 }

@@ -1,8 +1,7 @@
 import { formatDuration, formatElapsed } from './time';
-import { formatMoney } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
-import { weekKey, weekProgress, weekRange } from './weeks';
+import { weekKey, weekRange, weekSummary } from './weeks';
 
 export interface HomeModel {
   running: Session | null;
@@ -55,9 +54,7 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
   );
   const weeklyTargetSeconds = Math.round(settings.weeklyTargetHours * 3600);
   const off = settings.offWeeks.includes(weekKey(week.start));
-  const progress = off
-    ? { progress: 0, overTarget: false }
-    : weekProgress(weekToDateSeconds, weeklyTargetSeconds);
+  const summary = weekSummary(weekToDateSeconds, weeklyTargetSeconds, off, settings.hourlyRate);
 
   return {
     running,
@@ -67,13 +64,10 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
     todayTotalLabel: formatDuration(todayTotalSeconds),
     weekToDateLabel: formatDuration(weekToDateSeconds),
     weeklyTargetLabel: formatDuration(weeklyTargetSeconds),
-    weekProgress: progress.progress,
-    overTarget: progress.overTarget,
-    overByLabel: progress.overTarget ? formatDuration(weekToDateSeconds - weeklyTargetSeconds) : null,
+    weekProgress: summary.progress,
+    overTarget: summary.overTarget,
+    overByLabel: summary.overByLabel,
     off,
-    earningsLabel:
-      settings.hourlyRate > 0
-        ? formatMoney((weekToDateSeconds / 3600) * settings.hourlyRate)
-        : null,
+    earningsLabel: summary.earningsLabel,
   };
 }

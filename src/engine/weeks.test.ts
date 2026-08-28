@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { dateLocale, formatDayLabel, weekProgress, weekRange, weekRangeLabel } from './weeks';
+import { dateLocale, formatDayLabel, weekProgress, weekRange, weekRangeLabel, weekSummary } from './weeks';
 
 const at = (y: number, mo: number, d: number, h = 0, mi = 0, s = 0) => new Date(y, mo, d, h, mi, s);
 
@@ -97,5 +97,27 @@ describe('weekProgress', () => {
     expect(formatDayLabel(at(2026, 7, 27), 'fr-FR')).toBe('jeu. 27 août');
     expect(dateLocale('bn')).toBe('bn-BD-u-nu-latn');
     expect(dateLocale('system')).toBe('en-US');
+  });
+
+  it('weekSummary owns the display judgments: progress, overage, earnings, off', () => {
+    expect(weekSummary(8100, 7200, false, 25)).toEqual({
+      progress: 8100 / 7200,
+      overTarget: true,
+      overByLabel: '0:15',
+      earningsLabel: '$ 56.25',
+    });
+    expect(weekSummary(8100, 144000, false, 0)).toEqual({
+      progress: 8100 / 144000,
+      overTarget: false,
+      overByLabel: null,
+      earningsLabel: null,
+    });
+    // Off week: judgment suspended, earnings still real
+    expect(weekSummary(8100, 7200, true, 25)).toEqual({
+      progress: 0,
+      overTarget: false,
+      overByLabel: null,
+      earningsLabel: '$ 56.25',
+    });
   });
 });

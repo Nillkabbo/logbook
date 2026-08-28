@@ -22,7 +22,7 @@ import {
   updateSettings as updateSettingsInDb,
 } from '@/db/database';
 import { syncNotifications } from '@/notifications/reminders';
-import { deleteEvent, editEvent, reminderDecision } from '@/engine/reminders';
+import { deleteEvent, editEvent, reminderDecision, type ReminderEvent } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
 import { parseSessionsCsv, sessionsToCsv, type CsvImportResult } from '@/engine/csv';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
@@ -91,17 +91,32 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(timer);
   }, [running]);
 
+  // The one sync verb: run a Reminder-lifecycle decision (or re-derive the
+  // running session's), then rebuild every OS notification from current truth.
+  const syncAfter = useCallback(
+    async (event: ReminderEvent | null, blocksOverride?: WorkBlock[]) => {
+      const reminder = event
+        ? reminderDecision(event, settings, new Date())
+        : running
+          ? reminderDecision({ type: 'checked-in', checkIn: running.checkIn }, settings, new Date())
+          : null;
+      await syncNotifications({
+        reminder,
+        blocks: blocksOverride ?? blocks,
+        language: settings.language,
+      });
+    },
+    [settings, blocks, running],
+  );
+
   // Once, after the first load, rebuild every OS notification from current
   // truth — OS triggers persist across launches but reflect stale states.
   const resynced = useRef(false);
   useEffect(() => {
     if (!ready || resynced.current) return;
     resynced.current = true;
-    const reminder = running
-      ? reminderDecision({ type: 'checked-in', checkIn: running.checkIn }, settings, new Date())
-      : null;
-    syncNotifications({ reminder, blocks, language: settings.language });
-  }, [ready, running, settings, blocks]);
+    syncAfter(null);
+  }, [ready, syncAfter]);
 
   const checkIn = useCallback(async () => {
     const checkInAt = new Date();
@@ -109,17 +124,15 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     await refresh();
     // Sync after refresh: the OS permission prompt must never delay the
     // button/timer flipping to the running state.
-    const reminder = reminderDecision({ type: 'checked-in', checkIn: checkInAt }, settings, new Date());
-    await syncNotifications({ reminder, blocks, language: settings.language });
-  }, [refresh, settings, blocks]);
+    await syncAfter({ type: 'checked-in', checkIn: checkInAt });
+  }, [refresh, syncAfter]);
 
   const checkOut = useCallback(async () => {
     if (!running) return;
     await completeSession(running.id, new Date());
     await refresh();
-    const reminder = reminderDecision({ type: 'checked-out' }, settings, new Date());
-    await syncNotifications({ reminder, blocks, language: settings.language });
-  }, [running, refresh, settings, blocks]);
+    await syncAfter({ type: 'checked-out' });
+  }, [running, refresh, syncAfter]);
 
   const saveSession = useCallback(
     async (id: number, patch: SessionPatch) => {
@@ -127,10 +140,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       if (!target) return;
       await updateSessionInDb(id, patch);
       await refresh();
-      const reminder = reminderDecision(editEvent(target, patch), settings, new Date());
-      await syncNotifications({ reminder, blocks, language: settings.language });
+      await syncAfter(editEvent(target, patch));
     },
-    [sessions, refresh, settings, blocks],
+    [sessions, refresh, syncAfter],
   );
 
   const removeSession = useCallback(
@@ -139,10 +151,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       if (!target) return;
       await deleteSessionInDb(id);
       await refresh();
-      const reminder = reminderDecision(deleteEvent(target), settings, new Date());
-      await syncNotifications({ reminder, blocks, language: settings.language });
+      await syncAfter(deleteEvent(target));
     },
-    [sessions, refresh, settings, blocks],
+    [sessions, refresh, syncAfter],
   );
 
   const saveSettings = useCallback(

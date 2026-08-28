@@ -1,14 +1,11 @@
 import { sessionDurationSeconds } from './sessions';
+import { localDayKey } from './weeks';
 import type { Session } from './types';
 
 const pad = (n: number, width = 2) => String(n).padStart(width, '0');
 
-function localDate(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
 function localDateTime(date: Date): string {
-  return `${localDate(date)} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  return `${localDayKey(date)} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
 function escapeCsv(value: string): string {
@@ -33,7 +30,7 @@ export function sessionsToCsv(sessions: Session[]): string {
         : String(Math.floor(sessionDurationSeconds(session) / 60));
     lines.push(
       [
-        localDate(session.checkIn),
+        localDayKey(session.checkIn),
         localDateTime(session.checkIn),
         session.checkOut === null ? '' : localDateTime(session.checkOut),
         durationMinutes,

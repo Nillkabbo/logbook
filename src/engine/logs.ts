@@ -1,8 +1,16 @@
 import { formatDuration } from './time';
-import { formatMoney } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
-import { dateLocale, formatDayLabel, weekKey, weekProgress, weekRange, weekRangeLabel, type WeekRange } from './weeks';
+import {
+  dateLocale,
+  formatDayLabel,
+  localDayKey,
+  weekKey,
+  weekRange,
+  weekRangeLabel,
+  weekSummary,
+  type WeekRange,
+} from './weeks';
 
 export interface LogDay {
   /** Local-day identity for list keys: `YYYY-MM-DD`. */
@@ -43,12 +51,6 @@ export interface LogWeek {
   categoryBreakdown: Array<{ label: string; totalLabel: string }>;
 }
 
-function localDayKey(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
-
 function localMidnight(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -87,7 +89,7 @@ export function logsModel(
   return weeks.map(({ range, sessions }) => {
     const totalSeconds = sumCompletedSessions(sessions);
     const off = settings.offWeeks.includes(weekKey(range.start));
-    const progress = off ? { progress: 0, overTarget: false } : weekProgress(totalSeconds, targetSeconds);
+    const summary = weekSummary(totalSeconds, targetSeconds, off, settings.hourlyRate);
 
     const byCategory = new Map<string, number>();
     for (const session of sessions) {
@@ -158,14 +160,11 @@ export function logsModel(
       dayBars,
       totalLabel: formatDuration(totalSeconds),
       targetLabel: formatDuration(targetSeconds),
-      progress: progress.progress,
-      overTarget: progress.overTarget,
-      overByLabel: progress.overTarget ? formatDuration(totalSeconds - targetSeconds) : null,
+      progress: summary.progress,
+      overTarget: summary.overTarget,
+      overByLabel: summary.overByLabel,
       off,
-      earningsLabel:
-        settings.hourlyRate > 0
-          ? formatMoney((totalSeconds / 3600) * settings.hourlyRate)
-          : null,
+      earningsLabel: summary.earningsLabel,
       categoryBreakdown,
     };
   });
