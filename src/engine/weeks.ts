@@ -25,6 +25,11 @@ function shortDate(date: Date): string {
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+/** Labels a single day, e.g. "Wed, Aug 26". */
+export function formatDayLabel(date: Date): string {
+  return shortDate(date);
+}
+
 /** Labels a week by its date range, e.g. "Thu, Aug 21 – Wed, Aug 27" — never a week number. */
 export function weekRangeLabel(range: WeekRange): string {
   const lastDay = new Date(range.end);

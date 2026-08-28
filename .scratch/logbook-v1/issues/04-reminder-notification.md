@@ -6,10 +6,10 @@ Parent spec: `.scratch/logbook-v1/spec.md`
 
 **Blocked by:** 02 — Check-in/check-out loop with SQLite persistence.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Checking in schedules a local notification to fire after the configured reminder threshold (default 10h from settings)
-- [ ] Checking out cancels the pending notification — it never fires after checkout
-- [ ] On Android 13+, `requestPermissionsAsync()` is called before scheduling; denial doesn't break check-in
-- [ ] Manually verified on device with a low threshold: the notification fires while the app is backgrounded
-- [ ] No remote push, no dev build — local notifications only, Expo Go compatible
+- [x] Checking in schedules a local notification to fire after the configured reminder threshold (default 10h from settings)
+- [x] Checking out cancels the pending notification — it never fires after checkout
+- [x] On Android 13+, `requestPermissionsAsync()` is called before scheduling; denial doesn't break check-in
+- [ ] Manually verified on device with a low threshold: the notification fires while the app is backgrounded *(pending user verification on phone — set threshold to 1h in DB or wait for Settings screen in ticket 07)*
+- [x] No remote push, no dev build — local notifications only, Expo Go compatible
