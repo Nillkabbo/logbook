@@ -141,106 +141,122 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   }, [ready, syncAfter]);
 
   // DEV-ONLY: 2 months of realistic sample data, explicitly triggered from
-  // the Data sub-screen. Remove the button after testing.
+  // the Data sub-screen. Clears existing data first so re-loading never
+  // duplicates. Remove after testing.
   const loadSampleData = useCallback(async () => {
     (async () => {
-      // Deterministic pseudo-random for reproducibility
-      let prng = 42;
+      // Clear existing data so re-loading is idempotent
+      for (const session of await listSessions()) {
+        await deleteSessionInDb(session.id);
+      }
+      for (const block of await listBlocks()) {
+        await deleteBlockInDb(block.id);
+      }
+
+      // Deterministic PRNG (Lehmer/Park-Miller)
+      let prng = 12345;
       const rand = () => {
-        prng = (prng * 16807) % 2147483647;
+        prng = (prng * 48271) % 2147483647;
         return prng / 2147483647;
       };
       const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
-      const randInt = (min: number, max: number) => min + Math.floor(rand() * (max - min + 1));
+      const randInt = (min: number, max: number) =>
+        min + Math.floor(rand() * (max - min + 1));
 
-      const CATEGORIES = ['Deep work', 'Deep work', 'Deep work', 'Meetings', 'Meetings', 'Admin', 'Writing'];
+      const CATEGORIES = ['Deep work', 'Deep work', 'Meetings', 'Meetings', 'Admin', 'Writing'];
       const NOTES: Record<string, string[]> = {
-        'Deep work': ['payments refactor', 'auth flow', 'dashboard polish', 'API migration', 'bug hunt', 'perf pass'],
+        'Deep work': ['payments refactor', 'auth flow', 'dashboard polish', 'API migration', 'bug hunt'],
         'Meetings': ['sprint planning', '1:1 with Sam', 'design review', 'client call', 'standup'],
         'Admin': ['expenses', 'inbox zero', 'timesheet'],
         'Writing': ['blog post', 'release notes', 'docs update'],
       };
 
       const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-      // ── Work blocks: Mon–Fri 9:00–17:00 + Sat 10:00–14:00 ──
-      await insertBlock([1, 2, 3, 4, 5], 540, 1020);
-      await insertBlock([6], 600, 840);
+      // ── Work blocks ──
+      await insertBlock([1, 2, 3, 4, 5], 540, 1020); // Mon–Fri 9:00–17:00
+      await insertBlock([6], 600, 840); // Sat 10:00–14:00
 
-      // ── Off week: 2 weeks ago (Sunday–Saturday), properly keyed ──
-      const offWeekStart = new Date(today);
-      offWeekStart.setDate(today.getDate() - today.getDay() - 14);
-      const offWeekEnd = new Date(offWeekStart);
-      offWeekEnd.setDate(offWeekStart.getDate() + 7);
+      // ── Compute week boundaries relative to this week's Sunday ──
+      const thisSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
 
-      // ── Over-target weeks: 3 and 5 weeks ago ──
-      const overWeek3Start = new Date(today);
-      overWeek3Start.setDate(today.getDate() - today.getDay() - 21);
-      const overWeek3End = new Date(overWeek3Start);
-      overWeek3End.setDate(overWeek3Start.getDate() + 7);
-      const overWeek5Start = new Date(today);
-      overWeek5Start.setDate(today.getDate() - today.getDay() - 35);
-      const overWeek5End = new Date(overWeek5Start);
-      overWeek5End.setDate(overWeek5Start.getDate() + 7);
+      const weekStart = (weeksAgo: number) => {
+        const d = new Date(thisSunday);
+        d.setDate(thisSunday.getDate() - weeksAgo * 7);
+        return d;
+      };
+      const weekEnd = (weeksAgo: number) => {
+        const d = new Date(thisSunday);
+        d.setDate(thisSunday.getDate() - weeksAgo * 7 + 7);
+        return d;
+      };
 
-      // ── Sessions across 60 days ──
-      for (let d = 60; d >= 0; d--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - d);
-        const dow = date.getDay();
+      // Off week = 2 weeks ago; over-target = 3 and 5 weeks ago
+      const OFF_WEEK = 2;
+      const OVER_WEEKS = [3, 5];
 
-        // Skip the off week entirely
-        if (date >= offWeekStart && date < offWeekEnd) continue;
+      // ── Generate sessions: 8 weeks of data (56 days) ──
+      for (let weeksAgo = 8; weeksAgo >= 0; weeksAgo--) {
+        const wStart = weekStart(weeksAgo);
+        const wEnd = weekEnd(weeksAgo);
+        const isOff = weeksAgo === OFF_WEEK;
+        const isOver = OVER_WEEKS.includes(weeksAgo);
 
-        const isOverTarget =
-          (date >= overWeek3Start && date < overWeek3End) ||
-          (date >= overWeek5Start && date < overWeek5End);
+        for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+          if (isOff) break; // skip the entire off week
 
-        // Weekends: 15% chance of a Saturday session, never Sunday
-        if (dow === 0) continue;
-        if (dow === 6 && rand() > 0.15) continue;
+          const date = new Date(wStart);
+          date.setDate(wStart.getDate() + dayOffset);
+          const dow = date.getDay();
 
-        // Weekdays: 15% skip (sick/vacation), never skip over-target weeks
-        if (dow >= 1 && dow <= 5 && rand() < 0.15 && !isOverTarget) continue;
+          // Sunday: never
+          if (dow === 0) continue;
+          // Saturday: 20% chance
+          if (dow === 6 && rand() > 0.2) continue;
+          // Weekday: 15% skip (not in over-target weeks)
+          if (dow >= 1 && dow <= 5 && rand() < 0.15 && !isOver) continue;
+          // Today (weeksAgo=0, dayOffset=today's dow): skip if before now
+          if (weeksAgo === 0 && date > now) continue;
 
-        // Session count: 1-3 (over-target weeks get 2-3 longer sessions)
-        const sessionCount = isOverTarget ? randInt(2, 3) : randInt(1, 3);
+          // 1-3 sessions per day
+          const count = isOver ? randInt(2, 3) : randInt(1, 3);
+          // Over-target weeks get longer sessions
+          const baseDur = isOver ? randInt(180, 300) : randInt(60, 240);
 
-        let cursor = 8 * 60 + randInt(0, 45); // 8:00–8:45
+          // Start times: morning ~8:30, midday ~12:00, afternoon ~14:30
+          const startHours = [8.5, 12, 14.5];
 
-        for (let i = 0; i < sessionCount; i++) {
-          const cat = pick(CATEGORIES);
-          const note = rand() < 0.4 ? pick(NOTES[cat] ?? ['']) : '';
-          const durMin = isOverTarget ? randInt(150, 300) : randInt(45, 240);
-          const startMin = cursor;
-          const endMin = Math.min(cursor + durMin, 17 * 60 + 45);
-          if (endMin - startMin < 30) break;
+          for (let i = 0; i < count; i++) {
+            const cat = pick(CATEGORIES);
+            const note = rand() < 0.35 ? pick(NOTES[cat] ?? ['']) : '';
+            const startH = startHours[i] + rand() * 0.5; // up to 30min jitter
+            const durMin = baseDur + randInt(-30, 30);
+            const startTotalMin = Math.floor(startH * 60);
+            const endTotalMin = Math.min(startTotalMin + durMin, 17 * 60 + 30);
+            if (endTotalMin - startTotalMin < 30) continue;
 
-          const checkIn = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(startMin / 60), startMin % 60);
-          const checkOut = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(endMin / 60), endMin % 60);
-          const id = await insertSession(checkIn, note, cat);
-          await completeSession(id, checkOut);
-          cursor = endMin + randInt(45, 90);
+            const checkIn = new Date(
+              date.getFullYear(), date.getMonth(), date.getDate(),
+              Math.floor(startTotalMin / 60), startTotalMin % 60,
+            );
+            const checkOut = new Date(
+              date.getFullYear(), date.getMonth(), date.getDate(),
+              Math.floor(endTotalMin / 60), endTotalMin % 60,
+            );
+            const id = await insertSession(checkIn, note, cat);
+            await completeSession(id, checkOut);
+          }
         }
       }
 
-      // ── Today: a running session (1h ago at most, never future) ──
-      const runningStart = new Date(Math.min(
-        new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 30).getTime(),
-        now.getTime() - 60 * 60 * 1000, // at most 1h ago
-      ));
+      // ── Running session: started 45 minutes ago ──
+      const runningStart = new Date(now.getTime() - 45 * 60 * 1000);
       await insertSession(runningStart, '', '');
 
-      // ── Settings: rate $30/h + the off week ──
-      const offKey = `${offWeekStart.getFullYear()}-${String(offWeekStart.getMonth() + 1).padStart(2, '0')}-${String(offWeekStart.getDate()).padStart(2, '0')}`;
-
-      // Read current offWeeks and append
-      const currentSettings = await getSettings();
-      const offWeeks = currentSettings.offWeeks.includes(offKey)
-        ? currentSettings.offWeeks
-        : [...currentSettings.offWeeks, offKey];
-      await updateSettingsInDb({ hourlyRate: 30, offWeeks });
+      // ── Settings ──
+      const offSunday = weekStart(OFF_WEEK);
+      const offKey = `${offSunday.getFullYear()}-${String(offSunday.getMonth() + 1).padStart(2, '0')}-${String(offSunday.getDate()).padStart(2, '0')}`;
+      await updateSettingsInDb({ hourlyRate: 30, offWeeks: [offKey] });
 
       await refresh();
     })();
