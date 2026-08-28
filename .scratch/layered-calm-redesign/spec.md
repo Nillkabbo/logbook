@@ -186,3 +186,7 @@ not what it means.
 - No ADR is proposed: the redesign reverses cheaply (tokens + styling) and
   changes no domain rule; the navigation split is a routing choice, not an
   architectural commitment.
+
+## Comments
+
+- Two-axis review (Standards + Spec) run against 22ed6e1...HEAD after implementation; findings fixed in the follow-up commit (toggle bug, OVER localization, export catch, engine-owned block labels). Suite: 100 passed.
