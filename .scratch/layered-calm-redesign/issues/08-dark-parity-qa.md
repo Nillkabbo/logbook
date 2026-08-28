@@ -43,3 +43,7 @@ prepare, present, and fix; the sign-off itself is the reporter's.
 
 - Mechanical sweep implemented in commit 28cbf25: border token retired, semantic color audit passed, dark muted text measured ~6.5:1 (AA pass, opacity slack unused). Full suite 98 passed.
 - Human visual sign-off: **pending** — awaiting reporter review of the running app vs the Stitch source of truth.
+
+## Comments
+
+- Web QA evidence added (appweb/ screenshots): visuals verified in light and dark; boxShadow token fix landed in the follow-up commit. Web-only input defect (RN-web + React 19 responder) documented — does not affect Expo Go/native. Remaining for sign-off: reporter verifies on device via Expo Go.
