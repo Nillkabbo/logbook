@@ -6,12 +6,12 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 2, grill session 2026-08-28)
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `sessions` schema gains a category column (default empty); migration preserves existing data
-- [ ] Engine: `Session` carries `category`; `logsModel` weeks expose a label → total breakdown (completed sessions only) — TDD at the engine seam
-- [ ] Session sheet: category input with suggestions from distinct existing labels; saved with the session
-- [ ] Category chip on session rows (Home and Logs), styled from theme tokens
-- [ ] Per-week category breakdown rendered under each Logs week header
-- [ ] CSV rows gain the category column; header updated
-- [ ] Engine tests green (existing 58 + new); typecheck clean; bundles export; verified on both phones
+- [x] `sessions` schema gains a category column (default empty); migration preserves existing data
+- [x] Engine: `Session` carries `category`; `logsModel` weeks expose a label → total breakdown (completed sessions only) — TDD at the engine seam
+- [x] Session sheet: category input with suggestions from distinct existing labels; saved with the session
+- [x] Category chip on session rows (Home and Logs), styled from theme tokens
+- [x] Per-week category breakdown rendered under each Logs week header
+- [x] CSV rows gain the category column; header updated
+- [x] Engine tests green (existing 58 + new); typecheck clean; bundles export; verified on both phones

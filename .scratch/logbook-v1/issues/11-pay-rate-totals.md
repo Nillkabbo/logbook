@@ -6,9 +6,9 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 2, grill session 2026-08-28)
 
 **Blocked by:** 10 — both reshape the week headers; landing 10 first avoids touching them twice.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Settings: hourly Rate field (positive number, blank allowed) alongside target and threshold
-- [ ] Engine: week models expose an `earningsLabel: string | null` — TDD (rate × completed total; null when unset)
-- [ ] Week headers on Home and Logs render the earnings line from tokens
-- [ ] Engine tests green; typecheck clean; bundles export; verified on both phones
+- [x] Settings: hourly Rate field (positive number, blank allowed) alongside target and threshold
+- [x] Engine: week models expose an `earningsLabel: string | null` — TDD (rate × completed total; null when unset)
+- [x] Week headers on Home and Logs render the earnings line from tokens
+- [x] Engine tests green; typecheck clean; bundles export; verified on both phones

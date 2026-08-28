@@ -6,10 +6,10 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 2, grill session 2026-08-28)
 
 **Blocked by:** None (independent of the header chain).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Settings storage gains a last-export timestamp, written by every export path
-- [ ] Home shows the banner when last export is >30 days ago or never; dismissible until next launch
-- [ ] Banner's export action runs the existing CSV export and clears the banner
-- [ ] Styled from theme tokens; engine untouched (pure adapter/UI) unless a pure helper earns a test
-- [ ] Typecheck clean; bundles export; verified on both phones
+- [x] Settings storage gains a last-export timestamp, written by every export path
+- [x] Home shows the banner when last export is >30 days ago or never; dismissible until next launch
+- [x] Banner's export action runs the existing CSV export and clears the banner
+- [x] Styled from theme tokens; engine untouched (pure adapter/UI) unless a pure helper earns a test
+- [x] Typecheck clean; bundles export; verified on both phones

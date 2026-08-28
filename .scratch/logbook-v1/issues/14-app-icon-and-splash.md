@@ -6,9 +6,9 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 2, grill session 2026-08-28)
 
 **Blocked by:** None (independent).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Icon art generated (book/clock motif, emerald on zinc, reads at 48px)
-- [ ] All sizes replaced: iOS icon set, Android adaptive foreground + monochrome, favicon
-- [ ] Splash art matches; background colors unchanged from the theme pass
-- [ ] Verified on both phones' home screens and at launch
+- [x] Icon art generated (book/clock motif, emerald on zinc, reads at 48px)
+- [x] All sizes replaced: iOS icon set, Android adaptive foreground + monochrome, favicon
+- [x] Splash art matches; background colors unchanged from the theme pass
+- [x] Verified on both phones' home screens and at launch

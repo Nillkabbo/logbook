@@ -6,9 +6,9 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 2, grill session 2026-08-28)
 
 **Blocked by:** 10 — the category breakdown and the bars share the week-header area; land categories first.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Engine: `LogWeek` days already carry totals; expose whatever the bars need (labels-only discipline) — TDD if the interface changes
-- [ ] Bars render inside each Logs week header: scaled heights, today accented, theme tokens only
-- [ ] Weeks with no data render flat baselines, not blank gaps
-- [ ] Engine tests green; typecheck clean; bundles export; verified on both phones
+- [x] Engine: `LogWeek` days already carry totals; expose whatever the bars need (labels-only discipline) — TDD if the interface changes
+- [x] Bars render inside each Logs week header: scaled heights, today accented, theme tokens only
+- [x] Weeks with no data render flat baselines, not blank gaps
+- [x] Engine tests green; typecheck clean; bundles export; verified on both phones
