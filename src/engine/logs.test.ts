@@ -83,6 +83,20 @@ describe('logsModel', () => {
     expect(logsModel([], THURSDAY)).toEqual([]);
   });
 
+  it('weeks expose seven day bars scaled to the busiest day, today marked', () => {
+    const NOW = at(2026, 7, 27, 12, 0); // Thursday, inside week A
+    const weeks = logsModel([tue, wed, early, late], THURSDAY, NOW);
+    // Week A (starts Thu Aug 27): only Thursday has sessions (2:15) → the busiest day, intensity 1.
+    const weekA = weeks[0];
+    expect(weekA.dayBars).toHaveLength(7);
+    expect(weekA.dayBars[0]).toMatchObject({ isToday: true, intensity: 1 });
+    expect(weekA.dayBars.slice(1).every((bar) => bar.intensity === 0)).toBe(true);
+    // Week B (starts Thu Aug 20): Tue 2h and Wed 2h share the maximum → both 1; bars are [Thu..Wed].
+    const weekB = weeks[1];
+    expect(weekB.dayBars.map((bar) => bar.intensity)).toEqual([0, 0, 0, 0, 0, 1, 1]);
+    expect(weekB.dayBars.every((bar) => bar.isToday === false)).toBe(true);
+  });
+
   it('weeks show earnings when a rate is set, per completed total', () => {
     const weeks = logsModel(
       [early, late], // week A total 2:15

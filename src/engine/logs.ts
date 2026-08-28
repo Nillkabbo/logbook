@@ -13,12 +13,22 @@ export interface LogDay {
   totalLabel: string;
 }
 
+export interface DayBar {
+  /** Local-day identity for list keys: `YYYY-MM-DD`. */
+  key: string;
+  isToday: boolean;
+  /** Day total scaled to the week's busiest day: 0 empty … 1 busiest. */
+  intensity: number;
+}
+
 export interface LogWeek {
   /** Week-start identity for list keys: `YYYY-MM-DD`. */
   key: string;
   label: string;
   range: WeekRange;
   days: LogDay[];
+  /** Seven bars from the week's start day — the week's shape at a glance. */
+  dayBars: DayBar[];
   totalLabel: string;
   targetLabel: string;
   progress: number;
@@ -46,7 +56,7 @@ function localMidnight(date: Date): Date {
  * day, labeled by date range) containing days (check-in-day ownership) containing
  * sessions (oldest first). Totals count completed sessions only.
  */
-export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
+export function logsModel(sessions: Session[], settings: Settings, now: Date = new Date()): LogWeek[] {
   const byWeek = new Map<number, { range: WeekRange; sessions: Session[] }>();
   for (const session of sessions) {
     const range = weekRange(session.checkIn, settings.weekStartDay);
@@ -106,11 +116,32 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
         };
       });
 
+    // Seven bars from the week's start day, scaled to the busiest day.
+    const secondsByDayKey = new Map(
+      [...byDay.values()].map(({ date, sessions: daySessions }) => [
+        localDayKey(date),
+        sumCompletedSessions(daySessions),
+      ]),
+    );
+    const busiest = Math.max(0, ...secondsByDayKey.values());
+    const dayBars: DayBar[] = Array.from({ length: 7 }, (_, offset) => {
+      const date = new Date(range.start);
+      date.setDate(date.getDate() + offset);
+      const key = localDayKey(date);
+      const seconds = secondsByDayKey.get(key) ?? 0;
+      return {
+        key,
+        isToday: key === localDayKey(now),
+        intensity: busiest === 0 ? 0 : seconds / busiest,
+      };
+    });
+
     return {
       key: localDayKey(range.start),
       label: weekRangeLabel(range),
       range,
       days,
+      dayBars,
       totalLabel: formatDuration(totalSeconds),
       targetLabel: formatDuration(targetSeconds),
       progress: progress.progress,

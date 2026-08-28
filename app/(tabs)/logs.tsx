@@ -21,7 +21,7 @@ export default function LogsScreen() {
     }, [refresh]),
   );
 
-  const weeks = logsModel(sessions, settings);
+  const weeks = logsModel(sessions, settings, now);
   const categorySuggestions = [...new Set(sessions.map((s) => s.category))].filter(
     (c) => c.length > 0,
   );
@@ -47,6 +47,20 @@ export default function LogsScreen() {
             {week.earningsLabel && (
               <Text style={[styles.earnings, { color: theme.accent }]}>{week.earningsLabel}</Text>
             )}
+            <View style={styles.bars}>
+              {week.dayBars.map((bar) => (
+                <View
+                  key={bar.key}
+                  style={[
+                    styles.bar,
+                    {
+                      height: 3 + bar.intensity * 28,
+                      backgroundColor: bar.isToday ? theme.accent : theme.border,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
             {week.categoryBreakdown.length > 0 && (
               <View style={styles.breakdown}>
                 {week.categoryBreakdown.map((entry) => (
@@ -121,6 +135,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
+  },
+  bars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 4,
+    height: 32,
+    marginTop: 2,
+  },
+  bar: {
+    flex: 1,
+    borderRadius: 2,
   },
   breakdown: {
     gap: 2,
