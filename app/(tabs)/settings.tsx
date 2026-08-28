@@ -42,12 +42,17 @@ export default function SettingsScreen() {
     }, [refresh]),
   );
 
-  // Sync the inputs whenever the persisted settings change elsewhere.
+  // Sync the inputs only when the persisted values change elsewhere. The
+  // reset fns are stable — depending on the hook objects instead would fire
+  // this effect every render and clobber each keystroke.
+  const { reset: resetTarget } = target;
+  const { reset: resetThreshold } = threshold;
+  const { reset: resetRate } = rate;
   useEffect(() => {
-    target.reset(String(settings.weeklyTargetHours));
-    threshold.reset(String(settings.reminderThresholdHours));
-    rate.reset(settings.hourlyRate > 0 ? String(settings.hourlyRate) : '');
-  }, [settings.weeklyTargetHours, settings.reminderThresholdHours, settings.hourlyRate, target, threshold, rate]);
+    resetTarget(String(settings.weeklyTargetHours));
+    resetThreshold(String(settings.reminderThresholdHours));
+    resetRate(settings.hourlyRate > 0 ? String(settings.hourlyRate) : '');
+  }, [settings.weeklyTargetHours, settings.reminderThresholdHours, settings.hourlyRate, resetTarget, resetThreshold, resetRate]);
 
   const exportCsv = async () => {
     if (exporting) return;
