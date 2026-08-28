@@ -25,7 +25,7 @@ export function ScheduleEditor({
   onRemove: (id: number) => Promise<void>;
 }) {
   const theme = useTheme();
-  const { t, weekdayName } = useI18n();
+  const { t, weekdayShortName } = useI18n();
   const hour12 = useHour12();
   const [days, setDays] = useState<Weekday[]>([]);
   const [start, setStart] = useState(() => atMinutes(9 * 60));
@@ -79,7 +79,7 @@ export function ScheduleEditor({
           key={block.id}
           style={[styles.row, { backgroundColor: theme.surface }, theme.cardShadow]}>
           <Text style={[styles.rowText, { color: theme.text }]}>
-            {blockRangeLabel(block, weekdayName, hour12)}
+            {blockRangeLabel(block, weekdayShortName, hour12)}
           </Text>
           <Pressable onPress={() => onRemove(block.id)}>
             <Text style={[styles.remove, { color: theme.stop }]}>{t('remove')}</Text>
@@ -87,26 +87,33 @@ export function ScheduleEditor({
         </View>
       ))}
 
-      <WeekdayPicker value={days} onChange={(next) => setDays(next as Weekday[])} />
-      <View style={styles.timeRow}>
-        {timeField('start', 'From', start)}
-        {timeField('end', 'To', end)}
+      <View style={[styles.formCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
+        <WeekdayPicker value={days} onChange={(next) => setDays(next as Weekday[])} />
+        <View style={styles.timeRow}>
+          {timeField('start', 'From', start)}
+          {timeField('end', 'To', end)}
+        </View>
+        <Pressable
+          style={[styles.addButton, { backgroundColor: theme.accent }, busy && styles.disabled]}
+          disabled={busy}
+          onPress={add}>
+          <Text style={[styles.addText, { color: theme.onAccent }]}>{t('addBlock')}</Text>
+        </Pressable>
+        <Text style={[styles.hint, { color: theme.muted }]}>
+          {t('blockHint')}
+        </Text>
       </View>
-      <Pressable
-        style={[styles.addButton, { backgroundColor: theme.accent }, busy && styles.disabled]}
-        disabled={busy}
-        onPress={add}>
-        <Text style={[styles.addText, { color: theme.onAccent }]}>{t('addBlock')}</Text>
-      </Pressable>
-      <Text style={[styles.hint, { color: theme.muted }]}>
-        {t('blockHint')}
-      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    gap: 10,
+  },
+  formCard: {
+    borderRadius: RADIUS.card,
+    padding: 16,
     gap: 10,
   },
   row: {
@@ -157,5 +164,6 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 12,
+    textAlign: 'center',
   },
 });

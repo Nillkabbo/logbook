@@ -60,7 +60,7 @@ describe('logsModel', () => {
   it('groups days within a week newest first, sessions within a day oldest first', () => {
     const weeks = logsModel([tue, wed, overnight, early, late, running], THURSDAY);
     const weekB = weeks[1];
-    expect(weekB.days.map((d) => d.label)).toEqual(['Wed, Aug 26', 'Tue, Aug 25']);
+    expect(weekB.days.map((d) => d.label)).toEqual(['Wednesday', 'Tuesday']);
     expect(weekB.days[0].sessions.map((s) => s.id)).toEqual([2, 3]);
     const weekA = weeks[0];
     expect(weekA.days[0].sessions.map((s) => s.id)).toEqual([4, 5, 6]);
@@ -76,7 +76,7 @@ describe('logsModel', () => {
     const weeks = logsModel([overnight], THURSDAY);
     expect(weeks[0].label).toBe('Thu, Aug 20 – Wed, Aug 26');
     expect(weeks[0].days).toHaveLength(1);
-    expect(weeks[0].days[0].label).toBe('Wed, Aug 26');
+    expect(weeks[0].days[0].label).toBe('Wednesday');
   });
 
   it('no sessions yields an empty list', () => {

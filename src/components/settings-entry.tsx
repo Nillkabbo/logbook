@@ -20,7 +20,7 @@ export function WeekdayPicker({
   onChange: (day: Weekday | Weekday[]) => void;
 }) {
   const theme = useTheme();
-  const { weekdayName } = useI18n();
+  const { weekdayShortName } = useI18n();
   const isActive = (index: number) =>
     Array.isArray(value) ? value.includes(index as Weekday) : value === index;
   const press = (index: number) => {
@@ -49,7 +49,7 @@ export function WeekdayPicker({
                 { color: active ? theme.onAccent : theme.text },
                 active && styles.pillTextActive,
               ]}>
-              {weekdayName(index)}
+              {weekdayShortName(index)}
             </Text>
           </Pressable>
         );
@@ -103,12 +103,12 @@ export function useValidatedHours(
 const styles = StyleSheet.create({
   pillRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   pill: {
+    flex: 1,
+    alignItems: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 14,
     borderRadius: RADIUS.pill,
   },
   pillText: {

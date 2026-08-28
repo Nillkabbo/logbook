@@ -1,0 +1,204 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LogBook - Edit Session</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#85948b",
+                        "on-primary-container": "#00563b",
+                        "on-surface": "#dde4dd",
+                        "inverse-surface": "#dde4dd",
+                        "on-secondary-fixed-variant": "#1c503a",
+                        "surface-container-high": "#242c27",
+                        "on-background": "#dde4dd",
+                        "surface-container-highest": "#2f3632",
+                        "primary-fixed-dim": "#45dfa4",
+                        "on-primary-fixed-variant": "#005137",
+                        "secondary": "#9dd2b6",
+                        "on-secondary-container": "#8cc1a5",
+                        "surface-bright": "#333b36",
+                        "on-primary-fixed": "#002114",
+                        "surface-container": "#1a211d",
+                        "inverse-primary": "#006c4b",
+                        "primary-container": "#34d399",
+                        "on-primary": "#003825",
+                        "surface-dim": "#0e1511",
+                        "on-tertiary-fixed": "#311300",
+                        "on-secondary": "#003825",
+                        "surface": "#0e1511",
+                        "on-error": "#690005",
+                        "primary": "#5af0b3",
+                        "tertiary-fixed": "#ffdcc7",
+                        "background": "#0e1511",
+                        "inverse-on-surface": "#2b322e",
+                        "on-tertiary": "#502400",
+                        "error-container": "#93000a",
+                        "surface-variant": "#2f3632",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "tertiary": "#ffccad",
+                        "secondary-fixed": "#b8efd1",
+                        "secondary-container": "#1c503a",
+                        "on-tertiary-container": "#783901",
+                        "outline-variant": "#3c4a42",
+                        "secondary-fixed-dim": "#9dd2b6",
+                        "on-secondary-fixed": "#002114",
+                        "surface-tint": "#45dfa4",
+                        "tertiary-container": "#ffa668",
+                        "tertiary-fixed-dim": "#ffb787",
+                        "surface-container-low": "#161d19",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "on-surface-variant": "#bbcac0",
+                        "primary-fixed": "#68fcbf",
+                        "surface-container-lowest": "#09100c",
+                        "zinc-800": "#27272A",
+                        "zinc-900": "#18181B"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["system-ui", "-apple-system", "sans-serif"],
+                        "label": ["Public Sans"]
+                    },
+                    "fontSize": {}
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #000;
+        }
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+        .slide-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .bg-dimmed {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #34D399;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #34D399;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background h-screen flex flex-col justify-end bg-dimmed">
+<!-- Modal Background overlay is the body itself here for simplicity -->
+<!-- iOS Modal Sheet -->
+<main class="w-full max-w-md mx-auto bg-zinc-900 rounded-t-2xl slide-up flex flex-col h-auto max-h-[795px] pb-8 pt-4 px-4 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
+<!-- Grabber Handle -->
+<div class="flex justify-center mb-6">
+<div class="w-[36px] h-1 bg-surface-variant rounded-full opacity-50"></div>
+</div>
+<!-- Header -->
+<div class="flex justify-center items-center mb-8">
+<h1 class="text-[22px] font-bold text-[#FAFAFA] font-headline">Session</h1>
+</div>
+<!-- Content -->
+<div class="flex-1 overflow-y-auto space-y-6 px-2">
+<!-- Check-in -->
+<section>
+<h2 class="text-[12px] uppercase text-on-surface-variant tracking-widest font-label mb-2 ml-1">CHECK-IN</h2>
+<div class="bg-zinc-800 rounded-2xl p-4 flex justify-between items-center shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+<span class="text-[15px] text-[#FAFAFA]">Wed, Aug 27, 2:47 PM</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="event_clock">event</span>
+</div>
+</section>
+<!-- Still Running Toggle -->
+<section class="flex justify-between items-center px-1">
+<span class="text-[15px] text-[#FAFAFA]">Still running</span>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer top-0 bottom-0 left-0 transition-transform duration-200 ease-in-out z-10" id="toggle" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer" for="toggle"></label>
+</div>
+</section>
+<!-- Check-out -->
+<section>
+<h2 class="text-[12px] uppercase text-on-surface-variant tracking-widest font-label mb-2 ml-1">CHECK-OUT</h2>
+<div class="bg-zinc-800 rounded-2xl p-4 flex justify-between items-center shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+<span class="text-[15px] text-[#FAFAFA]">Wed, Aug 27, 5:34 PM</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="event_clock">event</span>
+</div>
+</section>
+<!-- Duration Preview -->
+<div class="flex justify-center py-2">
+<span class="text-[14px] text-on-surface-variant tabular-nums">2:47</span>
+</div>
+<!-- Category -->
+<section>
+<h2 class="text-[12px] uppercase text-on-surface-variant tracking-widest font-label mb-2 ml-1">CATEGORY</h2>
+<div class="bg-zinc-800 rounded-2xl p-4 flex justify-between items-center shadow-[0_8px_24px_rgba(0,0,0,0.4)] cursor-pointer">
+<span class="text-[15px] text-[#FAFAFA]">Deep work</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+</section>
+<!-- Note -->
+<section>
+<h2 class="text-[12px] uppercase text-on-surface-variant tracking-widest font-label mb-2 ml-1">NOTE</h2>
+<div class="bg-zinc-800 rounded-2xl p-4 shadow-[0_8px_24px_rgba(0,0,0,0.4)] min-h-[70px]">
+<textarea class="w-full bg-transparent border-none outline-none resize-none text-[15px] text-[#FAFAFA] placeholder-on-surface-variant focus:ring-0 p-0 m-0 leading-relaxed" rows="2">Focus block — payments refactor</textarea>
+</div>
+</section>
+</div>
+<!-- Actions -->
+<div class="mt-8 space-y-6 px-2">
+<button class="w-full bg-primary-container text-on-primary-fixed rounded-2xl py-4 font-semibold text-[16px] hover:opacity-90 active:scale-95 transition-all">
+                Save
+            </button>
+<div class="flex justify-center">
+<button class="text-[#F87171] font-semibold text-[16px] hover:opacity-80 active:scale-95 transition-all">
+                    Delete session
+                </button>
+</div>
+</div>
+</main>
+<script>
+        const toggle = document.getElementById('toggle');
+        toggle.addEventListener('change', (e) => {
+            const checkoutSection = document.querySelectorAll('section')[2];
+            const durationPreview = document.querySelector('.tabular-nums').parentElement;
+            if (e.target.checked) {
+                checkoutSection.style.opacity = '0.5';
+                checkoutSection.style.pointerEvents = 'none';
+                durationPreview.style.opacity = '0.5';
+            } else {
+                checkoutSection.style.opacity = '1';
+                checkoutSection.style.pointerEvents = 'auto';
+                durationPreview.style.opacity = '1';
+            }
+        });
+    </script>
+
+
+</body></html>

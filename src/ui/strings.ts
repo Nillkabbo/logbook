@@ -23,7 +23,7 @@ const en = {
   rateHint: 'When set, weeks show their earnings. Empty hides them.',
   language: 'Language', system: 'System',
   week: 'Week', earnings: 'Earnings', data: 'Data',
-  noBlocks: 'No work blocks yet', nBlocks: '{n} work blocks',
+  noBlocks: 'No work blocks yet', nBlocks: '{n} work blocks', dataSub: 'Export & import',
   overLabel: 'OVER', lastExport: 'Last export: {date}',
   lastExportNever: 'Never exported',
   exportSection: 'Export', exportAll: 'Export all sessions (CSV)',
@@ -91,7 +91,7 @@ const bn: Record<StringKey, string> = {
   rateHint: 'সেট করলে সপ্তাহে আয় দেখাবে। খালি রাখলে লুকানো থাকবে।',
   language: 'ভাষা', system: 'সিস্টেম',
   week: 'সপ্তাহ', earnings: 'আয়', data: 'ডেটা',
-  noBlocks: 'এখনো কোনো কাজের ব্লক নেই', nBlocks: '{n}টি কাজের ব্লক',
+  noBlocks: 'এখনো কোনো কাজের ব্লক নেই', nBlocks: '{n}টি কাজের ব্লক', dataSub: 'এক্সপোর্ট ও ইমপোর্ট',
   overLabel: 'ওভার', lastExport: 'শেষ এক্সপোর্ট: {date}',
   lastExportNever: 'কখনো এক্সপোর্ট হয়নি',
   exportSection: 'এক্সপোর্ট', exportAll: 'সব সেশন এক্সপোর্ট (CSV)',
@@ -166,3 +166,9 @@ export function stringFor(language: Language, key: StringKey, params?: StringPar
 export function stringsFor(language: Language) {
   return STRINGS[language];
 }
+
+/** Short day names for compact pills and block summaries. */
+export const WEEKDAYS_SHORT: Record<Language, readonly string[]> = {
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  bn: ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'],
+};

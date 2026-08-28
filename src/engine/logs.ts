@@ -129,7 +129,7 @@ export function logsModel(
         const dayTotal = sumCompletedSessions(daySessions);
         return {
           key: localDayKey(date),
-          label: formatDayLabel(date, locale),
+          label: date.toLocaleDateString(locale, { weekday: 'long' }),
           sessions: daySessions,
           totalLabel: formatDuration(dayTotal),
         };

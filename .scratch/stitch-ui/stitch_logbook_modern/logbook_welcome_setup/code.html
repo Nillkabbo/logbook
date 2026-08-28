@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LogBook Setup</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f3f3f4",
+                        "on-tertiary-fixed-variant": "#494640",
+                        "tertiary-fixed-dim": "#cbc6bd",
+                        "on-tertiary-fixed": "#1d1b16",
+                        "secondary": "#006c4a",
+                        "surface": "#f9f9fa",
+                        "on-secondary-container": "#00714e",
+                        "secondary-fixed-dim": "#68dba9",
+                        "secondary-fixed": "#85f8c4",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#47464a",
+                        "on-primary-fixed": "#1b1b1e",
+                        "tertiary-fixed": "#e8e2d9",
+                        "surface-dim": "#dadadb",
+                        "primary-container": "#1b1b1e",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#1d1b16",
+                        "on-primary-container": "#858387",
+                        "inverse-surface": "#2f3132",
+                        "surface-card": "#FFFFFF",
+                        "accent-emerald-soft": "rgba(5,150,105,0.1)",
+                        "on-tertiary-container": "#88837c",
+                        "on-surface": "#1a1c1d",
+                        "on-secondary-fixed-variant": "#005137",
+                        "inverse-primary": "#c8c5ca",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-bright": "#f9f9fa",
+                        "background": "#f9f9fa",
+                        "outline-variant": "#c8c5cb",
+                        "primary-fixed": "#e4e1e6",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e8e8e9",
+                        "surface-tint": "#5f5e61",
+                        "secondary-container": "#82f5c1",
+                        "surface-canvas": "#F4F4F5",
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#47464b",
+                        "primary": "#000000",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "accent-emerald": "#059669",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e2e2e3",
+                        "outline": "#77767b",
+                        "on-background": "#1a1c1d",
+                        "text-secondary": "rgba(24,24,27,0.6)",
+                        "surface-variant": "#e2e2e3",
+                        "on-secondary-fixed": "#002114",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eeeeef",
+                        "tertiary": "#000000",
+                        "primary-fixed-dim": "#c8c5ca",
+                        "surface-inset": "#E4E4E7",
+                        "text-primary": "#18181B"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "20px",
+                        "unit": "4px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "margin-desktop": "48px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter", "sans-serif"],
+                        "headline-md": ["Inter", "sans-serif"],
+                        "numeric-data": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "headline-lg": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "numeric-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-canvas min-h-screen flex flex-col items-center justify-center antialiased">
+<!-- iPhone Frame for context (mobile-first design) -->
+<div class="relative w-full max-w-[400px] h-[884px] sm:h-[844px] bg-surface-canvas sm:rounded-[3rem] sm:shadow-[0_12px_32px_rgba(24,24,27,0.1)] overflow-hidden flex flex-col justify-between">
+<!-- Status Bar Simulator -->
+<div class="w-full flex justify-between items-center px-6 pt-3 pb-2 text-text-primary text-[15px] font-medium z-10 relative">
+<div>9:41</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[16px]">battery_full</span>
+</div>
+</div>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col justify-center px-[24px] pb-12">
+<div class="mb-12 text-center">
+<h1 class="text-[26px] leading-tight font-bold text-text-primary mb-3">Welcome to LogBook</h1>
+<p class="text-[15px] leading-relaxed text-text-secondary px-2">
+                    Two quick choices — you can change both later in Settings, or skip for now.
+                </p>
+</div>
+<div class="space-y-10">
+<!-- Section 1: Week Start -->
+<div>
+<label class="block text-[13px] font-semibold text-text-secondary uppercase tracking-widest mb-4">
+                        When does your week start?
+                    </label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 bg-accent-emerald text-white font-semibold rounded-xl text-[15px] transition-colors shadow-sm">
+                            Sun
+                        </button>
+<button class="px-4 py-2 bg-surface-inset text-text-primary font-medium rounded-xl text-[15px] hover:bg-surface-inset/80 transition-colors">
+                            Mon
+                        </button>
+<button class="px-4 py-2 bg-surface-inset text-text-primary font-medium rounded-xl text-[15px] hover:bg-surface-inset/80 transition-colors">
+                            Tue
+                        </button>
+<button class="px-4 py-2 bg-surface-inset text-text-primary font-medium rounded-xl text-[15px] hover:bg-surface-inset/80 transition-colors">
+                            Wed
+                        </button>
+<button class="px-4 py-2 bg-surface-inset text-text-primary font-medium rounded-xl text-[15px] hover:bg-surface-inset/80 transition-colors">
+                            Thu
+                        </button>
+<button class="px-4 py-2 bg-surface-inset text-text-primary font-medium rounded-xl text-[15px] hover:bg-surface-inset/80 transition-colors">
+                            Fri
+                        </button>
+<button class="px-4 py-2 bg-surface-inset text-text-primary font-medium rounded-xl text-[15px] hover:bg-surface-inset/80 transition-colors">
+                            Sat
+                        </button>
+</div>
+</div>
+<!-- Section 2: Weekly Target -->
+<div>
+<label class="block text-[13px] font-semibold text-text-secondary uppercase tracking-widest mb-4">
+                        Weekly Target (Hours)
+                    </label>
+<div class="relative">
+<input aria-label="Weekly Target Hours" class="w-full bg-surface-inset border-none rounded-xl py-4 px-5 text-[16px] text-text-primary font-medium focus:ring-2 focus:ring-accent-emerald focus:outline-none transition-all" type="number" value="40"/>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="mt-14 space-y-6">
+<button class="w-full bg-accent-emerald text-white rounded-[24px] py-4 text-[16px] font-semibold hover:bg-accent-emerald/90 transition-colors active:scale-[0.98]">
+                    Start tracking
+                </button>
+<button class="w-full text-center text-accent-emerald text-[14px] font-medium hover:opacity-80 transition-opacity">
+                    Skip — use defaults (Sunday, 40h)
+                </button>
+</div>
+</main>
+</div>
+</body></html>

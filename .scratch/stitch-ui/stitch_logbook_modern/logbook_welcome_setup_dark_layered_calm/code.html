@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LogBook Setup</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Public+Sans:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#1c503a",
+                        "surface-container-highest": "#2f3632",
+                        "on-error-container": "#ffdad6",
+                        "surface-dim": "#0e1511",
+                        "on-primary-fixed-variant": "#005137",
+                        "on-primary-container": "#00563b",
+                        "on-error": "#690005",
+                        "secondary": "#9dd2b6",
+                        "tertiary-container": "#ffa668",
+                        "on-tertiary": "#502400",
+                        "surface-tint": "#45dfa4",
+                        "on-surface": "#dde4dd",
+                        "outline-variant": "#3c4a42",
+                        "secondary-fixed": "#b8efd1",
+                        "surface-container-high": "#242c27",
+                        "primary-container": "#34d399",
+                        "inverse-surface": "#dde4dd",
+                        "outline": "#85948b",
+                        "surface-container-low": "#161d19",
+                        "surface-container-lowest": "#09100c",
+                        "on-secondary": "#003825",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#9dd2b6",
+                        "on-tertiary-container": "#783901",
+                        "tertiary-fixed-dim": "#ffb787",
+                        "on-surface-variant": "#bbcac0",
+                        "on-secondary-container": "#8cc1a5",
+                        "on-secondary-fixed": "#002114",
+                        "on-tertiary-fixed": "#311300",
+                        "error": "#ffb4ab",
+                        "on-primary": "#003825",
+                        "primary-fixed-dim": "#45dfa4",
+                        "on-primary-fixed": "#002114",
+                        "surface-variant": "#2f3632",
+                        "on-background": "#dde4dd",
+                        "tertiary": "#ffccad",
+                        "surface-bright": "#333b36",
+                        "background": "#0e1511",
+                        "primary-fixed": "#68fcbf",
+                        "inverse-primary": "#006c4b",
+                        "inverse-on-surface": "#2b322e",
+                        "secondary-container": "#1c503a",
+                        "surface-container": "#1a211d",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "surface": "#0e1511",
+                        "primary": "#5af0b3",
+                        "tertiary-fixed": "#ffdcc7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Public Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body min-h-screen flex flex-col items-center justify-center relative select-none antialiased">
+<div class="absolute top-0 w-full flex justify-between items-center px-6 py-3 text-[13px] font-medium tracking-wide text-on-surface z-50">
+<div>9:41</div>
+<div class="flex space-x-2 items-center">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[16px]">battery_full</span>
+</div>
+</div>
+<main class="w-full max-w-md px-6 flex flex-col z-10 animate-[fadeIn_0.5s_ease-out]">
+<div class="text-center mb-10 flex flex-col items-center">
+<span class="material-symbols-outlined text-primary text-5xl mb-6">history_edu</span>
+<h1 class="font-headline font-bold text-[26px] text-on-surface mb-3 tracking-tight">Welcome to LogBook</h1>
+<p class="text-[15px] text-on-surface-variant max-w-[280px] leading-relaxed">
+                Two quick choices — you can change both later in Settings, or skip for now.
+            </p>
+</div>
+<div class="space-y-8 w-full">
+<section class="flex flex-col space-y-3">
+<label class="font-label text-[13px] uppercase tracking-widest text-on-surface-variant font-semibold px-1">
+                    When does your week start?
+                </label>
+<div class="flex flex-wrap gap-2">
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-semibold text-sm transition-transform active:scale-95 shadow-[0_0_15px_rgba(52,211,153,0.15)]">Sun</button>
+<button class="bg-surface-variant text-on-surface px-4 py-2 rounded-full font-medium text-sm transition-colors hover:bg-surface-bright">Mon</button>
+<button class="bg-surface-variant text-on-surface px-4 py-2 rounded-full font-medium text-sm transition-colors hover:bg-surface-bright">Tue</button>
+<button class="bg-surface-variant text-on-surface px-4 py-2 rounded-full font-medium text-sm transition-colors hover:bg-surface-bright">Wed</button>
+<button class="bg-surface-variant text-on-surface px-4 py-2 rounded-full font-medium text-sm transition-colors hover:bg-surface-bright">Thu</button>
+<button class="bg-surface-variant text-on-surface px-4 py-2 rounded-full font-medium text-sm transition-colors hover:bg-surface-bright">Fri</button>
+<button class="bg-surface-variant text-on-surface px-4 py-2 rounded-full font-medium text-sm transition-colors hover:bg-surface-bright">Sat</button>
+</div>
+</section>
+<section class="flex flex-col space-y-3">
+<label class="font-label text-[13px] uppercase tracking-widest text-on-surface-variant font-semibold px-1" for="weekly-target">
+                    Weekly target (hours)
+                </label>
+<div class="relative group">
+<input class="w-full bg-surface-variant text-on-surface rounded-xl border-none h-14 px-5 text-lg font-medium focus:ring-2 focus:ring-primary focus:bg-surface-bright transition-all" id="weekly-target" placeholder="e.g. 40" type="number" value="40"/>
+</div>
+</section>
+</div>
+<div class="mt-12 flex flex-col space-y-5">
+<button class="w-full bg-primary-container text-on-primary-container h-14 rounded-full font-semibold text-base shadow-[0_4px_20px_rgba(52,211,153,0.2)] transition-all hover:bg-primary active:scale-[0.98] flex items-center justify-center space-x-2">
+<span>Start tracking</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<button class="text-primary text-sm font-medium transition-colors hover:text-primary-fixed py-2">
+                Skip — use defaults (Sunday, 40h)
+            </button>
+</div>
+</main>
+<div class="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-30">
+<div class="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-primary-container blur-[120px] opacity-10"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-secondary-container blur-[100px] opacity-10"></div>
+</div>
+<style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</body></html>

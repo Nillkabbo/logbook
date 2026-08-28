@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { TYPE, useTheme } from '@/theme';
+import { useTheme } from '@/theme';
 
 /**
  * The one header the app allows: pushed sub-screens (Schedule, Data) carry a
@@ -35,7 +35,9 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
   title: {
-    ...TYPE.title,
+    fontSize: 16,
+    fontWeight: '600',
     flex: 1,
+    textAlign: 'center',
   },
 });

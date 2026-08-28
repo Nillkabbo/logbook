@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>LogBook - Data</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#f9f9fa",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f3f3f4",
+                        "on-primary-fixed": "#1b1b1e",
+                        "outline-variant": "#c8c5cb",
+                        "on-secondary-fixed-variant": "#005137",
+                        "primary": "#000000",
+                        "secondary": "#006c4a",
+                        "on-tertiary-fixed": "#1d1b16",
+                        "on-tertiary-container": "#88837c",
+                        "on-surface-variant": "#47464b",
+                        "surface-inset": "#E4E4E7",
+                        "tertiary-fixed": "#e8e2d9",
+                        "surface-container-highest": "#e2e2e3",
+                        "on-primary-container": "#858387",
+                        "text-primary": "#18181B",
+                        "surface-tint": "#5f5e61",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#68dba9",
+                        "text-secondary": "rgba(24,24,27,0.6)",
+                        "on-secondary-container": "#00714e",
+                        "outline": "#77767b",
+                        "tertiary-container": "#1d1b16",
+                        "primary-fixed-dim": "#c8c5ca",
+                        "secondary-fixed": "#85f8c4",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9fa",
+                        "tertiary": "#000000",
+                        "primary-container": "#1b1b1e",
+                        "surface-canvas": "#F4F4F5",
+                        "secondary-container": "#82f5c1",
+                        "on-primary-fixed-variant": "#47464a",
+                        "accent-emerald-soft": "rgba(5,150,105,0.1)",
+                        "on-background": "#1a1c1d",
+                        "accent-emerald": "#059669",
+                        "tertiary-fixed-dim": "#cbc6bd",
+                        "background": "#f9f9fa",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e2e2e3",
+                        "surface-container": "#eeeeef",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#dadadb",
+                        "surface-container-high": "#e8e8e9",
+                        "on-tertiary-fixed-variant": "#494640",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#c8c5ca",
+                        "on-surface": "#1a1c1d",
+                        "on-secondary-fixed": "#002114",
+                        "on-error-container": "#93000a",
+                        "surface-card": "#FFFFFF",
+                        "inverse-surface": "#2f3132",
+                        "primary-fixed": "#e4e1e6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "margin-desktop": "48px",
+                        "unit": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "gutter": "20px"
+                    },
+                    "fontFamily": {
+                        "numeric-data": ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+                        "body-lg": ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+                        "headline-lg-mobile": ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+                        "headline-md": ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+                        "headline-lg": ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+                        "body-md": ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+                        "label-md": ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "numeric-data": ["14px", { "lineHeight": "20px", "fontWeight": "500", "fontFeatureSettings": "'tnum' on" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+                    },
+                    boxShadow: {
+                        'ambient': '0 8px 24px rgba(24,24,27,0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.surface-canvas');
+            color: theme('colors.text-primary');
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col min-h-screen relative font-body-md overflow-x-hidden pb-24">
+<!-- Status Bar Spacer (Simulated) -->
+<div class="h-12 w-full flex justify-between items-end px-6 pb-2 text-[15px] font-semibold tracking-tight text-text-primary">
+<span>9:41</span>
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-lg" data-icon="signal_cellular_4_bar" style="font-variation-settings: 'FILL' 1;">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-lg" data-icon="wifi" style="font-variation-settings: 'FILL' 1;">wifi</span>
+<span class="material-symbols-outlined text-lg" data-icon="battery_full" style="font-variation-settings: 'FILL' 1;">battery_full</span>
+</div>
+</div>
+<!-- Top Navigation -->
+<header class="flex items-center justify-between px-margin-mobile py-sm">
+<button class="w-10 h-10 flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="chevron_left">chevron_left</span>
+</button>
+<h1 class="text-[22px] font-bold tracking-tight text-text-primary">Data</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-margin-mobile py-sm space-y-md">
+<!-- Export Section -->
+<section class="bg-surface-card rounded-[24px] shadow-ambient p-lg space-y-md">
+<button class="w-full bg-accent-emerald text-white rounded-[24px] py-4 px-6 text-center font-semibold text-body-lg flex justify-center items-center shadow-sm active:scale-[0.98] transition-transform">
+                Export all sessions (CSV)
+            </button>
+<div class="space-y-unit text-[13px] text-text-secondary">
+<p>One row per session via the share sheet.</p>
+<p class="font-numeric-data">Last export: Jul 12, 2026</p>
+</div>
+</section>
+<!-- Import Section -->
+<section class="bg-surface-card rounded-[24px] shadow-ambient p-lg space-y-md">
+<button class="w-full bg-surface-inset text-text-primary rounded-[24px] py-4 px-6 text-center font-semibold text-body-lg flex justify-center items-center active:scale-[0.98] transition-transform">
+                Import backup (CSV)
+            </button>
+<div class="text-[13px] text-text-secondary">
+<p>Merges a previous export — duplicates and running rows are skipped.</p>
+</div>
+</section>
+</main>
+<!-- Navigation Shell: BottomNavBar -->
+<nav class="fixed bottom-0 w-full flex justify-around items-center px-margin-mobile pb-8 pt-2 bg-surface-canvas/80 backdrop-blur-md z-50 md:hidden border-t-0 shadow-none">
+<!-- Home (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform duration-200 p-2">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="home" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</button>
+<!-- Logs (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform duration-200 p-2">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="history" style="font-variation-settings: 'FILL' 0;">history</span>
+<span class="font-label-md text-label-md">Logs</span>
+</button>
+<!-- Settings (Active) -->
+<button class="flex flex-col items-center justify-center text-accent-emerald bg-accent-emerald-soft rounded-xl px-4 py-1 hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-label-md text-label-md font-bold">Settings</span>
+</button>
+</nav>
+</body></html>

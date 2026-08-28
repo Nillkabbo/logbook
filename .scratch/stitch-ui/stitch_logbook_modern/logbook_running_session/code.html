@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>LogBook - Running Session</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config from Style Guidance -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#1d1b16",
+                        "accent-emerald-soft": "rgba(5,150,105,0.1)",
+                        "secondary-fixed-dim": "#68dba9",
+                        "tertiary-fixed-dim": "#cbc6bd",
+                        "accent-emerald": "#059669",
+                        "on-primary-container": "#858387",
+                        "secondary-fixed": "#85f8c4",
+                        "surface-container": "#eeeeef",
+                        "on-secondary-fixed": "#002114",
+                        "on-primary-fixed": "#1b1b1e",
+                        "inverse-primary": "#c8c5ca",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#5f5e61",
+                        "secondary": "#006c4a",
+                        "tertiary": "#000000",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#c8c5cb",
+                        "surface-dim": "#dadadb",
+                        "tertiary-container": "#1d1b16",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#494640",
+                        "surface": "#f9f9fa",
+                        "text-secondary": "rgba(24,24,27,0.6)",
+                        "tertiary-fixed": "#e8e2d9",
+                        "surface-container-high": "#e8e8e9",
+                        "on-background": "#1a1c1d",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#e2e2e3",
+                        "on-tertiary-container": "#88837c",
+                        "on-primary": "#ffffff",
+                        "text-primary": "#18181B",
+                        "inverse-on-surface": "#f0f1f2",
+                        "outline": "#77767b",
+                        "on-surface": "#1a1c1d",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#82f5c1",
+                        "background": "#f9f9fa",
+                        "primary-container": "#1b1b1e",
+                        "on-primary-fixed-variant": "#47464a",
+                        "primary-fixed-dim": "#c8c5ca",
+                        "on-surface-variant": "#47464b",
+                        "on-secondary-container": "#00714e",
+                        "surface-container-low": "#f3f3f4",
+                        "primary": "#000000",
+                        "surface-bright": "#f9f9fa",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#005137",
+                        "surface-container-highest": "#e2e2e3",
+                        "surface-inset": "#E4E4E7",
+                        "surface-canvas": "#F4F4F5",
+                        "inverse-surface": "#2f3132",
+                        "surface-card": "#FFFFFF",
+                        "primary-fixed": "#e4e1e6",
+                        "red-primary": "#DC2626", // Check-out button color
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "2xl": "1.5rem" // 24px
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "48px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "gutter": "20px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                        "numeric-data": ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                        "label-md": ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                        "headline-md": ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                        "headline-lg": ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                        "body-md": ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                        "body-lg": ["Inter", "system-ui", "-apple-system", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "numeric-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    },
+                    "boxShadow": {
+                        "card": "0 8px 24px rgba(24,24,27,0.06)",
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* SF Pro font fallback */
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        /* Material Symbols utility */
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Breathing Animation for Check-out button */
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+        
+        .breathing-ring {
+            position: absolute;
+            inset: -20px;
+            border-radius: 50%;
+            border: 2px solid #DC2626;
+            animation: breathe 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        /* Tabular numerals utility */
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-canvas text-text-primary min-h-screen flex flex-col items-center pb-[100px] font-sans antialiased">
+<!-- Status Bar Area (Visual Only) -->
+<div class="w-full h-12 flex justify-between items-center px-6 pt-2 text-[15px] font-semibold tracking-tight text-text-primary z-50">
+<span>9:41</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-[18px] rotate-90">battery_full_alt</span>
+</div>
+</div>
+<!-- Main Content Container -->
+<main class="w-full max-w-[400px] flex flex-col items-center px-margin-mobile pt-lg pb-12 gap-y-10 z-10">
+<!-- 1. Hero Timer -->
+<div class="flex flex-col items-center justify-center pt-4">
+<span class="text-[64px] leading-none font-semibold tabular-nums tracking-tight text-text-primary" id="main-timer">2:47:12</span>
+</div>
+<!-- 2. Check-out Button -->
+<div class="relative flex items-center justify-center my-2">
+<div class="breathing-ring"></div>
+<button class="w-[220px] h-[220px] rounded-full bg-red-primary text-on-error flex items-center justify-center shadow-lg active:scale-95 transition-transform duration-200 z-10">
+<span class="text-[26px] font-bold tracking-tight">Check out</span>
+</button>
+</div>
+<!-- 3. Category Chips -->
+<div class="flex flex-wrap justify-center gap-2 mt-2 w-full max-w-[320px]">
+<button class="px-4 py-1.5 rounded-full bg-accent-emerald-soft text-accent-emerald text-[14px] font-medium border-none outline-none">Deep work</button>
+<button class="px-4 py-1.5 rounded-full bg-accent-emerald-soft text-accent-emerald text-[14px] font-medium border-none outline-none">Meetings</button>
+<button class="px-4 py-1.5 rounded-full bg-accent-emerald-soft text-accent-emerald text-[14px] font-medium border-none outline-none">Admin</button>
+<button class="px-4 py-1.5 rounded-full bg-accent-emerald-soft text-accent-emerald text-[14px] font-medium border-none outline-none">Writing</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-inset text-text-secondary text-[14px] font-medium border-none outline-none">...</button>
+</div>
+<!-- 4. Totals Row -->
+<div class="w-full flex flex-col items-center mt-6 space-y-4">
+<div class="flex w-full items-center justify-between">
+<!-- Today -->
+<div class="flex flex-col items-center w-1/2">
+<span class="text-[13px] text-text-secondary uppercase tracking-wider font-semibold mb-1">TODAY</span>
+<span class="text-[24px] font-semibold tabular-nums text-text-primary">3:28</span>
+</div>
+<!-- Divider -->
+<div class="h-10 w-[1px] bg-surface-inset"></div>
+<!-- This Week -->
+<div class="flex flex-col items-center w-1/2">
+<span class="text-[13px] text-text-secondary uppercase tracking-wider font-semibold mb-1">THIS WEEK</span>
+<div class="flex items-baseline">
+<span class="text-[34px] font-semibold tabular-nums text-text-primary leading-none">29:36</span>
+<span class="text-[20px] text-text-secondary ml-1 tabular-nums">/ 40:00</span>
+</div>
+</div>
+</div>
+<!-- Progress Bar -->
+<div class="w-full mt-2">
+<div class="w-full h-[10px] bg-surface-inset rounded-full overflow-hidden">
+<div class="h-full bg-accent-emerald rounded-full w-[74%]"></div>
+</div>
+</div>
+<!-- Revenue / Metric -->
+<div class="w-full flex justify-end">
+<span class="text-accent-emerald font-semibold text-[16px]">$888.00</span>
+</div>
+</div>
+<!-- 5. Session Cards -->
+<div class="w-full flex flex-col gap-4 mt-4 mb-8">
+<!-- Active Session (Frosted Glass) -->
+<div class="w-full bg-[rgba(255,255,255,0.72)] backdrop-blur-md rounded-2xl p-lg flex justify-between items-center shadow-card border border-white/40">
+<div class="flex flex-col">
+<span class="text-[15px] font-medium text-text-primary">2:47 PM – now</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></div>
+<span class="text-[15px] font-semibold tabular-nums text-text-primary">2:47</span>
+</div>
+</div>
+<!-- Completed Session -->
+<div class="w-full bg-surface-card rounded-2xl p-lg flex justify-between items-center shadow-card">
+<div class="flex flex-col gap-2">
+<span class="text-[15px] font-medium text-text-primary">9:12 AM – 12:40 PM</span>
+<div class="self-start px-3 py-1 rounded-full bg-accent-emerald-soft text-accent-emerald text-[12px] font-medium">Deep work</div>
+</div>
+<span class="text-[15px] font-semibold tabular-nums text-text-primary">3:28</span>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Shared Component) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pt-2 pb-6 bg-surface/90 backdrop-blur-lg shadow-[0_-4px_16px_rgba(24,24,27,0.04)] z-50 rounded-t-xl sm:hidden">
+<!-- Home (Active) -->
+<div class="flex flex-col items-center justify-center text-accent-emerald bg-accent-emerald-soft rounded-xl px-4 py-1 active:scale-90 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-md text-label-md mt-1">Home</span>
+</div>
+<!-- Logs (Inactive) -->
+<div class="flex flex-col items-center justify-center text-text-secondary px-4 py-1 hover:bg-surface-container-low transition-colors rounded-xl active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined text-[24px]">list_alt</span>
+<span class="font-label-md text-label-md mt-1">Logs</span>
+</div>
+<!-- Settings (Inactive) -->
+<div class="flex flex-col items-center justify-center text-text-secondary px-4 py-1 hover:bg-surface-container-low transition-colors rounded-xl active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="font-label-md text-label-md mt-1">Settings</span>
+</div>
+</nav>
+<script>
+        // Simple tick timer logic for realism
+        document.addEventListener("DOMContentLoaded", () => {
+            const timerEl = document.getElementById('main-timer');
+            if(timerEl) {
+                let seconds = 12;
+                setInterval(() => {
+                    seconds++;
+                    let s = seconds % 60;
+                    let m = Math.floor(seconds / 60) + 47;
+                    let h = 2 + Math.floor(m / 60);
+                    m = m % 60;
+                    
+                    let sStr = s < 10 ? '0'+s : s;
+                    let mStr = m < 10 ? '0'+m : m;
+                    timerEl.innerText = `${h}:${mStr}:${sStr}`;
+                }, 1000);
+            }
+        });
+    </script>
+</body></html>

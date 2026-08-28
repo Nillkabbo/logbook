@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Time Tracking - Data</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#1a211d",
+                      "surface-tint": "#45dfa4",
+                      "tertiary-fixed": "#ffdcc7",
+                      "inverse-surface": "#dde4dd",
+                      "tertiary-container": "#ffa668",
+                      "on-tertiary-fixed-variant": "#723600",
+                      "secondary": "#9dd2b6",
+                      "surface-dim": "#0e1511",
+                      "background": "#0e1511",
+                      "error": "#ffb4ab",
+                      "secondary-fixed": "#b8efd1",
+                      "on-secondary-fixed": "#002114",
+                      "error-container": "#93000a",
+                      "primary-container": "#34d399",
+                      "surface-variant": "#2f3632",
+                      "on-tertiary-container": "#783901",
+                      "surface-container-highest": "#2f3632",
+                      "on-secondary-fixed-variant": "#1c503a",
+                      "on-secondary-container": "#8cc1a5",
+                      "secondary-fixed-dim": "#9dd2b6",
+                      "surface-bright": "#333b36",
+                      "on-primary-fixed-variant": "#005137",
+                      "surface-container-low": "#161d19",
+                      "outline-variant": "#3c4a42",
+                      "on-tertiary-fixed": "#311300",
+                      "surface": "#0e1511",
+                      "surface-container-lowest": "#09100c",
+                      "on-error": "#690005",
+                      "secondary-container": "#1c503a",
+                      "primary-fixed-dim": "#45dfa4",
+                      "primary": "#5af0b3",
+                      "tertiary": "#ffccad",
+                      "outline": "#85948b",
+                      "on-error-container": "#ffdad6",
+                      "inverse-primary": "#006c4b",
+                      "tertiary-fixed-dim": "#ffb787",
+                      "on-secondary": "#003825",
+                      "on-background": "#dde4dd",
+                      "on-primary-fixed": "#002114",
+                      "inverse-on-surface": "#2b322e",
+                      "on-tertiary": "#502400",
+                      "on-primary": "#003825",
+                      "primary-fixed": "#68fcbf",
+                      "on-surface": "#dde4dd",
+                      "on-surface-variant": "#bbcac0",
+                      "on-primary-container": "#00563b",
+                      "surface-container-high": "#242c27"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Inter"
+                      ],
+                      "display": [
+                              "Inter"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "Public Sans"
+                      ]
+              },
+              "fontSize": {}
+      },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="flex items-center h-16 px-4 w-full top-0 bg-surface dark:bg-surface text-primary dark:text-primary z-40 sticky">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-low transition-colors active:scale-95 text-on-surface dark:text-on-surface">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="ml-2 text-headline-sm font-bold text-on-surface dark:text-on-surface flex-1">Settings</h1>
+<div class="w-10 h-10"></div> <!-- Spacer for balance -->
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 px-4 py-6 flex flex-col gap-6 max-w-md mx-auto w-full pb-28">
+<!-- Header Text (Semantic intent: Settings sub-page) -->
+<div class="px-2 mb-2">
+<h2 class="text-[22px] font-bold text-on-surface tracking-tight">Data</h2>
+</div>
+<!-- EXPORT CARD -->
+<section class="bg-surface-container-high rounded-[24px] p-5 flex flex-col gap-4 shadow-lg">
+<button class="w-full bg-primary text-on-primary font-semibold text-base py-3.5 px-6 rounded-full flex items-center justify-center gap-2 hover:bg-primary-fixed transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="ios_share">ios_share</span>
+                Export all sessions (CSV)
+            </button>
+<div class="flex flex-col gap-1 px-2 text-on-surface-variant text-[13px]">
+<p>One row per session via the share sheet.</p>
+<p class="tabular-nums">Last export: Jul 12, 2026</p>
+</div>
+</section>
+<!-- IMPORT CARD -->
+<section class="bg-surface-container-high rounded-[24px] p-5 flex flex-col gap-4 shadow-lg">
+<button class="w-full bg-surface-bright text-on-surface font-semibold text-base py-3.5 px-6 rounded-[24px] flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="upload">upload</span>
+                Import backup (CSV)
+            </button>
+<div class="flex flex-col gap-1 px-2 text-on-surface-variant text-[13px]">
+<p>Merges a previous export — duplicates and running rows are skipped.</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-6 bg-surface-container dark:bg-surface-container rounded-t-xl shadow-lg md:hidden">
+<!-- Inactive Tab: Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1 hover:bg-surface-bright dark:hover:bg-surface-bright rounded-full active:scale-90 duration-200 transition-all font-body text-label-medium tabular-nums group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="home">home</span>
+<span class="mt-1 text-[11px] group-hover:text-primary transition-colors">Home</span>
+</a>
+<!-- Inactive Tab: Logs -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1 hover:bg-surface-bright dark:hover:bg-surface-bright rounded-full active:scale-90 duration-200 transition-all font-body text-label-medium tabular-nums group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="schedule">schedule</span>
+<span class="mt-1 text-[11px] group-hover:text-primary transition-colors">Logs</span>
+</a>
+<!-- Active Tab: Settings (Mapping 'Data' to 'Settings' intent) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container rounded-full px-5 py-1 active:scale-90 duration-200 transition-all font-body text-label-medium tabular-nums" href="#">
+<span class="material-symbols-outlined" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="mt-1 text-[11px] font-medium">Settings</span>
+</a>
+</nav>
+<!-- Web Desktop Navigation Panel (Hidden on Mobile, overrides BottomNav) -->
+<aside class="hidden md:flex flex-col fixed top-16 left-0 w-64 h-[calc(100vh-64px)] bg-surface-container-low border-r border-outline-variant p-4 gap-2 z-30">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-medium">Home</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+<span class="font-medium">Logs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary-container text-on-secondary-container transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+</aside>
+</body></html>

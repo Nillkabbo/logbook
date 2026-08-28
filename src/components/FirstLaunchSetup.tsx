@@ -82,7 +82,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    justifyContent: 'center',
+    paddingTop: '18%',
+    justifyContent: 'flex-start',
     gap: 12,
   },
   title: {

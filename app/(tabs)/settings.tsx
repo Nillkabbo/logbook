@@ -16,7 +16,7 @@ import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { t, weekdayName } = useI18n();
+  const { t, weekdayShortName } = useI18n();
   const { refresh, settings, saveSettings, blocks } = useLogbook();
 
   const target = useValidatedHours(
@@ -64,13 +64,19 @@ export default function SettingsScreen() {
       placeholderTextColor={theme.muted}
     />
   );
+  const fieldRow = (label: string, input: React.ReactNode) => (
+    <View style={styles.fieldRow}>
+      <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
+      {input}
+    </View>
+  );
 
   // The Schedule row's sub-label: the single block's range, or a count when several exist.
   const blockSummary =
     blocks.length === 0
       ? t('noBlocks')
       : blocks.length === 1
-        ? blockRangeLabel(blocks[0], weekdayName)
+        ? blockRangeLabel(blocks[0], weekdayShortName)
         : t('nBlocks', { n: blocks.length });
 
   return (
@@ -84,19 +90,16 @@ export default function SettingsScreen() {
           value={settings.weekStartDay}
           onChange={useCallback((day: Weekday | Weekday[]) => saveSettings({ weekStartDay: day as Weekday }), [saveSettings])}
         />
-        <Text style={[styles.rowLabel, { color: theme.text }]}>{t('weeklyTarget')}</Text>
-        {insetInput(target.value, target.onChangeText, target.onBlur)}
+        {fieldRow(t('weeklyTarget'), insetInput(target.value, target.onChangeText, target.onBlur))}
         {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
-        <Text style={[styles.rowLabel, { color: theme.text }]}>{t('reminderThreshold')}</Text>
-        {insetInput(threshold.value, threshold.onChangeText, threshold.onBlur)}
+        {fieldRow(t('reminderThreshold'), insetInput(threshold.value, threshold.onChangeText, threshold.onBlur))}
         {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{t(threshold.error as StringKey)}</Text>}
         <Text style={[styles.hint, { color: theme.muted }]}>{t('reminderHint')}</Text>
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('earnings')}</Text>
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
-        <Text style={[styles.rowLabel, { color: theme.text }]}>{t('hourlyRate')}</Text>
-        {insetInput(rate.value, rate.onChangeText, rate.onBlur)}
+        {fieldRow(t('hourlyRate'), insetInput(rate.value, rate.onChangeText, rate.onBlur))}
         {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
         <Text style={[styles.hint, { color: theme.muted }]}>{t('rateHint')}</Text>
       </View>
@@ -112,7 +115,7 @@ export default function SettingsScreen() {
         <Pressable style={styles.navRow} onPress={() => router.push('/(tabs)/data')}>
           <View style={styles.navText}>
             <Text style={[styles.navTitle, { color: theme.text }]}>{t('data')}</Text>
-            <Text style={[styles.navSub, { color: theme.muted }]}>{t('exportSection')}</Text>
+            <Text style={[styles.navSub, { color: theme.muted }]}>{t('dataSub')}</Text>
           </View>
           <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
         </Pressable>
@@ -163,10 +166,19 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontSize: 15,
   },
+  fieldRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
   input: {
     borderRadius: RADIUS.control,
-    padding: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     fontSize: 16,
+    minWidth: 88,
+    textAlign: 'right',
   },
   error: {
     fontSize: 14,

@@ -156,7 +156,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
 
         {renderField('in')}
-        <View style={styles.runningRow}>
+        <View style={[styles.runningCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
           <Text style={[styles.runningLabel, { color: theme.text }]}>{t('stillRunning')}</Text>
           {/* Turning it off anchors the checkout at the check-in: the user must
               pick an explicit time before Save passes validation. */}
@@ -233,8 +233,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   fieldGroup: {
     gap: 8,
@@ -255,10 +256,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontVariant: ['tabular-nums'],
   },
-  runningRow: {
+  runningCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderRadius: RADIUS.control,
+    padding: 14,
   },
   runningLabel: {
     fontSize: 15,
@@ -297,7 +300,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   deleteText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
   },
 });

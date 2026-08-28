@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Schedule - LogBook</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed-dim": "#c8c5ca",
+                      "primary-fixed": "#e4e1e6",
+                      "inverse-on-surface": "#f0f1f2",
+                      "surface-container": "#eeeeef",
+                      "surface-variant": "#e2e2e3",
+                      "on-secondary-container": "#00714e",
+                      "tertiary-fixed": "#e8e2d9",
+                      "on-primary-fixed": "#1b1b1e",
+                      "on-tertiary-container": "#88837c",
+                      "secondary-container": "#82f5c1",
+                      "on-secondary-fixed-variant": "#005137",
+                      "error-container": "#ffdad6",
+                      "on-error-container": "#93000a",
+                      "tertiary-container": "#1d1b16",
+                      "on-secondary": "#ffffff",
+                      "surface-card": "#FFFFFF",
+                      "surface-bright": "#f9f9fa",
+                      "on-background": "#1a1c1d",
+                      "background": "#f9f9fa",
+                      "surface": "#f9f9fa",
+                      "tertiary-fixed-dim": "#cbc6bd",
+                      "error": "#ba1a1a",
+                      "on-surface": "#1a1c1d",
+                      "on-primary-fixed-variant": "#47464a",
+                      "surface-dim": "#dadadb",
+                      "secondary": "#006c4a",
+                      "surface-container-low": "#f3f3f4",
+                      "surface-container-highest": "#e2e2e3",
+                      "surface-inset": "#E4E4E7",
+                      "on-primary-container": "#858387",
+                      "inverse-primary": "#c8c5ca",
+                      "surface-tint": "#5f5e61",
+                      "on-secondary-fixed": "#002114",
+                      "outline": "#77767b",
+                      "surface-canvas": "#F4F4F5",
+                      "on-primary": "#ffffff",
+                      "outline-variant": "#c8c5cb",
+                      "on-error": "#ffffff",
+                      "surface-container-high": "#e8e8e9",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-fixed-dim": "#68dba9",
+                      "primary-container": "#1b1b1e",
+                      "on-tertiary-fixed-variant": "#494640",
+                      "inverse-surface": "#2f3132",
+                      "on-surface-variant": "#47464b",
+                      "tertiary": "#000000",
+                      "secondary-fixed": "#85f8c4",
+                      "text-secondary": "rgba(24,24,27,0.6)",
+                      "primary": "#000000",
+                      "text-primary": "#18181B",
+                      "accent-emerald-soft": "rgba(5,150,105,0.1)",
+                      "accent-emerald": "#059669",
+                      "on-tertiary-fixed": "#1d1b16"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "2xl": "1.5rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "lg": "24px",
+                      "margin-mobile": "16px",
+                      "xs": "4px",
+                      "unit": "4px",
+                      "sm": "8px",
+                      "md": "16px",
+                      "margin-desktop": "48px",
+                      "gutter": "20px"
+              },
+              "fontFamily": {
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "numeric-data": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "numeric-data": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "30px",
+                              {
+                                      "lineHeight": "38px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-canvas text-text-primary min-h-screen flex flex-col antialiased">
+<!-- Status Bar (Simulated) -->
+<div class="h-11 flex justify-between items-center px-6 pt-1 text-xs font-semibold shrink-0">
+<span class="w-[54px] text-center">9:41</span>
+<div class="flex items-center gap-1.5 w-[54px] justify-end">
+<span class="material-symbols-outlined text-[16px] leading-none">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px] leading-none">wifi</span>
+<span class="material-symbols-outlined text-[16px] leading-none">battery_full</span>
+</div>
+</div>
+<!-- Top App Bar -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full shrink-0">
+<button class="w-10 h-10 flex items-center justify-center -ml-2 text-text-secondary active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-3xl">chevron_left</span>
+</button>
+<h1 class="text-[22px] font-bold tracking-tight">Schedule</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-margin-mobile pb-[100px] flex flex-col gap-4 overflow-y-auto">
+<!-- Work Block 1 -->
+<div class="bg-surface-card rounded-2xl p-4 shadow-[0_8px_24px_rgba(24,24,27,0.06)] flex justify-between items-center">
+<span class="font-numeric-data text-numeric-data text-text-primary">Sun, Mon, Tue, Wed, Thu · 9:00 AM–5:00 PM</span>
+<button class="text-[#DC2626] text-[13px] font-semibold active:opacity-70 transition-opacity">Remove</button>
+</div>
+<!-- Work Block 2 -->
+<div class="bg-surface-card rounded-2xl p-4 shadow-[0_8px_24px_rgba(24,24,27,0.06)] flex justify-between items-center">
+<span class="font-numeric-data text-numeric-data text-text-primary">Sat · 10:00 AM–2:00 PM</span>
+<button class="text-[#DC2626] text-[13px] font-semibold active:opacity-70 transition-opacity">Remove</button>
+</div>
+<!-- Add a block form -->
+<div class="bg-surface-card rounded-2xl p-lg shadow-[0_8px_24px_rgba(24,24,27,0.06)] flex flex-col gap-6 mt-2">
+<!-- Weekday Pills -->
+<div class="flex gap-2 justify-between">
+<button class="flex-1 h-9 rounded-xl bg-accent-emerald text-white text-[13px] font-semibold flex items-center justify-center">Sun</button>
+<button class="flex-1 h-9 rounded-xl bg-accent-emerald text-white text-[13px] font-semibold flex items-center justify-center">Mon</button>
+<button class="flex-1 h-9 rounded-xl bg-accent-emerald text-white text-[13px] font-semibold flex items-center justify-center">Tue</button>
+<button class="flex-1 h-9 rounded-xl bg-accent-emerald text-white text-[13px] font-semibold flex items-center justify-center">Wed</button>
+<button class="flex-1 h-9 rounded-xl bg-accent-emerald text-white text-[13px] font-semibold flex items-center justify-center">Thu</button>
+<button class="flex-1 h-9 rounded-xl bg-surface-inset text-text-primary text-[13px] font-medium flex items-center justify-center">Fri</button>
+<button class="flex-1 h-9 rounded-xl bg-surface-inset text-text-primary text-[13px] font-medium flex items-center justify-center">Sat</button>
+</div>
+<!-- Time Inputs -->
+<div class="flex gap-4">
+<div class="flex-1 bg-surface-inset rounded-xl p-3 flex flex-col justify-center">
+<span class="text-[11px] uppercase text-text-secondary font-medium tracking-wider mb-1">From</span>
+<input class="bg-transparent border-none p-0 text-[16px] font-medium text-text-primary focus:ring-0 w-full" readonly="" type="text" value="9:00 AM"/>
+</div>
+<div class="flex-1 bg-surface-inset rounded-xl p-3 flex flex-col justify-center">
+<span class="text-[11px] uppercase text-text-secondary font-medium tracking-wider mb-1">To</span>
+<input class="bg-transparent border-none p-0 text-[16px] font-medium text-text-primary focus:ring-0 w-full" readonly="" type="text" value="5:00 PM"/>
+</div>
+</div>
+<!-- Add Button -->
+<button class="w-full h-12 bg-accent-emerald text-white rounded-2xl font-semibold text-[15px] active:scale-[0.98] transition-transform">
+                Add block
+            </button>
+<!-- Hint -->
+<p class="text-[12px] text-text-secondary text-center leading-relaxed">
+                Blocks nudge you to check in — they never clock you in automatically.
+            </p>
+</div>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pt-2 pb-8 bg-surface/90 backdrop-blur-lg shadow-[0_-4px_16px_rgba(24,24,27,0.04)] rounded-t-xl z-50">
+<button class="flex flex-col items-center justify-center text-text-secondary w-16 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-text-secondary w-16 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">list_alt</span>
+<span class="font-label-md text-label-md">Logs</span>
+</button>
+<button class="flex flex-col items-center justify-center text-accent-emerald bg-accent-emerald-soft rounded-xl px-4 py-1.5 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-2xl mb-0.5" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</button>
+</nav>
+</body></html>

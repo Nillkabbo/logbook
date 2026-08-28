@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Session Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-canvas": "#F4F4F5",
+                        "surface-card": "#FFFFFF",
+                        "text-primary": "#18181B",
+                        "text-secondary": "rgba(24,24,27,0.6)",
+                        "accent-emerald": "#059669",
+                        "error": "#DC2626"
+                    },
+                    borderRadius: {
+                        "card": "24px",
+                        "btn": "24px"
+                    },
+                    boxShadow: {
+                        "ambient": "0 8px 24px rgba(24,24,27,0.06)"
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom toggle switch styling */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #059669;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #059669;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-black font-sans h-screen w-full overflow-hidden relative">
+<!-- Dimmed Background Image -->
+<div class="absolute inset-0 z-0">
+<img alt="Background screen" class="w-full h-full object-cover opacity-40 blur-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgjqvZ8nsq-3ZCw4mek_FhfSMn1dJ1MPwAWLgxXgwleRjBQspuFcCU2pnRTKJx1O3q-ObCfeRV-oHZf1UiAbTKnn5BDW7WNRM0hwR7uT4JleehWYeQnHHmawS1ro4VQnN49u0Psd6Re3BHvCQpC_2SH-mn6DuD14QQMLLJMayOHSWN_6Mhzy5Lo9ORjXGUGDRXMwEDlRaRl1Gc5mP4tbic3a3V5fhKpq1zEGY0grEkeSKHrAQaZ287tTo-vrupMfOr2f71kJvvA5E"/>
+</div>
+<!-- Page Sheet Modal -->
+<div class="absolute bottom-0 w-full bg-surface-canvas rounded-t-[32px] z-10 flex flex-col h-[751px] shadow-[0_-8px_32px_rgba(0,0,0,0.5)] transform transition-transform duration-300">
+<!-- Grabber Handle -->
+<div class="w-full flex justify-center pt-3 pb-2">
+<div class="w-10 h-1.5 bg-gray-300 rounded-full"></div>
+</div>
+<!-- Header -->
+<div class="px-6 py-2 pb-4 text-center">
+<h1 class="text-[22px] font-bold text-text-primary">Session</h1>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto px-4 pb-12">
+<!-- Check-in Section -->
+<div class="mb-4">
+<label class="block text-[12px] font-semibold text-text-secondary uppercase tracking-widest mb-2 px-2">Check-In</label>
+<div class="bg-surface-card rounded-card shadow-ambient p-4 flex items-center justify-between">
+<span class="text-[15px] text-text-primary">Wed, Aug 27, 2:47 PM</span>
+<span class="material-symbols-outlined text-text-secondary">calendar_clock</span>
+</div>
+</div>
+<!-- Still Running Toggle -->
+<div class="mb-4 bg-surface-card rounded-card shadow-ambient p-4 flex items-center justify-between">
+<span class="text-[15px] text-text-primary">Still running</span>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 transition-transform duration-200 ease-in-out border-gray-300 top-0 left-0" id="toggle" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer" for="toggle"></label>
+</div>
+</div>
+<!-- Check-out Section -->
+<div class="mb-2">
+<label class="block text-[12px] font-semibold text-text-secondary uppercase tracking-widest mb-2 px-2">Check-Out</label>
+<div class="bg-surface-card rounded-card shadow-ambient p-4 flex items-center justify-between">
+<span class="text-[15px] text-text-primary">Wed, Aug 27, 5:34 PM</span>
+<span class="material-symbols-outlined text-text-secondary">calendar_clock</span>
+</div>
+</div>
+<!-- Duration Preview -->
+<div class="text-center mb-6">
+<span class="text-[14px] text-text-secondary tabular-nums">2:47</span>
+</div>
+<!-- Category Section -->
+<div class="mb-4">
+<label class="block text-[12px] font-semibold text-text-secondary uppercase tracking-widest mb-2 px-2">Category</label>
+<div class="bg-surface-card rounded-card shadow-ambient p-4 flex items-center justify-between">
+<span class="text-[15px] text-text-primary">Deep work</span>
+<span class="material-symbols-outlined text-text-secondary">chevron_right</span>
+</div>
+</div>
+<!-- Note Section -->
+<div class="mb-8">
+<label class="block text-[12px] font-semibold text-text-secondary uppercase tracking-widest mb-2 px-2">Note</label>
+<div class="bg-surface-card rounded-card shadow-ambient p-4 h-[70px]">
+<span class="text-[15px] text-text-primary">Focus block — payments refactor</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-4 px-2">
+<button class="w-full bg-accent-emerald text-white font-semibold text-[16px] py-4 rounded-btn active:scale-95 transition-transform">
+                    Save
+                </button>
+<button class="w-full text-error font-semibold text-[16px] py-3 active:opacity-70 transition-opacity">
+                    Delete session
+                </button>
+</div>
+</div>
+</div>
+</body></html>
