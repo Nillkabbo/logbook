@@ -171,17 +171,25 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
             styles.sheet,
             { backgroundColor: theme.surface, transform: [{ translateY: panY }] },
           ]}>
-          {/* Drag handle: grabber + title row */}
+          {/* Drag handle: grabber → close ✕ + centered title; the whole header drags */}
           <View {...pan.panHandlers}>
             <View style={styles.grabberRow}>
               <View style={[styles.grabber, { backgroundColor: theme.inset }]} />
             </View>
             <View style={styles.titleRow}>
-              <Pressable hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} onPress={requestClose}>
-                <Text style={[styles.cancelText, { color: theme.muted }]}>{t('cancel')}</Text>
-              </Pressable>
-              <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
               <View style={styles.titleSpacer} />
+              <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
+              <View style={styles.titleSpacer}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('cancel')}
+                  android_ripple={{ color: theme.inset, borderless: true, radius: 22 }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={[styles.closeButton, { backgroundColor: theme.inset }]}
+                  onPress={requestClose}>
+                  <Text style={[styles.closeIcon, { color: theme.text }]}>✕</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
 
@@ -318,7 +326,7 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 12,
   },
   title: {
@@ -328,11 +336,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   titleSpacer: {
-    width: 60,
+    width: 44,
+    alignItems: 'flex-end',
   },
-  cancelText: {
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeIcon: {
     fontSize: 16,
-    minWidth: 60,
+    fontWeight: '600',
+    lineHeight: 20,
   },
   container: {
     padding: 20,
