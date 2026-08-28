@@ -63,3 +63,7 @@ _Avoid_: salary, wage
 **Work block**:
 A recurring weekly commitment — chosen weekdays plus a start and end time. Prompts a check-in; never clocks one in.
 _Avoid_: shift, appointment, schedule entry
+
+**Off week**:
+A Week the user has marked as not working; the Weekly target and Over-target judgment are suspended for it. Totals and earnings still show.
+_Avoid_: vacation week, holiday week, pause week
