@@ -166,37 +166,51 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       await insertBlock([1, 2, 3, 4, 5], 540, 1020);
       await insertBlock([6], 600, 840);
 
+      // ── Off week: 2 weeks ago (Sunday–Saturday), properly keyed ──
+      const offWeekStart = new Date(today);
+      offWeekStart.setDate(today.getDate() - today.getDay() - 14);
+      const offWeekEnd = new Date(offWeekStart);
+      offWeekEnd.setDate(offWeekStart.getDate() + 7);
+
+      // ── Over-target weeks: 3 and 5 weeks ago ──
+      const overWeek3Start = new Date(today);
+      overWeek3Start.setDate(today.getDate() - today.getDay() - 21);
+      const overWeek3End = new Date(overWeek3Start);
+      overWeek3End.setDate(overWeek3Start.getDate() + 7);
+      const overWeek5Start = new Date(today);
+      overWeek5Start.setDate(today.getDate() - today.getDay() - 35);
+      const overWeek5End = new Date(overWeek5Start);
+      overWeek5End.setDate(overWeek5Start.getDate() + 7);
+
       // ── Sessions across 60 days ──
-      // Weeks (from oldest): some under, 2 over-target, 1 off, current week partial
       for (let d = 60; d >= 0; d--) {
         const date = new Date(today);
         date.setDate(today.getDate() - d);
         const dow = date.getDay();
 
-        // Determine which "week bucket" this day is in (for over-target control)
-        const daysAgoFromWeekStart = dow; // 0=Sun
-        const weekIndex = Math.floor((60 - d + daysAgoFromWeekStart) / 7); // 0=oldest
+        // Skip the off week entirely
+        if (date >= offWeekStart && date < offWeekEnd) continue;
 
-        // OFF WEEK: week index 6 (about 2 weeks ago) — no sessions
-        if (weekIndex === 6) continue;
+        const isOverTarget =
+          (date >= overWeek3Start && date < overWeek3End) ||
+          (date >= overWeek5Start && date < overWeek5End);
 
         // Weekends: 15% chance of a Saturday session, never Sunday
         if (dow === 0) continue;
         if (dow === 6 && rand() > 0.15) continue;
 
-        // Weekdays: 15% skip (sick/vacation)
-        if (dow >= 1 && dow <= 5 && rand() < 0.15 && weekIndex !== 8) continue;
+        // Weekdays: 15% skip (sick/vacation), never skip over-target weeks
+        if (dow >= 1 && dow <= 5 && rand() < 0.15 && !isOverTarget) continue;
 
         // Session count: 1-3 (over-target weeks get 2-3 longer sessions)
-        const overTarget = weekIndex === 3 || weekIndex === 5;
-        const sessionCount = overTarget ? randInt(2, 3) : randInt(1, 3);
+        const sessionCount = isOverTarget ? randInt(2, 3) : randInt(1, 3);
 
         let cursor = 8 * 60 + randInt(0, 45); // 8:00–8:45
 
         for (let i = 0; i < sessionCount; i++) {
           const cat = pick(CATEGORIES);
           const note = rand() < 0.4 ? pick(NOTES[cat] ?? ['']) : '';
-          const durMin = overTarget ? randInt(150, 300) : randInt(45, 240);
+          const durMin = isOverTarget ? randInt(150, 300) : randInt(45, 240);
           const startMin = cursor;
           const endMin = Math.min(cursor + durMin, 17 * 60 + 45);
           if (endMin - startMin < 30) break;
@@ -208,16 +222,15 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // ── Today: always has at least one session + a running session ──
-      const runningStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 30);
-      // Only add if today doesn't already have a running session
-      // (the seeder might have already created one)
+      // ── Today: a running session (1h ago at most, never future) ──
+      const runningStart = new Date(Math.min(
+        new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 30).getTime(),
+        now.getTime() - 60 * 60 * 1000, // at most 1h ago
+      ));
       await insertSession(runningStart, '', '');
 
       // ── Settings: rate $30/h + the off week ──
-      const offWeekSunday = new Date(today);
-      offWeekSunday.setDate(today.getDate() - today.getDay() - 14); // 2 weeks ago Sunday
-      const offKey = `${offWeekSunday.getFullYear()}-${String(offWeekSunday.getMonth() + 1).padStart(2, '0')}-${String(offWeekSunday.getDate()).padStart(2, '0')}`;
+      const offKey = `${offWeekStart.getFullYear()}-${String(offWeekStart.getMonth() + 1).padStart(2, '0')}-${String(offWeekStart.getDate()).padStart(2, '0')}`;
 
       // Read current offWeeks and append
       const currentSettings = await getSettings();

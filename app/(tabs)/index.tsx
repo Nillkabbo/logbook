@@ -57,10 +57,12 @@ export default function HomeScreen() {
     try {
       if (model.running) {
         const ended = model.running;
+        const endedAt = new Date();
         await checkOut();
         // Q7: a 5s undo bar catches accidental check-outs gracefully.
+        // The running session's checkOut is null — stamp it for the toast's duration.
         if (undoTimer.current) clearTimeout(undoTimer.current);
-        setUndoable(ended);
+        setUndoable({ ...ended, checkOut: endedAt });
         undoTimer.current = setTimeout(() => setUndoable(null), 5000);
       } else {
         // A new check-in makes any pending undo stale — clear it.
@@ -216,7 +218,7 @@ export default function HomeScreen() {
           <View style={[styles.undoBar, { backgroundColor: theme.text }]}>
             <Text style={[styles.undoText, { color: theme.surface }]}>
               {t('sessionEnded')} · {formatDurationWords(
-                Math.floor((undoable.checkOut!.getTime() - undoable.checkIn.getTime()) / 1000),
+                Math.floor(((undoable.checkOut ?? new Date()).getTime() - undoable.checkIn.getTime()) / 1000),
               )}
             </Text>
             <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={undoCheckOut}>
