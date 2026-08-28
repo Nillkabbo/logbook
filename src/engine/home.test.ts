@@ -143,3 +143,32 @@ describe('homeModel week-to-date', () => {
     expect(withoutRate.earningsLabel).toBeNull();
   });
 });
+
+describe('homeModel weekDayBars', () => {
+  const THURSDAY = { ...DEFAULT_SETTINGS, weekStartDay: 4 as const };
+  // Thu Aug 27 (today), Wed Aug 26, Tue Aug 25 — 2h each; Sunday empty.
+  const now = at(2026, 7, 27, 15, 0);
+  const thu = session(1, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 11, 0));
+  const wed = session(2, at(2026, 7, 26, 9, 0), at(2026, 7, 26, 11, 0));
+  const tue = session(3, at(2026, 7, 25, 9, 0), at(2026, 7, 25, 11, 0));
+
+  it('seven bars from the week start, today flagged, empty days at 0', () => {
+    const m = homeModel([thu, wed, tue], THURSDAY, now);
+    expect(m.weekDayBars).toHaveLength(7);
+    expect(m.weekDayBars[0].isToday).toBe(true); // Thursday = week start = offset 0
+    expect(m.weekDayBars[0].intensity).toBe(1); // all worked days equal 2h → all busiest
+    expect(m.weekDayBars[1].intensity).toBe(0); // Friday, no sessions
+  });
+
+  it('scales to the busiest day', () => {
+    const big = session(4, at(2026, 7, 27, 8, 0), at(2026, 7, 27, 16, 0)); // 8h today
+    const m = homeModel([big, tue], THURSDAY, now);
+    expect(m.weekDayBars[0].intensity).toBe(1); // 8h today = busiest
+    expect(m.weekDayBars[1].intensity).toBe(0); // Friday empty
+  });
+
+  it('dateLabel orients with weekday and date', () => {
+    const m = homeModel([], THURSDAY, now);
+    expect(m.dateLabel).toBe('Thursday, Aug 27');
+  });
+});

@@ -1,12 +1,24 @@
 import { formatDuration, formatElapsed } from './time';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
-import { weekKey, weekRange, weekSummary } from './weeks';
+import { localDayKey, weekKey, weekRange, weekSummary } from './weeks';
+
+export interface HomeDayBar {
+  /** Local-day identity for list keys: `YYYY-MM-DD`. */
+  key: string;
+  isToday: boolean;
+  /** Day total scaled to the week's busiest day: 0 empty … 1 busiest. */
+  intensity: number;
+}
 
 export interface HomeModel {
   running: Session | null;
   elapsedSeconds: number | null;
   elapsedLabel: string | null;
+  /** Weekday + date caption, e.g. "Wednesday, Aug 27" — orients the TODAY totals. */
+  dateLabel: string;
+  /** Seven bars from the week's start day — the week's shape at a glance. */
+  weekDayBars: HomeDayBar[];
   /** Sessions owned by today (check-in day), oldest first — a running session is included. */
   todaySessions: Session[];
   todayTotalLabel: string;
@@ -56,7 +68,35 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
   const off = settings.offWeeks.includes(weekKey(week.start));
   const summary = weekSummary(weekToDateSeconds, weeklyTargetSeconds, off, settings.hourlyRate);
 
+  // Seven bars from the week's start day, scaled to the busiest day.
+  const secondsByDayKey = new Map<string, number>();
+  for (const session of sessions) {
+    if (
+      session.checkIn.getTime() >= week.start.getTime() &&
+      session.checkIn.getTime() < week.end.getTime() &&
+      session.checkOut !== null
+    ) {
+      const key = localDayKey(session.checkIn);
+      secondsByDayKey.set(key, (secondsByDayKey.get(key) ?? 0) + sessionDurationSeconds(session));
+    }
+  }
+  const busiest = Math.max(0, ...secondsByDayKey.values());
+  const weekDayBars: HomeDayBar[] = Array.from({ length: 7 }, (_, offset) => {
+    const date = new Date(week.start);
+    date.setDate(date.getDate() + offset);
+    const key = localDayKey(date);
+    const seconds = secondsByDayKey.get(key) ?? 0;
+    return { key, isToday: key === localDayKey(now), intensity: busiest === 0 ? 0 : seconds / busiest };
+  });
+
+  const dateLabel = now.toLocaleDateString(
+    settings.language === 'bn' ? 'bn-BD-u-nu-latn' : 'en-US',
+    { weekday: 'long', month: 'short', day: 'numeric' },
+  );
+
   return {
+    dateLabel,
+    weekDayBars,
     running,
     elapsedSeconds,
     elapsedLabel: elapsedSeconds === null ? null : formatElapsed(elapsedSeconds),

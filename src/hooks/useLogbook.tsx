@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { Appearance } from 'react-native';
+import { Appearance, Platform } from 'react-native';
 
 import {
   completeSession,
@@ -84,8 +84,10 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   // The theme preference drives the app-wide color scheme; every useColorScheme
-  // consumer (tokens, expo-router navigation) follows it. null restores system.
+  // consumer (tokens, expo-router navigation) follows it. 'unspecified' restores
+  // system-following. Web has no Appearance override — the device scheme rules.
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     Appearance.setColorScheme(
       settings.themePreference === 'system'
         ? 'unspecified'

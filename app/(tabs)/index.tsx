@@ -85,6 +85,27 @@ export default function HomeScreen() {
         />
       )}
 
+      <Text style={[styles.dateCaption, { color: theme.muted }]}>{model.dateLabel}</Text>
+
+      <View style={[styles.weekBars, { borderColor: theme.inset }]}>
+        {model.weekDayBars.map((bar) => (
+          <View key={bar.key} style={styles.weekBarCol}>
+            <View
+              style={[
+                styles.weekBar,
+                {
+                  height: 4 + bar.intensity * 20,
+                  backgroundColor: bar.isToday ? theme.accent : theme.inset,
+                },
+              ]}
+            />
+            {bar.isToday && (
+              <View style={[styles.weekBarDot, { backgroundColor: theme.accent }]} />
+            )}
+          </View>
+        ))}
+      </View>
+
       <View style={styles.totals}>
         <View style={styles.totalItem}>
           <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('today')}</Text>
@@ -162,12 +183,42 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     paddingTop: 40,
-    paddingBottom: 52,
+    paddingBottom: 32,
     gap: 8,
   },
   elapsed: {
     ...TYPE.display,
     fontVariant: ['tabular-nums'],
+  },
+  dateCaption: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  weekBars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 6,
+    alignSelf: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 24,
+  },
+  weekBarCol: {
+    alignItems: 'center',
+    gap: 3,
+  },
+  weekBar: {
+    width: 10,
+    borderRadius: 2,
+  },
+  weekBarDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 999,
   },
   totals: {
     flexDirection: 'row',
