@@ -241,10 +241,6 @@ const styles = StyleSheet.create({
   fieldGroup: {
     gap: 8,
   },
-  field: {
-    padding: 16,
-    borderRadius: RADIUS.card,
-  },
   fieldDisabled: {
     opacity: 0.4,
   },
@@ -255,10 +251,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 8,
     marginHorizontal: 8,
-  },
-  fieldValue: {
-    fontSize: 16,
-    fontVariant: ['tabular-nums'],
   },
   runningCard: {
     flexDirection: 'row',

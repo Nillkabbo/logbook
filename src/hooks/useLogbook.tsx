@@ -165,8 +165,11 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     async (patch: Partial<Settings>) => {
       await updateSettingsInDb(patch);
       await refresh();
-      // Notification text follows the language — rebuild when it moves.
-      if (patch.language !== undefined) await syncAfter(null);
+      // Notification content follows the language; the reminder's fire time
+      // follows the threshold — rebuild when either moves.
+      if (patch.language !== undefined || patch.reminderThresholdHours !== undefined) {
+        await syncAfter(null);
+      }
     },
     [refresh, syncAfter],
   );

@@ -2,8 +2,6 @@ import { formatDuration } from './time';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import {
-  dateLocale,
-  formatDayLabel,
   localDayKey,
   weekKey,
   weekRange,

@@ -115,4 +115,9 @@ describe('blockRangeLabel', () => {
     const block = { id: 2, weekdays: [6] as Weekday[], startMinute: 10 * 60, endMinute: 14 * 60 };
     expect(blockRangeLabel(block, names, true)).toBe('Sat · 10:00 AM–2:00 PM');
   });
+
+  it('compresses sorted runs and leaves gaps as separate entries', () => {
+    const block = { id: 3, weekdays: [0, 2, 4, 5] as Weekday[], startMinute: 600, endMinute: 960 };
+    expect(blockRangeLabel(block, names)).toBe('Sun, Tue, Thu–Fri · 10:00–16:00');
+  });
 });

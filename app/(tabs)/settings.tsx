@@ -13,12 +13,14 @@ import {
   validateWeeklyTarget,
 } from '@/engine/validation';
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
+import { useHour12 } from '@/ui/clock';
 import { useI18n, type LanguageSetting, type StringKey } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const hour12 = useHour12();
   const { t, weekdayShortName } = useI18n();
   const { refresh, settings, saveSettings, blocks } = useLogbook();
 
@@ -84,7 +86,7 @@ export default function SettingsScreen() {
     blocks.length === 0
       ? t('noBlocks')
       : blocks.length === 1
-        ? blockRangeLabel(blocks[0], weekdayShortName)
+        ? blockRangeLabel(blocks[0], weekdayShortName, hour12)
         : t('nBlocks', { n: blocks.length });
 
   return (
@@ -223,13 +225,5 @@ const styles = StyleSheet.create({
   },
   chevron: {
     fontSize: 20,
-  },
-  pill: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: RADIUS.pill,
-  },
-  pillText: {
-    fontSize: 14,
   },
 });

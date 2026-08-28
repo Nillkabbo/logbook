@@ -80,14 +80,18 @@ export default function LogsScreen() {
         <Pressable
           style={styles.weekTitleBlock}
           accessibilityRole="button"
-          accessibilityLabel={t('markOff')}
+          accessibilityLabel={week.label}
           onPress={() => toggleWeek(week)}>
           {week.isCurrent && (
             <Text style={[styles.weekEyebrow, { color: theme.muted }]}>{t('currentWeek')}</Text>
           )}
           <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
         </Pressable>
-        <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => toggleOff(week.key)}>
+        <Pressable
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={week.off ? t('markOn') : t('markOff')}
+          onPress={() => toggleOff(week.key)}>
           <Text style={[styles.offToggle, { color: theme.muted }]}>
             {week.off ? t('markOn') : t('markOff')}
           </Text>
@@ -132,7 +136,7 @@ export default function LogsScreen() {
         <View style={[styles.breakdown, { borderTopColor: theme.canvas }]}>
           {week.categoryBreakdown.map((entry, index) => (
             <View key={entry.label || '__none__'} style={styles.breakdownRow}>
-              <View style={[styles.breakdownDot, { backgroundColor: dotColor(theme, index) }]} />
+              <View style={[styles.breakdownDot, { backgroundColor: dotColor(index) }]} />
               <Text style={[styles.breakdownLabel, { color: theme.muted }]}>
                 {entry.label || t('uncategorised')}
               </Text>
@@ -242,7 +246,7 @@ export default function LogsScreen() {
 
 /** The breakdown dot palette — neutral zinc steps. Green is reserved for the
  *  working state (progress, earnings, today), never a category. */
-function dotColor(theme: ReturnType<typeof useTheme>, index: number): string {
+function dotColor(index: number): string {
   const steps = ['#52525B', '#71717A', '#A1A1AA'];
   return steps[index % steps.length];
 }

@@ -50,9 +50,9 @@ export function DateTimeField({
 
   if (Platform.OS === 'ios') {
     // iOS: the compact picker is the control itself; a running session has no checkout to edit.
+    // Labels render on Android/Web only — iOS callers (the sheet) provide their own.
     return (
       <View style={styles.group}>
-        {labelRow}
         {disabled ? (
           <Text style={[styles.value, { color: theme.text }]}>—</Text>
         ) : (
