@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 
@@ -51,6 +52,25 @@ export default function HomeScreen() {
   const nextBlock = nextBlockOccurrence(blocks, now);
   const currentBlock = model.running ? null : blockOccurring(blocks, now);
 
+  // Fast path: categorise the running session in one tap — four most recent
+  // categories plus '…' into the full sheet. Shown only while uncategorised.
+  const runningUncategorised = model.running !== null && model.running.category === '';
+  const recentCategories = [
+    ...new Set([...sessions].reverse().map((s) => s.category)),
+  ]
+    .filter((c) => c.length > 0)
+    .slice(0, 4);
+  const setRunningCategory = async (category: string) => {
+    if (!model.running) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    await saveSession(model.running.id, {
+      checkIn: model.running.checkIn,
+      checkOut: null,
+      note: model.running.note,
+      category,
+    });
+  };
+
   const onToggle = async () => {
     if (busy) return;
     setBusy(true);
@@ -75,6 +95,22 @@ export default function HomeScreen() {
         </Text>
         <CheckInToggle running={model.running !== null} disabled={busy} onPress={onToggle} />
       </View>
+
+      {runningUncategorised && recentCategories.length > 0 && (
+        <View style={styles.quickCategoryRow}>
+          {recentCategories.map((category) => (
+            <Pressable
+              key={category}
+              style={[styles.quickChip, { borderColor: theme.accent }]}
+              onPress={() => setRunningCategory(category)}>
+              <Text style={[styles.quickChipText, { color: theme.accent }]}>{category}</Text>
+            </Pressable>
+          ))}
+          <Pressable onPress={() => setSelected(model.running)}>
+            <Text style={[styles.quickMore, { color: theme.muted }]}>…</Text>
+          </Pressable>
+        </View>
+      )}
 
       <View style={styles.totals}>
         <View style={styles.totalItem}>
@@ -224,6 +260,27 @@ const styles = StyleSheet.create({
   },
   rowPressed: {
     opacity: 0.7,
+  },
+  quickCategoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  quickChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  quickChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  quickMore: {
+    fontSize: 16,
+    paddingHorizontal: 6,
   },
   backupBanner: {
     borderRadius: RADIUS.card,
