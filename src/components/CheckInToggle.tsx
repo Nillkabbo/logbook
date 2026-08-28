@@ -80,6 +80,9 @@ export function CheckInToggle({
       )}
       <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled, selected: running }}
+          accessibilityLabel={running ? t('checkOut') : t('checkIn')}
           onPressIn={pressIn}
           onPressOut={pressOut}
           onPress={press}

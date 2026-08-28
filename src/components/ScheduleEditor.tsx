@@ -81,7 +81,7 @@ export function ScheduleEditor({
           <Text style={[styles.rowText, { color: theme.text }]}>
             {blockRangeLabel(block, weekdayShortName, hour12)}
           </Text>
-          <Pressable onPress={() => onRemove(block.id)}>
+          <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" onPress={() => onRemove(block.id)}>
             <Text style={[styles.remove, { color: theme.stop }]}>{t('remove')}</Text>
           </Pressable>
         </View>

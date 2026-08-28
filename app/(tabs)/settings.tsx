@@ -1,4 +1,5 @@
 import { useFocusEffect, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -15,6 +16,7 @@ import { useI18n, type LanguageSetting, type StringKey } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, weekdayShortName } = useI18n();
   const { refresh, settings, saveSettings, blocks } = useLogbook();
@@ -80,7 +82,9 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: theme.canvas }}
-      contentContainerStyle={styles.container}>
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}>
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('week')}</Text>
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
         <Text style={[styles.rowLabel, { color: theme.text }]}>{t('weekStartsOn')}</Text>
@@ -103,7 +107,10 @@ export default function SettingsScreen() {
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
-        <Pressable style={styles.navRow} onPress={() => router.push('/(tabs)/schedule')}>
+        <Pressable
+          style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
+          accessibilityRole="button"
+          onPress={() => router.push('/(tabs)/schedule')}>
           <View style={styles.navText}>
             <Text style={[styles.navTitle, { color: theme.text }]}>{t('schedule')}</Text>
             <Text style={[styles.navSub, { color: theme.muted }]}>{blockSummary}</Text>
@@ -111,7 +118,10 @@ export default function SettingsScreen() {
           <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
         </Pressable>
         <View style={[styles.navDivider, { backgroundColor: theme.canvas }]} />
-        <Pressable style={styles.navRow} onPress={() => router.push('/(tabs)/data')}>
+        <Pressable
+          style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
+          accessibilityRole="button"
+          onPress={() => router.push('/(tabs)/data')}>
           <View style={styles.navText}>
             <Text style={[styles.navTitle, { color: theme.text }]}>{t('data')}</Text>
             <Text style={[styles.navSub, { color: theme.muted }]}>{t('dataSub')}</Text>
@@ -129,11 +139,10 @@ export default function SettingsScreen() {
             return (
               <Pressable
                 key={option}
-                onPress={() => saveSettings({ language: option })}
-                style={[
-                  styles.pill,
-                  { backgroundColor: active ? theme.accent : theme.inset },
-                ]}>
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                style={({ pressed }) => [styles.pill, pressed && styles.pressed, { backgroundColor: active ? theme.accent : theme.inset }]}
+                onPress={() => saveSettings({ language: option })}>
                 <Text style={{ fontSize: 14, color: active ? theme.onAccent : theme.text }}>{label}</Text>
               </Pressable>
             );
@@ -183,6 +192,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 14,
     fontVariant: ['tabular-nums'],
+  },
+  pressed: {
+    opacity: 0.7,
   },
   navDivider: {
     height: StyleSheet.hairlineWidth,

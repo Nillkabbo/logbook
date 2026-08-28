@@ -14,6 +14,8 @@ import {
   View,
 } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { formatDayLabel } from '@/engine/weeks';
 import { formatDuration, formatTimeOfDay } from '@/engine/time';
 import type { Session, SessionPatch } from '@/engine/types';
@@ -35,6 +37,7 @@ const formatDateTime = (date: Date, hour12: boolean) =>
   `${formatDayLabel(date)}, ${formatTimeOfDay(date, hour12)}`;
 
 export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose }: Props) {
+  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const hour12 = useHour12();
   const { t } = useI18n();
@@ -156,7 +159,9 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
       </View>
       <ScrollView
         style={{ backgroundColor: theme.canvas }}
-        contentContainerStyle={styles.container}>
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.container, { paddingBottom: 48 + insets.bottom }]}>
         <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
 
         {renderField('in')}
@@ -194,7 +199,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
             .filter((s) => s.length > 0 && s !== category)
             .slice(0, 6)
             .map((s) => (
-              <Pressable key={s} onPress={() => setCategory(s)}>
+              <Pressable key={s} hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }} onPress={() => setCategory(s)}>
                 <Text style={{ color: theme.accent, fontSize: 13, paddingVertical: 2 }}>{s}</Text>
               </Pressable>
             ))}

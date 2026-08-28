@@ -39,7 +39,7 @@ export function BackupBanner() {
           onPress={run}>
           <Text style={[styles.buttonText, { color: theme.onAccent }]}>{t('exportNow')}</Text>
         </Pressable>
-        <Pressable onPress={() => setDismissed(true)}>
+        <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => setDismissed(true)}>
           <Text style={[styles.dismiss, { color: theme.muted }]}>{t('dismiss')}</Text>
         </Pressable>
       </View>

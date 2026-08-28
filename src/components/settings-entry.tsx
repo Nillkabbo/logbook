@@ -41,10 +41,13 @@ export function WeekdayPicker({
         return (
           <Pressable
             key={name}
-            style={[
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            style={({ pressed }) => [
               styles.pill,
               variant === 'segmented' && styles.pillSegmented,
               variant === 'setup' && styles.pillSetup,
+              pressed && styles.pillPressed,
               { backgroundColor: active ? theme.accent : theme.inset },
             ]}
             onPress={() => press(index)}>
@@ -140,5 +143,8 @@ const styles = StyleSheet.create({
   },
   pillTextActive: {
     fontWeight: '600',
+  },
+  pillPressed: {
+    opacity: 0.75,
   },
 });

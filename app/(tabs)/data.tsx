@@ -1,4 +1,5 @@
 import { useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -12,6 +13,7 @@ import { useI18n } from '@/ui/i18n';
 
 /** The Data sub-screen: CSV export and import, split out of Settings. */
 export default function DataScreen() {
+  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale } = useI18n();
   const { refresh, settings, sessions, exportBackup, importCsv } = useLogbook();
@@ -79,7 +81,9 @@ export default function DataScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: theme.canvas }}
-      contentContainerStyle={styles.container}>
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 8 }]}>
       <SubScreenHeader title={t('data')} />
 
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>

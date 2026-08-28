@@ -1,4 +1,5 @@
 import { useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -20,6 +21,7 @@ import { useI18n } from '@/ui/i18n';
 import { RADIUS, TYPE, useTheme } from '@/theme';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale } = useI18n();
   const hour12 = useHour12();
@@ -67,7 +69,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: theme.canvas }]}>
+    <View style={[styles.screen, { backgroundColor: theme.canvas, paddingTop: Math.max(16, insets.top + 8) }]}>
       <View style={styles.header}>
         {model.running && model.elapsedLabel ? (
           <Text style={[styles.elapsed, { color: theme.text }]}>{model.elapsedLabel}</Text>

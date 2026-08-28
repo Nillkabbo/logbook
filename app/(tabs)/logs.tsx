@@ -1,4 +1,5 @@
 import { useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -14,6 +15,7 @@ import type { Session } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
 
 export default function LogsScreen() {
+  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale } = useI18n();
   const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings } =
@@ -48,7 +50,9 @@ export default function LogsScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: theme.canvas }}
-      contentContainerStyle={styles.container}>
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}>
       {suggestions.length > 0 && (
         <View style={styles.filterRow}>
           <Pressable
@@ -80,13 +84,17 @@ export default function LogsScreen() {
           <View key={week.key} style={styles.weekBlock}>
           <View style={[styles.weekCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
             <View style={styles.weekHeader}>
-              <Pressable style={styles.weekTitleBlock} onPress={() => toggleWeek(week)}>
+              <Pressable
+              style={styles.weekTitleBlock}
+              accessibilityRole="button"
+              accessibilityLabel={t('markOff')}
+              onPress={() => toggleWeek(week)}>
                 {week.isCurrent && (
                   <Text style={[styles.weekEyebrow, { color: theme.muted }]}>{t('currentWeek')}</Text>
                 )}
                 <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
               </Pressable>
-              <Pressable onPress={() => toggleOff(week.key)}>
+              <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => toggleOff(week.key)}>
                 <Text style={[styles.offToggle, { color: theme.muted }]}>
                   {week.off ? t('markOn') : t('markOff')}
                 </Text>
