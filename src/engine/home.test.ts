@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatTimeOfDay, homeModel } from './home';
+import { homeModel } from './home';
 import { DEFAULT_SETTINGS, type Session } from './types';
 
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
@@ -104,14 +104,5 @@ describe('homeModel week-to-date', () => {
     expect(model.overTarget).toBe(true);
     expect(model.weekProgress).toBeGreaterThan(1);
     expect(model.weeklyTargetLabel).toBe('2:00');
-  });
-});
-
-describe('formatTimeOfDay', () => {
-  it('formats 24-hour HH:MM in the local timezone', () => {
-    expect(formatTimeOfDay(at(2026, 7, 27, 9, 5))).toBe('09:05');
-    expect(formatTimeOfDay(at(2026, 7, 27, 14, 30))).toBe('14:30');
-    expect(formatTimeOfDay(at(2026, 7, 27, 0, 0))).toBe('00:00');
-    expect(formatTimeOfDay(at(2026, 7, 27, 23, 59, 59))).toBe('23:59');
   });
 });

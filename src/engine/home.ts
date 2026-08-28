@@ -1,4 +1,4 @@
-import { formatDuration, formatElapsed } from './durations';
+import { formatDuration, formatElapsed } from './time';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { weekRange } from './weeks';
@@ -65,11 +65,4 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
     weekProgress: weeklyTargetSeconds === 0 ? 0 : weekToDateSeconds / weeklyTargetSeconds,
     overTarget: weekToDateSeconds > weeklyTargetSeconds,
   };
-}
-
-/** 24-hour `HH:MM` wall-clock time in the local timezone. */
-export function formatTimeOfDay(date: Date): string {
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
 }

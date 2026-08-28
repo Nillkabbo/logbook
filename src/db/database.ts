@@ -1,6 +1,12 @@
 import * as SQLite from 'expo-sqlite';
 
-import { DEFAULT_SETTINGS, type Session, type Settings, type Weekday } from '@/engine/types';
+import {
+  DEFAULT_SETTINGS,
+  type Session,
+  type SessionPatch,
+  type Settings,
+  type Weekday,
+} from '@/engine/types';
 
 /**
  * SQLite adapter for LogBook. The only module that talks to expo-sqlite; everything
@@ -75,12 +81,6 @@ export async function insertSession(checkIn: Date, note = ''): Promise<number> {
 export async function completeSession(id: number, checkOut: Date): Promise<void> {
   const db = await getDb();
   await db.runAsync('UPDATE sessions SET check_out_utc = ? WHERE id = ?', checkOut.toISOString(), id);
-}
-
-export interface SessionPatch {
-  checkIn: Date;
-  checkOut: Date | null;
-  note: string;
 }
 
 export async function updateSession(id: number, patch: SessionPatch): Promise<void> {

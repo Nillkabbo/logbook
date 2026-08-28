@@ -1,4 +1,4 @@
-import { formatDuration } from './durations';
+import { formatDuration } from './time';
 import { sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { formatDayLabel, weekRange, weekRangeLabel, type WeekRange } from './weeks';

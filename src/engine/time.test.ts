@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDuration, formatElapsed } from './durations';
+import { formatDuration, formatElapsed, formatTimeOfDay } from './time';
+
+const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
+  new Date(y, mo, d, h, mi, s);
 
 describe('formatDuration', () => {
   // Worked examples: clock-style H:MM, minutes zero-padded, seconds floored away.
@@ -29,5 +32,14 @@ describe('formatElapsed', () => {
     expect(formatElapsed(3600)).toBe('1:00:00');
     expect(formatElapsed(59)).toBe('0:00:59');
     expect(formatElapsed(0)).toBe('0:00:00');
+  });
+});
+
+describe('formatTimeOfDay', () => {
+  it('formats 24-hour HH:MM in the local timezone', () => {
+    expect(formatTimeOfDay(at(2026, 7, 27, 9, 5))).toBe('09:05');
+    expect(formatTimeOfDay(at(2026, 7, 27, 14, 30))).toBe('14:30');
+    expect(formatTimeOfDay(at(2026, 7, 27, 0, 0))).toBe('00:00');
+    expect(formatTimeOfDay(at(2026, 7, 27, 23, 59, 59))).toBe('23:59');
   });
 });

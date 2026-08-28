@@ -13,10 +13,9 @@ import {
   View,
 } from 'react-native';
 
-import type { SessionPatch } from '@/db/database';
 import { formatDayLabel } from '@/engine/weeks';
-import { formatTimeOfDay } from '@/engine/home';
-import type { Session } from '@/engine/types';
+import { formatTimeOfDay } from '@/engine/time';
+import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
 
 interface Props {

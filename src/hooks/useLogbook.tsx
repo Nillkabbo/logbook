@@ -16,10 +16,9 @@ import {
   listSessions,
   updateSession as updateSessionInDb,
   updateSettings as updateSettingsInDb,
-  type SessionPatch,
 } from '@/db/database';
 import { cancelCheckInReminder, scheduleCheckInReminder } from '@/notifications/reminders';
-import type { Session, Settings } from '@/engine/types';
+import type { Session, SessionPatch, Settings } from '@/engine/types';
 import { DEFAULT_SETTINGS } from '@/engine/types';
 
 /**

@@ -1,6 +1,7 @@
 /**
- * Clock-style duration formatting for the LogBook engine.
- * Pure functions only — this module must never import React Native.
+ * Clock formatting for the LogBook engine — every wall-clock and duration
+ * representation lives here. Pure functions only: this module must never
+ * import React Native.
  */
 
 /** Formats whole seconds as clock-style `H:MM` (minutes zero-padded, seconds floored away). */
@@ -18,4 +19,11 @@ export function formatElapsed(totalSeconds: number): string {
   const minutes = Math.floor((safe % 3600) / 60);
   const seconds = safe % 60;
   return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+/** 24-hour `HH:MM` wall-clock time in the local timezone. */
+export function formatTimeOfDay(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }

@@ -34,3 +34,10 @@ export const DEFAULT_SETTINGS: Settings = {
   reminderThresholdHours: 10,
   setupCompleted: false,
 };
+
+/** An edited session's new truth: both timestamps (checkout null = running) and the note. */
+export interface SessionPatch {
+  checkIn: Date;
+  checkOut: Date | null;
+  note: string;
+}

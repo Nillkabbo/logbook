@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { formatDuration } from '@/engine/durations';
-import { formatTimeOfDay } from '@/engine/home';
+import { formatDuration, formatTimeOfDay } from '@/engine/time';
 import { sessionDurationSeconds } from '@/engine/sessions';
 import type { Session } from '@/engine/types';
 
