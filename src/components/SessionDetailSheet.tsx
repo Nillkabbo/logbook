@@ -1,8 +1,14 @@
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
+  Dimensions,
+  Easing,
+  KeyboardAvoidingView,
   Modal,
+  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -12,7 +18,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DateTimeField } from '@/components/DateTimeField';
@@ -32,6 +37,9 @@ interface Props {
   onClose: () => void;
 }
 
+const SHEET_HEIGHT = Math.round(Dimensions.get('window').height * 0.88);
+const DISMISS_THRESHOLD = 90;
+
 export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose }: Props) {
   const theme = useTheme();
   const hour12 = useHour12();
@@ -42,6 +50,17 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   const [category, setCategory] = useState(session.category);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Sheet entrance/drag animation: 0 = closed, SHEET_HEIGHT = open.
+  const panY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
+  const scrimOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(panY, { toValue: 0, useNativeDriver: true, speed: 14, bounciness: 4 }),
+      Animated.timing(scrimOpacity, { toValue: 1, duration: 240, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+    ]).start();
+  }, [panY, scrimOpacity]);
 
   useEffect(() => {
     setCheckIn(session.checkIn);
@@ -69,6 +88,28 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
       { text: t('discard'), style: 'destructive', onPress: onClose },
     ]);
   };
+
+  // Drag-to-dismiss: grabber + title area responds; past the threshold
+  // dismisses (with the dirty check), else springs back.
+  const pan = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          gesture.dy > 6 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+        onPanResponderMove: (_, gesture) => {
+          if (gesture.dy > 0) panY.setValue(gesture.dy);
+        },
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dy > DISMISS_THRESHOLD) {
+            requestClose();
+          } else {
+            Animated.spring(panY, { toValue: 0, useNativeDriver: true, speed: 16, bounciness: 5 }).start();
+          }
+        },
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dirty, session, panY],
+  );
 
   const save = async () => {
     const validationError = validateSessionTimes(checkIn, checkOut, new Date());
@@ -116,107 +157,158 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   );
 
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={requestClose}>
-
-      <View style={{ flex: 1, backgroundColor: theme.canvas, borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
-      <View style={styles.grabberRow}>
-        <View style={[styles.grabber, { backgroundColor: '#D4D4D8' }]} />
-      </View>
-      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-      <ScrollView
-        style={{ backgroundColor: theme.canvas }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.container}>
-        <View style={styles.titleRow}>
-          <Pressable hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} onPress={requestClose}>
-            <Text style={[styles.cancelText, { color: theme.muted }]}>{t('cancel')}</Text>
-          </Pressable>
-          <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
-        </View>
-
-        {renderField('in')}
-        <View style={[styles.runningCard, cardStyle(theme)]}>
-          <Text style={[styles.runningLabel, { color: theme.text }]}>{t('stillRunning')}</Text>
-          {/* Turning it off anchors the checkout at the check-in: the user must
-              pick an explicit time before Save passes validation. */}
-          <Switch value={running} onValueChange={(on) => setCheckOut(on ? null : checkIn)} />
-        </View>
-        {renderField('out')}
-
-        {(checkOut === null || checkOut.getTime() > checkIn.getTime()) && (
-          <Text style={[styles.durationPreview, { color: theme.text }]}>
-            {checkOut === null
-              ? `${formatDurationWords(Math.floor((Date.now() - checkIn.getTime()) / 1000))} ${t('soFar')}`
-              : formatDurationWords(Math.floor((checkOut.getTime() - checkIn.getTime()) / 1000))}
-          </Text>
-        )}
-
-        <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('category')}</Text>
-        <TextInput
-          style={[styles.noteInput, cardStyle(theme), { color: theme.text }]}
-          value={category}
-          onChangeText={setCategory}
-          placeholder={t("categoryPlaceholder")}
-          placeholderTextColor={theme.muted}
-          autoCapitalize="none"
+    <Modal transparent visible animationType="none" onRequestClose={requestClose}>
+      <View style={styles.overlay}>
+        {/* Scrim: tap to dismiss (dirty-checked) */}
+        <AnimatedPressable
+          onPress={requestClose}
+          style={[styles.scrim, { opacity: scrimOpacity }]}
         />
-        <View style={styles.suggestions}>
-          {suggestions
-            .filter((s) => s.length > 0 && s !== category)
-            .slice(0, 6)
-            .map((s) => (
-              <Pressable
-                key={s}
-                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                style={softPill(theme)}
-                onPress={() => setCategory(s)}>
-                <Text style={{ color: theme.accent, fontSize: 13, fontWeight: '500' }}>{s}</Text>
+
+        {/* The sheet */}
+        <Animated.View
+          style={[
+            styles.sheet,
+            { backgroundColor: theme.surface, transform: [{ translateY: panY }] },
+          ]}>
+          {/* Drag handle: grabber + title row */}
+          <View {...pan.panHandlers}>
+            <View style={styles.grabberRow}>
+              <View style={[styles.grabber, { backgroundColor: theme.inset }]} />
+            </View>
+            <View style={styles.titleRow}>
+              <Pressable hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} onPress={requestClose}>
+                <Text style={[styles.cancelText, { color: theme.muted }]}>{t('cancel')}</Text>
               </Pressable>
-            ))}
-        </View>
+              <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
+              <View style={styles.titleSpacer} />
+            </View>
+          </View>
 
-        <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('note')}</Text>
-        <TextInput
-          style={[styles.noteInput, styles.noteTall, cardStyle(theme), { color: theme.text }]}
-          value={note}
-          onChangeText={setNote}
-          placeholder={t("notePlaceholder")}
-          placeholderTextColor={theme.muted}
-          multiline
-        />
+          {/* Scrollable form content */}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+              <ScrollView
+                style={{ backgroundColor: theme.surface }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.container}>
+                {renderField('in')}
+                <View style={[styles.runningCard, cardStyle(theme)]}>
+                  <Text style={[styles.runningLabel, { color: theme.text }]}>{t('stillRunning')}</Text>
+                  {/* Turning it off anchors the checkout at the check-in: the user must
+                      pick an explicit time before Save passes validation. */}
+                  <Switch value={running} onValueChange={(on) => setCheckOut(on ? null : checkIn)} />
+                </View>
+                {renderField('out')}
 
-        {error && <Text style={[styles.error, { color: theme.stop }]}>{t(error as StringKey)}</Text>}
+                {(checkOut === null || checkOut.getTime() > checkIn.getTime()) && (
+                  <Text style={[styles.durationPreview, { color: theme.text }]}>
+                    {checkOut === null
+                      ? `${formatDurationWords(Math.floor((Date.now() - checkIn.getTime()) / 1000))} ${t('soFar')}`
+                      : formatDurationWords(Math.floor((checkOut.getTime() - checkIn.getTime()) / 1000))}
+                  </Text>
+                )}
 
-        <Pressable
-          android_ripple={{ color: theme.muted, borderless: false }}
-          style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
-          disabled={busy}
-          onPress={save}>
-          <Text style={[styles.saveText, { color: theme.onAccent }]}>{t('save')}</Text>
-        </Pressable>
-        <View style={styles.deleteRow}>
-          <Pressable onPress={confirmDelete}>
-            <Text style={[styles.deleteText, { color: theme.stop }]}>{t('delete')}</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-      </SafeAreaView>
+                <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('category')}</Text>
+                <TextInput
+                  style={[styles.noteInput, { backgroundColor: theme.canvas, color: theme.text }]}
+                  value={category}
+                  onChangeText={setCategory}
+                  placeholder={t('categoryPlaceholder')}
+                  placeholderTextColor={theme.muted}
+                  autoCapitalize="none"
+                />
+                <View style={styles.suggestions}>
+                  {suggestions
+                    .filter((s) => s.length > 0 && s !== category)
+                    .slice(0, 6)
+                    .map((s) => (
+                      <Pressable
+                        key={s}
+                        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                        style={softPill(theme)}
+                        onPress={() => setCategory(s)}>
+                        <Text style={{ color: theme.accent, fontSize: 13, fontWeight: '500' }}>{s}</Text>
+                      </Pressable>
+                    ))}
+                </View>
+
+                <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('note')}</Text>
+                <TextInput
+                  style={[styles.noteInput, styles.noteTall, { backgroundColor: theme.canvas, color: theme.text }]}
+                  value={note}
+                  onChangeText={setNote}
+                  placeholder={t('notePlaceholder')}
+                  placeholderTextColor={theme.muted}
+                  multiline
+                />
+
+                {error && <Text style={[styles.error, { color: theme.stop }]}>{t(error as StringKey)}</Text>}
+
+                <Pressable
+                  android_ripple={{ color: theme.muted, borderless: false }}
+                  style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
+                  disabled={busy}
+                  onPress={save}>
+                  <Text style={[styles.saveText, { color: theme.onAccent }]}>{t('save')}</Text>
+                </Pressable>
+                <View style={styles.deleteRow}>
+                  <Pressable onPress={confirmDelete}>
+                    <Text style={[styles.deleteText, { color: theme.stop }]}>{t('delete')}</Text>
+                  </Pressable>
+                </View>
+              </ScrollView>
+            </SafeAreaView>
+          </KeyboardAvoidingView>
+        </Animated.View>
       </View>
     </Modal>
   );
 }
 
+/** Pressable that accepts an animated style (for the scrim's fade). */
+function AnimatedPressable({ onPress, style }: { onPress: () => void; style: Animated.WithAnimatedValue<View['props']['style']> }) {
+  return (
+    <Pressable onPress={onPress}>
+      <Animated.View style={style} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingBottom: 48,
-    gap: 16,
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'flex-end',
+  },
+  scrim: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  sheet: {
+    height: SHEET_HEIGHT,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 32,
+    elevation: 24,
   },
   grabberRow: {
     alignItems: 'center',
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: 4,
   },
   grabber: {
     width: 40,
@@ -226,17 +318,26 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     flex: 1,
     textAlign: 'center',
   },
+  titleSpacer: {
+    width: 60,
+  },
   cancelText: {
     fontSize: 16,
+    minWidth: 60,
+  },
+  container: {
+    padding: 20,
+    paddingBottom: 24,
+    gap: 16,
   },
   fieldGroup: {
     gap: 8,
@@ -250,7 +351,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 8,
-    marginHorizontal: 8,
   },
   runningCard: {
     flexDirection: 'row',
@@ -264,7 +364,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   noteInput: {
-    borderRadius: RADIUS.card,
+    borderRadius: RADIUS.control,
     padding: 16,
     fontSize: 15,
   },
