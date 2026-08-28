@@ -61,18 +61,28 @@ export function useLogbook() {
 
   const saveSession = useCallback(
     async (id: number, patch: SessionPatch) => {
+      const target = sessions.find((s) => s.id === id);
       await updateSessionInDb(id, patch);
+      // An edit that completes a running session retires its reminder.
+      if (target?.checkOut === null && patch.checkOut !== null) {
+        await cancelCheckInReminder();
+      }
       await refresh();
     },
-    [refresh],
+    [sessions, refresh],
   );
 
   const removeSession = useCallback(
     async (id: number) => {
+      const target = sessions.find((s) => s.id === id);
       await deleteSessionInDb(id);
+      // Deleting a running session cancels the check-in, reminder included.
+      if (target?.checkOut === null) {
+        await cancelCheckInReminder();
+      }
       await refresh();
     },
-    [refresh],
+    [sessions, refresh],
   );
 
   const saveSettings = useCallback(

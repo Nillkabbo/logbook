@@ -6,10 +6,10 @@ Parent spec: `.scratch/logbook-v1/spec.md`
 
 **Blocked by:** 03 — Week engine (grouping depends on week boundaries and ownership).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Logs lists all sessions newest-first, grouped by week then by day
-- [ ] Week headers show date-range label, total/target, and progress bar; over-target weeks styled distinctly
-- [ ] Unit tests pass for date-range labels, week/day grouping, and ownership (including midnight-crossing sessions and a session starting exactly at a boundary)
-- [ ] UTC timestamps display in the device's current timezone
-- [ ] Empty state renders when there are no sessions
+- [x] Logs lists all sessions newest-first, grouped by week then by day
+- [x] Week headers show date-range label, total/target, and progress bar; over-target weeks styled distinctly
+- [x] Unit tests pass for date-range labels, week/day grouping, and ownership (including midnight-crossing sessions and a session starting exactly at a boundary)
+- [x] UTC timestamps display in the device's current timezone *(Date objects formatted with local getters — UTC storage from ticket 02)*
+- [x] Empty state renders when there are no sessions

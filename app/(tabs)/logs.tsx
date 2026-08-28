@@ -1,15 +1,18 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { useLogbook } from '@/hooks/useLogbook';
 import { logsModel } from '@/engine/logs';
 import { formatTimeOfDay } from '@/engine/home';
 import { formatDuration } from '@/engine/durations';
 import { sessionDurationSeconds } from '@/engine/sessions';
+import type { Session } from '@/engine/types';
 
 export default function LogsScreen() {
   const logbook = useLogbook();
+  const [selected, setSelected] = useState<Session | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -48,7 +51,10 @@ export default function LogsScreen() {
                 <Text style={styles.dayTotal}>{day.totalLabel}</Text>
               </View>
               {day.sessions.map((session) => (
-                <View key={session.id} style={styles.row}>
+                <Pressable
+                  key={session.id}
+                  style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+                  onPress={() => setSelected(session)}>
                   <View style={styles.rowMain}>
                     <Text style={styles.rowTimes}>
                       {formatTimeOfDay(session.checkIn)} –{' '}
@@ -59,12 +65,21 @@ export default function LogsScreen() {
                     </Text>
                   </View>
                   {session.note.length > 0 && <Text style={styles.rowNote}>{session.note}</Text>}
-                </View>
+                </Pressable>
               ))}
             </View>
           ))}
         </View>
       ))}
+
+      {selected && (
+        <SessionDetailSheet
+          session={selected}
+          onSave={(patch) => logbook.saveSession(selected.id, patch)}
+          onDelete={logbook.removeSession}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -138,6 +153,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: 'rgba(128,128,128,0.12)',
     gap: 2,
+  },
+  rowPressed: {
+    backgroundColor: 'rgba(128,128,128,0.25)',
   },
   rowMain: {
     flexDirection: 'row',
