@@ -51,3 +51,11 @@ _Avoid_: alarm, timeout, notification delay
 **Reminder lifecycle**:
 The rule that a reminder exists if and only if a Running session exists, maintained across the check-in, check-out, edit, and delete transitions.
 _Avoid_: notification rules, reminder logic
+
+**Category**:
+A short free-form label marking the kind of work a Session belongs to. Optional; drawn from the user's own history.
+_Avoid_: tag, project, client
+
+**Rate**:
+The configurable dollars earned per worked hour; the basis of a week's earnings. Optional — unset means earnings are not shown.
+_Avoid_: salary, wage

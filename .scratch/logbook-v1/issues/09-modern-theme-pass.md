@@ -6,12 +6,12 @@ Parent spec: `.scratch/logbook-v1/spec.md` (v1 behaviour unchanged — this is a
 
 **Blocked by:** None (all of 01–08 done).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `src/theme.ts` is the single source: colors (light + dark), radius, spacing, type scale; no component keeps inline hex colors
-- [ ] Emerald accent for check-in/active/fills; red only for check-out, over-target, delete — in both modes, system-following dark mode
-- [ ] Hero toggle: gradient idle / solid red running, spring press-scale, haptic on both transitions, breathing ring while a session runs
-- [ ] Session cards: themed surface, radius 16, hairline border; week headers bold with right-aligned total/target
-- [ ] Progress bars 8px rounded; over-target weeks show a red OVER chip with the overage (models gain `overByLabel`)
-- [ ] Setup overlay, Settings, and detail sheet restyled from the same tokens; splash/adaptive-icon backgrounds match the palette
-- [ ] Engine tests remain green (plus overByLabel assertions); typecheck clean; bundles export; visually verified on iPhone and Android
+- [x] `src/theme.ts` is the single source: colors (light + dark), radius, spacing, type scale; no component keeps inline hex colors
+- [x] Emerald accent for check-in/active/fills; red only for check-out, over-target, delete — in both modes, system-following dark mode
+- [x] Hero toggle: gradient idle / solid red running, spring press-scale, haptic on both transitions, breathing ring while a session runs
+- [x] Session cards: themed surface, radius 16, hairline border; week headers bold with right-aligned total/target
+- [x] Progress bars 8px rounded; over-target weeks show a red OVER chip with the overage (models gain `overByLabel`)
+- [x] Setup overlay, Settings, and detail sheet restyled from the same tokens; splash/adaptive-icon backgrounds match the palette
+- [ ] Engine tests remain green (plus overByLabel assertions); typecheck clean; bundles export; visually verified on iPhone and Android *(all but visual verification done — pull-to-refresh in Expo Go on both phones to see the new theme)*
