@@ -35,12 +35,13 @@ export default function DataScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       Alert.alert(
         t('importComplete'),
-        t('importedNSessions').replace('{n}', String(result.toImport.length)) +
+        t('importedNSessions', { n: result.toImport.length }) +
           '\n' +
-          t('skippedCounts')
-            .replace('{duplicates}', String(result.duplicates))
-            .replace('{running}', String(result.skippedRunning))
-            .replace('{malformed}', String(result.malformed)),
+          t('skippedCounts', {
+            duplicates: result.duplicates,
+            running: result.skippedRunning,
+            malformed: result.malformed,
+          }),
       );
     } catch (error) {
       Alert.alert(t('importFailed'), String(error));
@@ -71,7 +72,9 @@ export default function DataScreen() {
   const lastExportLabel =
     settings.lastExportAt === null
       ? t('lastExportNever')
-      : t('lastExport').replace('{date}', new Date(settings.lastExportAt).toLocaleDateString(locale));
+      : t('lastExport', {
+          date: new Date(settings.lastExportAt).toLocaleDateString(locale),
+        });
 
   return (
     <ScrollView

@@ -33,7 +33,7 @@ Domain rules that aren't obvious from the code:
 
 ## Language (i18n)
 
-Two UI languages, English and Bangla, in the `STRINGS` dict in `src/ui/i18n.tsx`. Every user-facing string goes through `t()`/`weekdayName()`, and any new key must be added to **both** `en` and `bn` (the `StringKey` type derives from `en`). Bangla dates use Latin digits (see `dateLocale` in `src/engine/weeks.ts`). Notification text goes through `stringsFor()` since it renders outside React.
+Two UI languages, English and Bangla, in the pure `STRINGS` dict in `src/ui/strings.ts` (the React provider in `src/ui/i18n.tsx` consumes it). Every user-facing string goes through `t()`/`weekdayName()`; `t(key, params)` owns `{token}` interpolation — never chain `.replace()` at call sites. Any new key must be added to **both** `en` and `bn` (the `StringKey` type derives from `en`, and `bn` is typed against it, so a missing Bangla key is a compile error). Bangla dates use Latin digits (see `dateLocale` in `src/engine/weeks.ts`). Notification text goes through `stringsFor()` since it renders outside React.
 
 ## Domain vocabulary
 

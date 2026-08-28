@@ -71,7 +71,7 @@ export default function SettingsScreen() {
       ? t('noBlocks')
       : blocks.length === 1
         ? blockRangeLabel(blocks[0], weekdayName)
-        : t('nBlocks').replace('{n}', String(blocks.length));
+        : t('nBlocks', { n: blocks.length });
 
   return (
     <ScrollView
