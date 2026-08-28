@@ -52,9 +52,16 @@ function isSameLocalDay(a: Date, b: Date): boolean {
 export function homeModel(sessions: Session[], settings: Settings, now: Date): HomeModel {
   const running = sessions.find((s) => s.checkOut === null) ?? null;
   const elapsedSeconds = running ? sessionDurationSeconds(running, now) : null;
+  // The running session always sits first — it's the live activity the user
+  // is most likely to act on; completed sessions follow chronologically.
   const todaySessions = sessions
     .filter((s) => isSameLocalDay(s.checkIn, now))
-    .sort((a, b) => a.checkIn.getTime() - b.checkIn.getTime());
+    .sort((a, b) => {
+      const aRunning = a.checkOut === null ? 1 : 0;
+      const bRunning = b.checkOut === null ? 1 : 0;
+      if (aRunning !== bRunning) return bRunning - aRunning;
+      return a.checkIn.getTime() - b.checkIn.getTime();
+    });
   const todayTotalSeconds = sumCompletedSessions(todaySessions);
 
   const week = weekRange(now, settings.weekStartDay);

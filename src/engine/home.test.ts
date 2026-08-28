@@ -38,9 +38,9 @@ describe('homeModel', () => {
     expect(model.elapsedLabel).toBe('0:15:00');
   });
 
-  it('lists sessions owned by today, oldest first — including the running one — and totals completed only', () => {
+  it('lists sessions owned by today, running first then oldest — and totals completed only', () => {
     const model = homeModel([s1, s2, s3, s4], DEFAULT_SETTINGS, NOW);
-    expect(model.todaySessions.map((s) => s.id)).toEqual([2, 3, 4]);
+    expect(model.todaySessions.map((s) => s.id)).toEqual([4, 2, 3]);
     expect(model.todayTotalLabel).toBe('2:15');
   });
 
@@ -170,5 +170,19 @@ describe('homeModel weekDayBars', () => {
   it('dateLabel orients with weekday and date', () => {
     const m = homeModel([], THURSDAY, now);
     expect(m.dateLabel).toBe('Thursday, Aug 27');
+  });
+});
+
+describe('homeModel running-first sort', () => {
+  const THURSDAY = { ...DEFAULT_SETTINGS, weekStartDay: 4 as const };
+  const now = at(2026, 7, 27, 15, 0);
+  const morning = session(1, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0));
+  const running = session(2, at(2026, 7, 27, 14, 0), null);
+  const afternoon = session(3, at(2026, 7, 27, 8, 0), at(2026, 7, 27, 8, 30));
+
+  it('the running session sorts first regardless of check-in time', () => {
+    const m = homeModel([morning, running, afternoon], THURSDAY, now);
+    expect(m.todaySessions[0].id).toBe(2); // running
+    expect(m.todaySessions.map((s) => s.id)).toEqual([2, 3, 1]); // then chronological
   });
 });

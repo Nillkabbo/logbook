@@ -63,6 +63,9 @@ export default function HomeScreen() {
         setUndoable(ended);
         undoTimer.current = setTimeout(() => setUndoable(null), 5000);
       } else {
+        // A new check-in makes any pending undo stale — clear it.
+        if (undoTimer.current) clearTimeout(undoTimer.current);
+        setUndoable(null);
         await checkIn();
       }
     } catch (error) {
@@ -173,10 +176,15 @@ export default function HomeScreen() {
       <BackupBanner />
 
       {nextBlock && (
-        <Text style={[styles.nextBlock, { color: theme.muted }]}>
-          {t('nextBlock')}: {formatDayLabel(nextBlock.startsAt, locale)},{' '}
-          {formatTimeOfDay(nextBlock.startsAt, hour12)}
-        </Text>
+        <Pressable
+          accessibilityRole="button"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          onPress={() => router.push('/(tabs)/schedule')}>
+          <Text style={[styles.nextBlock, { color: theme.muted }]}>
+            {t('nextBlock')}: {formatDayLabel(nextBlock.startsAt, locale)},{' '}
+            {formatTimeOfDay(nextBlock.startsAt, hour12)}
+          </Text>
+        </Pressable>
       )}
 
       <ScrollView
