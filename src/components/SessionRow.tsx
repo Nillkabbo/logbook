@@ -32,23 +32,37 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
           </Text>
         </View>
       </View>
-      {session.category.length > 0 && (
-        <View style={[styles.chip, { backgroundColor: theme.accentSoft }]}>
-          <Text style={[styles.chipText, { color: theme.accent }]}>{session.category}</Text>
+      {(session.category.length > 0 || session.note.length > 0) && (
+        <View style={styles.metaRow}>
+          {session.category.length > 0 && (
+            <View style={[styles.chip, { backgroundColor: theme.accentSoft }]}>
+              <Text style={[styles.chipText, { color: theme.accent }]}>{session.category}</Text>
+            </View>
+          )}
+          {session.note.length > 0 && (
+            <Text style={[styles.rowNote, { color: theme.muted }]} numberOfLines={1} ellipsizeMode="tail">
+              {session.note}
+            </Text>
+          )}
         </View>
       )}
-      {session.note.length > 0 && <Text style={[styles.rowNote, { color: theme.muted }]}>{session.note}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    padding: 16,
+    padding: 20,
+    paddingHorizontal: 22,
     borderRadius: RADIUS.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
-    gap: 4,
+    gap: 6,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   durationWrap: {
     flexDirection: 'row',

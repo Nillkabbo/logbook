@@ -104,7 +104,7 @@ describe('weekProgress', () => {
       progress: 8100 / 7200,
       overTarget: true,
       overByLabel: '0:15',
-      earningsLabel: '$ 56.25',
+      earningsLabel: '$56.25',
     });
     expect(weekSummary(8100, 144000, false, 0)).toEqual({
       progress: 8100 / 144000,
@@ -117,7 +117,7 @@ describe('weekProgress', () => {
       progress: 0,
       overTarget: false,
       overByLabel: null,
-      earningsLabel: '$ 56.25',
+      earningsLabel: '$56.25',
     });
   });
 });

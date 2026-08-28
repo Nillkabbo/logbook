@@ -126,7 +126,7 @@ describe('homeModel week-to-date', () => {
     expect(off.overTarget).toBe(false);
     expect(off.overByLabel).toBeNull();
     expect(off.weekToDateLabel).toBe('2:15'); // totals still show
-    expect(off.earningsLabel).toBe('$ 56.25'); // money is still real
+    expect(off.earningsLabel).toBe('$56.25'); // money is still real
     const judged = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25 }, NOW);
     expect(judged.off).toBe(false);
   });
@@ -138,7 +138,7 @@ describe('homeModel week-to-date', () => {
       NOW,
     );
     // 2:15 completed × $25/h = 2.25h × 25 = $56.25
-    expect(withRate.earningsLabel).toBe('$ 56.25');
+    expect(withRate.earningsLabel).toBe('$56.25');
     const withoutRate = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
     expect(withoutRate.earningsLabel).toBeNull();
   });

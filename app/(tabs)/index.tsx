@@ -69,9 +69,9 @@ export default function HomeScreen() {
   return (
     <View style={[styles.screen, { backgroundColor: theme.canvas }]}>
       <View style={styles.header}>
-        <Text style={[styles.elapsed, { color: theme.text }]}>
-          {model.running && model.elapsedLabel ? model.elapsedLabel : ' '}
-        </Text>
+        {model.running && model.elapsedLabel ? (
+          <Text style={[styles.elapsed, { color: theme.text }]}>{model.elapsedLabel}</Text>
+        ) : null}
         <CheckInToggle running={model.running !== null} disabled={busy} onPress={onToggle} />
       </View>
 
@@ -89,7 +89,8 @@ export default function HomeScreen() {
           <Text style={[styles.totalValue, { color: theme.text }]}>{model.todayTotalLabel}</Text>
         </View>
         <View style={[styles.totalItem, styles.weekItem]}>
-          <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('thisWeek')}</Text>
+          <View style={styles.weekInner}>
+            <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('thisWeek')}</Text>
           {model.off ? (
             <View style={styles.offRow}>
               <Text style={[styles.offTotal, { color: theme.text }]}>{model.weekToDateLabel}</Text>
@@ -105,11 +106,11 @@ export default function HomeScreen() {
               overTarget={model.overTarget}
               overByLabel={model.overByLabel}
               emphasized
+              fitContent
+              earningsLabel={model.earningsLabel}
             />
           )}
-          {model.earningsLabel && (
-            <Text style={[styles.earnings, { color: theme.accent }]}>{model.earningsLabel}</Text>
-          )}
+          </View>
         </View>
       </View>
 
@@ -123,7 +124,10 @@ export default function HomeScreen() {
         </Text>
       )}
 
-      <ScrollView contentContainerStyle={styles.list}>
+      <ScrollView
+        contentContainerStyle={
+          model.todaySessions.length > 0 ? styles.list : styles.listEmpty
+        }>
         {model.todaySessions.map((session) => (
           <Pressable key={session.id} onPress={() => setSelected(session)}>
             {({ pressed }) => (
@@ -168,19 +172,24 @@ const styles = StyleSheet.create({
   elapsed: {
     ...TYPE.display,
     fontVariant: ['tabular-nums'],
-    minHeight: 72,
   },
   totals: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 32,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 56,
+    paddingHorizontal: 22,
   },
   totalItem: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 2,
   },
   weekItem: {
-    minWidth: 170,
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  weekInner: {
+    alignItems: 'flex-start',
   },
   totalLabel: {
     ...TYPE.caption,
@@ -189,11 +198,6 @@ const styles = StyleSheet.create({
   },
   totalValue: {
     fontSize: 24,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
-  earnings: {
-    fontSize: 15,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
@@ -224,6 +228,11 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 8,
+    paddingBottom: 12,
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
+  listEmpty: {
     paddingBottom: 24,
   },
   emptyWrap: {

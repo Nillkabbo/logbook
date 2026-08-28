@@ -91,7 +91,7 @@ export function CheckInToggle({
           ) : (
             <LinearGradient
               colors={[theme.accent, theme.accentAlt]}
-              style={[styles.circle, theme.cardShadow]}>
+              style={[styles.circle, { boxShadow: `${theme.cardShadow.boxShadow}, ${theme.glow}` }]}>
               <Text style={[styles.label, { color: theme.onAccent }]}>{t('checkIn')}</Text>
             </LinearGradient>
           )}

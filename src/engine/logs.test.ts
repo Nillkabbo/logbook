@@ -125,7 +125,7 @@ describe('logsModel', () => {
       [early, late], // week A total 2:15
       { ...THURSDAY, hourlyRate: 25 },
     );
-    expect(weeks[0].earningsLabel).toBe('$ 56.25');
+    expect(weeks[0].earningsLabel).toBe('$56.25');
     expect(weeks[0].targetLabel).toBe('40:00');
   });
 

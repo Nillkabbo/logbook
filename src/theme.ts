@@ -40,6 +40,8 @@ export interface Theme {
   glass: string;
   /** Hairline edge for the glass card. */
   glassEdge: string;
+  /** Ambient accent halo for the check-in hero circle. */
+  glow: string;
 }
 
 const light: Theme = {
@@ -57,6 +59,7 @@ const light: Theme = {
   accentAlt: '#0D9488',
   stop: '#DC2626',
   stopSoft: 'rgba(220,38,38,0.1)',
+  glow: '0px 0px 64px 28px rgba(5,150,105,0.32)',
   glass: 'rgba(255,255,255,0.72)',
   glassEdge: 'rgba(255,255,255,0.4)',
 };
@@ -76,6 +79,7 @@ const dark: Theme = {
   accentAlt: '#2DD4BF',
   stop: '#F87171',
   stopSoft: 'rgba(248,113,113,0.15)',
+  glow: '0px 0px 64px 28px rgba(52,211,153,0.25)',
   glass: 'rgba(39,39,42,0.7)',
   glassEdge: 'rgba(250,250,250,0.1)',
 };

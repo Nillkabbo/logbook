@@ -11,6 +11,8 @@ export function WeekProgress({
   overTarget,
   overByLabel = null,
   emphasized = false,
+  fitContent = false,
+  earningsLabel = null,
 }: {
   totalLabel: string;
   targetLabel: string;
@@ -18,13 +20,17 @@ export function WeekProgress({
   overTarget: boolean;
   overByLabel?: string | null;
   emphasized?: boolean;
+  /** Hug the fraction's width (Home) instead of stretching to the column (Logs). */
+  fitContent?: boolean;
+  /** Optional earnings line, centered under the bar. */
+  earningsLabel?: string | null;
 }) {
   const theme = useTheme();
   const { t } = useI18n();
   const valueColor = overTarget ? theme.stop : theme.text;
   return (
-    <View style={styles.container}>
-      <View style={[styles.valueRow, emphasized && styles.valueRowCentered]}>
+    <View style={[styles.container, fitContent && styles.containerFit]}>
+      <View style={styles.valueRow}>
         <Text style={[emphasized ? styles.valueLarge : styles.value, { color: valueColor }]}>
           {totalLabel}
         </Text>
@@ -49,6 +55,9 @@ export function WeekProgress({
           ]}
         />
       </View>
+      {earningsLabel && (
+        <Text style={[styles.earnings, { color: theme.accent }]}>{earningsLabel}</Text>
+      )}
     </View>
   );
 }
@@ -58,13 +67,13 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     gap: 6,
   },
+  containerFit: {
+    alignSelf: 'flex-start',
+  },
   valueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 2,
-  },
-  valueRowCentered: {
-    justifyContent: 'center',
   },
   value: {
     fontSize: 14,
@@ -103,5 +112,12 @@ const styles = StyleSheet.create({
   fill: {
     height: RADIUS.bar,
     borderRadius: RADIUS.bar / 2,
+  },
+  earnings: {
+    fontSize: 15,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    textAlign: 'center',
+    alignSelf: 'stretch',
   },
 });

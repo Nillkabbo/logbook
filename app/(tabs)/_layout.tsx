@@ -17,7 +17,7 @@ export default function TabLayout() {
         headerShown: false,
         // Web has no safe-area inset, so the bar needs explicit bottom padding
         // or the labels clip at the viewport edge.
-        tabBarStyle: Platform.select({ web: { paddingBottom: 6, height: 54 } }),
+        tabBarStyle: Platform.select({ web: { paddingBottom: 8, height: 56 } }),
       }}>
       <Tabs.Screen
         name="index"
