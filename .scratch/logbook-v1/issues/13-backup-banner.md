@@ -9,7 +9,7 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 2, grill session 2026-08-28)
 **Status:** done
 
 - [x] Settings storage gains a last-export timestamp, written by every export path
-- [x] Home shows the banner when last export is >30 days ago or never; dismissible until next launch
+- [x] Home shows the banner when last export is >30 days ago or never; dismissible until next launch (gated on at least one existing session — an empty log needs no backup; noted in review as an unrequested-but-sensible addition)
 - [x] Banner's export action runs the existing CSV export and clears the banner
 - [x] Styled from theme tokens; engine untouched (pure adapter/UI) unless a pure helper earns a test
 - [x] Typecheck clean; bundles export; verified on both phones

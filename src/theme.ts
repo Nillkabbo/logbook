@@ -20,6 +20,8 @@ export interface Theme {
   track: string;
   /** The working state: check-in, active pills, fills, links. */
   accent: string;
+  /** Text/icon color on accent and stop fills. */
+  onAccent: string;
   /** Gradient partner of the accent (idle toggle). */
   accentAlt: string;
   /** Check-out, over-target, destructive. Nothing else. */
@@ -34,6 +36,7 @@ const light: Theme = {
   border: 'rgba(24,24,27,0.08)',
   track: 'rgba(24,24,27,0.08)',
   accent: '#059669',
+  onAccent: '#FFFFFF',
   accentAlt: '#0D9488',
   stop: '#DC2626',
 };
@@ -46,6 +49,7 @@ const dark: Theme = {
   border: 'rgba(250,250,250,0.12)',
   track: 'rgba(250,250,250,0.12)',
   accent: '#34D399',
+  onAccent: '#0B3B2E',
   accentAlt: '#2DD4BF',
   stop: '#F87171',
 };

@@ -119,7 +119,7 @@ export default function SettingsScreen() {
         style={[styles.exportButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
         disabled={exporting}
         onPress={exportCsv}>
-        <Text style={styles.exportText}>Export all sessions (CSV)</Text>
+        <Text style={[styles.exportText, { color: theme.onAccent }]}>Export all sessions (CSV)</Text>
       </Pressable>
       <Text style={[styles.hint, { color: theme.muted }]}>One row per session via the share sheet.</Text>
     </ScrollView>
@@ -159,7 +159,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   exportText: {
-    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },

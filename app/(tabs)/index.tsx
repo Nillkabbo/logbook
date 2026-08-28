@@ -42,7 +42,7 @@ export default function HomeScreen() {
 
   // The store's `now` ticks every second while a session runs, re-driving this model.
   const model = homeModel(sessions, settings, now);
-  const nextBlock = model.running ? null : nextBlockOccurrence(blocks, now);
+  const nextBlock = nextBlockOccurrence(blocks, now);
   const currentBlock = model.running ? null : blockOccurring(blocks, now);
 
   const onToggle = async () => {
@@ -105,7 +105,7 @@ export default function HomeScreen() {
               style={[styles.backupButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
               disabled={exporting}
               onPress={runBackup}>
-              <Text style={styles.backupButtonText}>Export now</Text>
+              <Text style={[styles.backupButtonText, { color: theme.onAccent }]}>Export now</Text>
             </Pressable>
             <Pressable onPress={() => setBackupDismissed(true)}>
               <Text style={[styles.backupDismiss, { color: theme.muted }]}>Dismiss</Text>
@@ -124,7 +124,7 @@ export default function HomeScreen() {
             style={[styles.backupButton, { backgroundColor: theme.accent }]}
             disabled={busy}
             onPress={onToggle}>
-            <Text style={styles.backupButtonText}>Check in</Text>
+            <Text style={[styles.backupButtonText, { color: theme.onAccent }]}>Check in</Text>
           </Pressable>
         </View>
       )}
@@ -217,7 +217,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   backupButtonText: {
-    color: '#ffffff',
     fontWeight: '600',
     fontSize: 14,
   },

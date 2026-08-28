@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -20,7 +21,11 @@ import {
   updateSession as updateSessionInDb,
   updateSettings as updateSettingsInDb,
 } from '@/db/database';
-import { applyReminderDecision, syncBlockNotifications } from '@/notifications/reminders';
+import {
+  applyReminderDecision,
+  resyncAllNotifications,
+  syncBlockNotifications,
+} from '@/notifications/reminders';
 import { reminderDecision } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
 import { sessionsToCsv } from '@/engine/csv';
@@ -87,6 +92,16 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, [running]);
+
+  // Once, after the first load, rebuild every OS notification from current
+  // truth — in-memory ids died with the previous launch, and stale triggers
+  // (deleted blocks, a checked-out session) would otherwise fire forever.
+  const resynced = useRef(false);
+  useEffect(() => {
+    if (!ready || resynced.current) return;
+    resynced.current = true;
+    resyncAllNotifications(running, settings, blocks);
+  }, [ready, running, settings, blocks]);
 
   const checkIn = useCallback(async () => {
     const checkInAt = new Date();

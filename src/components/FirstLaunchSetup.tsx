@@ -64,7 +64,7 @@ export function FirstLaunchSetup() {
           style={[styles.primaryButton, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
           disabled={busy}
           onPress={start}>
-          <Text style={styles.primaryText}>Start tracking</Text>
+          <Text style={[styles.primaryText, { color: theme.onAccent }]}>Start tracking</Text>
         </Pressable>
         <Pressable disabled={busy} onPress={() => finish({})}>
           <Text style={[styles.skipText, { color: theme.accent }]}>
@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   primaryText: {
-    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },

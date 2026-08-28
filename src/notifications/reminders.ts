@@ -165,3 +165,38 @@ export async function syncBlockNotifications(blocks: WorkBlock[]): Promise<void>
     // Block notifications are prompts, not data — failure is non-fatal.
   }
 }
+
+/**
+ * App-start resync: OS notifications persist across launches but the in-memory
+ * ids don't, so stale triggers from a previous session (deleted blocks, a
+ * checked-out session) would fire forever. Cancel everything and rebuild from
+ * current truth: a running session's reminder is restored only if still in the
+ * future, and every block's weekly triggers are recreated.
+ */
+export async function resyncAllNotifications(
+  running: { checkIn: Date } | null,
+  settings: { reminderThresholdHours: number },
+  blocks: WorkBlock[],
+): Promise<void> {
+  const mod = await loadNotifications();
+  if (!mod) return;
+  try {
+    await mod.cancelAllScheduledNotificationsAsync();
+    reminderId = null;
+    blockIds = [];
+    if (running) {
+      const fireAt = new Date(
+        running.checkIn.getTime() + settings.reminderThresholdHours * 3600_000,
+      );
+      if (fireAt.getTime() > Date.now()) {
+        reminderId = await mod.scheduleNotificationAsync({
+          content: { title: REMINDER_TITLE, body: REMINDER_BODY },
+          trigger: { type: mod.SchedulableTriggerInputTypes.DATE, date: fireAt },
+        });
+      }
+    }
+    await scheduleBlocks(mod, blocks);
+  } catch {
+    // Prompts, not data — a failed resync is non-fatal.
+  }
+}

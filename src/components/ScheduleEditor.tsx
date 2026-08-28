@@ -103,7 +103,7 @@ export function ScheduleEditor({
               <Text
                 style={[
                   styles.pillText,
-                  { color: active ? '#ffffff' : theme.text },
+                  { color: active ? theme.onAccent : theme.text },
                   active && styles.pillTextActive,
                 ]}>
                 {name.slice(0, 3)}
@@ -120,7 +120,7 @@ export function ScheduleEditor({
         style={[styles.addButton, { backgroundColor: theme.accent }, busy && styles.disabled]}
         disabled={busy}
         onPress={add}>
-        <Text style={styles.addText}>Add block</Text>
+        <Text style={[styles.addText, { color: theme.onAccent }]}>Add block</Text>
       </Pressable>
       <Text style={[styles.hint, { color: theme.muted }]}>
         Blocks nudge you to check in — they never clock you in automatically.
@@ -192,7 +192,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addText: {
-    color: '#ffffff',
     fontSize: 15,
     fontWeight: '600',
   },

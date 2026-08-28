@@ -84,13 +84,13 @@ export function CheckInToggle({
           disabled={disabled}>
           {running ? (
             <View style={[styles.circle, { backgroundColor: theme.stop }]}>
-              <Text style={styles.label}>Check out</Text>
+              <Text style={[styles.label, { color: theme.onAccent }]}>Check out</Text>
             </View>
           ) : (
             <LinearGradient
               colors={[theme.accent, theme.accentAlt]}
               style={styles.circle}>
-              <Text style={styles.label}>Check in</Text>
+              <Text style={[styles.label, { color: theme.onAccent }]}>Check in</Text>
             </LinearGradient>
           )}
         </Pressable>
@@ -123,7 +123,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    color: '#ffffff',
     fontSize: 26,
     fontWeight: '700',
   },

@@ -8,7 +8,7 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 2, grill session 2026-08-28)
 
 **Status:** done
 
-- [x] Settings gains a Schedule section: blocks list with add/delete — weekday multi-select pills (range = several taps) and start/end time pickers; start must precede end
+- [x] Settings gains a Schedule section: blocks list with add/delete — weekday multi-select pills (range = several taps) and start/end time pickers; the range must be non-empty (overnight allowed — end before start crosses midnight, owned by the start day; this line originally said "start must precede end", which contradicted the cross-midnight criterion — corrected in review)
 - [x] SQLite: blocks table (weekdays set, start time, end time); engine `WorkBlock` type
 - [x] Engine (TDD at the seam): `nextBlockOccurrence(blocks, now)` → next block + instant (or null); `blockOccurring(blocks, now)`; covers cross-midnight sets, week-start-independence, empty schedule
 - [x] Home: "Next block: Thu 9:00" when idle; when a block starts and no session runs, a banner with one-tap Check in

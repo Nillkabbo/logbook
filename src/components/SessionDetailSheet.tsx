@@ -201,7 +201,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
             style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
             disabled={busy}
             onPress={save}>
-            <Text style={styles.saveText}>Save</Text>
+            <Text style={[styles.saveText, { color: theme.onAccent }]}>Save</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -272,7 +272,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveText: {
-    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },

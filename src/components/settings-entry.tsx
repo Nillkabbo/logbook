@@ -32,7 +32,7 @@ export function WeekdayPicker({
             <Text
               style={[
                 styles.pillText,
-                { color: active ? '#ffffff' : theme.text },
+                { color: active ? theme.onAccent : theme.text },
                 active && styles.pillTextActive,
               ]}>
               {name}

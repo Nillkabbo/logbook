@@ -8,7 +8,7 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 2, grill session 2026-08-28)
 
 **Status:** done
 
-- [x] Icon art generated (book/clock motif, emerald on zinc, reads at 48px)
+- [x] Icon art generated (clock + bookmark motif — the bookmark carries the book reference; review flagged the deviation from the literal "book/clock" wording, kept for small-size clarity; emerald on zinc, reads at 48px)
 - [x] All sizes replaced: iOS icon set, Android adaptive foreground + monochrome, favicon
 - [x] Splash art matches; background colors unchanged from the theme pass
 - [x] Verified on both phones' home screens and at launch
