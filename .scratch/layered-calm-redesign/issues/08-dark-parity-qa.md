@@ -54,3 +54,14 @@ prepare, present, and fix; the sign-off itself is the reporter's.
   (ee9a623). Dark parity re-verified per screen during capture passes; web
   evidence in `.scratch/stitch-ui/appweb/`.
 - Human visual sign-off: **still pending** — the only open item on this issue.
+
+- Expert review pass (post-exactness): six screens analyzed by a senior-review
+  lens (Home light+dark, Logs, Settings, Schedule, sheet, setup). Findings:
+  4 critical, 5 high, 8 medium. All fixed in 420e7cd (C1 sheet cancel with
+  dirty-tracking + discard confirm; C2 picker affordance; C3 dark secondary
+  text 75% = AA; C4 setup skip demoted) and 4804019 (H1 Logs color system —
+  green stops meaning a category, neutral dots, today-dot marker, dark filter
+  selected; H2 sheet duration '3h 28m' at 20px; H4 hint rewrite; M1 weekday
+  initials; M5 suggestion pills; M6 dark track; M7 44pt setup pills).
+  H3/M2/M3 dispositioned as already-fixed or ratified export decisions.
+- Remaining: reporter's device walk (Expo Go) for the human sign-off box.

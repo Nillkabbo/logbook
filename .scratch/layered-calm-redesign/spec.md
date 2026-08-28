@@ -204,3 +204,6 @@ not what it means.
   Logs history (ee9a623).
 - Suite at close: 108 tests, typecheck clean, all routes rendering with zero
   console errors.
+- Expert review (two commits): all 17 findings fixed or dispositioned —
+  sheet cancel + dirty guard, Logs color semantics (green = working state
+  only), AA dark contrast, duration promoted, hint rewritten, touch targets.
