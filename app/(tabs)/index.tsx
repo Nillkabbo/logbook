@@ -129,7 +129,10 @@ export default function HomeScreen() {
           model.todaySessions.length > 0 ? styles.list : styles.listEmpty
         }>
         {model.todaySessions.map((session) => (
-          <Pressable key={session.id} onPress={() => setSelected(session)}>
+          <Pressable
+            key={session.id}
+            android_ripple={{ color: theme.inset, foreground: true }}
+            onPress={() => setSelected(session)}>
             {({ pressed }) => (
               <View style={pressed && styles.rowPressed}>
                 <SessionRow session={session} now={now} />

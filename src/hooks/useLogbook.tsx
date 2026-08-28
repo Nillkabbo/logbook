@@ -12,6 +12,7 @@ import {
 import {
   completeSession,
   deleteSession as deleteSessionInDb,
+  withTransaction,
   getSettings,
   insertSession,
   insertBlock,
@@ -192,9 +193,12 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   const importCsv = useCallback(
     async (csv: string): Promise<CsvImportResult> => {
       const result = parseSessionsCsv(csv, sessions);
-      for (const row of result.toImport) {
-        await insertSession(row.checkIn, row.note, row.category);
-      }
+      // One transaction: an import lands whole or not at all.
+      await withTransaction(async () => {
+        for (const row of result.toImport) {
+          await insertSession(row.checkIn, row.note, row.category);
+        }
+      });
       await refresh();
       return result;
     },

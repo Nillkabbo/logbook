@@ -100,6 +100,12 @@ export async function listSessions(): Promise<Session[]> {
   return rows.map(rowToSession);
 }
 
+/** Runs `task` inside one transaction — a failure rolls the whole batch back. */
+export async function withTransaction(task: () => Promise<void>): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(task);
+}
+
 export async function insertSession(checkIn: Date, note = '', category = ''): Promise<number> {
   const db = await getDb();
   const result = await db.runAsync(

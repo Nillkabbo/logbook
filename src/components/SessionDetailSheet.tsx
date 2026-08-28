@@ -223,6 +223,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         {error && <Text style={[styles.error, { color: theme.stop }]}>{t(error as StringKey)}</Text>}
 
         <Pressable
+          android_ripple={{ color: theme.muted, borderless: false }}
           style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
           disabled={busy}
           onPress={save}>

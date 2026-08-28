@@ -108,6 +108,7 @@ export default function SettingsScreen() {
 
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
         <Pressable
+          android_ripple={{ color: theme.inset }}
           style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
           accessibilityRole="button"
           onPress={() => router.push('/(tabs)/schedule')}>
@@ -119,6 +120,7 @@ export default function SettingsScreen() {
         </Pressable>
         <View style={[styles.navDivider, { backgroundColor: theme.canvas }]} />
         <Pressable
+          android_ripple={{ color: theme.inset }}
           style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
           accessibilityRole="button"
           onPress={() => router.push('/(tabs)/data')}>
@@ -139,6 +141,7 @@ export default function SettingsScreen() {
             return (
               <Pressable
                 key={option}
+                android_ripple={{ color: theme.muted, borderless: false }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
                 style={({ pressed }) => [styles.pill, pressed && styles.pressed, { backgroundColor: active ? theme.accent : theme.inset }]}

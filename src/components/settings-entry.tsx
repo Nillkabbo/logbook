@@ -43,6 +43,7 @@ export function WeekdayPicker({
             key={name}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
+            android_ripple={{ color: theme.muted, borderless: false }}
             style={({ pressed }) => [
               styles.pill,
               variant === 'segmented' && styles.pillSegmented,

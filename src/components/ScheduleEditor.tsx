@@ -94,6 +94,7 @@ export function ScheduleEditor({
           {timeField('end', 'To', end)}
         </View>
         <Pressable
+          android_ripple={{ color: theme.muted, borderless: false }}
           style={[styles.addButton, { backgroundColor: theme.accent }, busy && styles.disabled]}
           disabled={busy}
           onPress={add}>

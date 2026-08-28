@@ -88,6 +88,7 @@ export default function DataScreen() {
 
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
         <Pressable
+          android_ripple={{ color: theme.muted, borderless: false }}
           style={[styles.primary, { backgroundColor: theme.accent }, exporting && styles.disabled]}
           disabled={exporting}
           onPress={exportCsv}>
@@ -99,6 +100,7 @@ export default function DataScreen() {
 
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
         <Pressable
+          android_ripple={{ color: theme.muted, borderless: false }}
           style={[styles.secondary, { backgroundColor: theme.inset }, importing && styles.disabled]}
           disabled={importing}
           onPress={importFromCsv}>

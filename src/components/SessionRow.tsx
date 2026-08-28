@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatDuration, formatTimeOfDay } from '@/engine/time';
@@ -8,7 +9,7 @@ import { useHour12 } from '@/ui/clock';
 import { useI18n } from '@/ui/i18n';
 
 /** One session row as rendered on Home and Logs: time range, duration, optional note. */
-export function SessionRow({ session, now, accentRunning = false }: { session: Session; now: Date; accentRunning?: boolean }) {
+function SessionRowImpl({ session, now, accentRunning = false }: { session: Session; now: Date; accentRunning?: boolean }) {
   const theme = useTheme();
   const hour12 = useHour12();
   const { t } = useI18n();
@@ -108,3 +109,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 });
+
+/**
+ * Memoised per the RN performance guide: completed rows never depend on the
+ * ticking `now`, so they stop re-rendering every second a session runs.
+ */
+export const SessionRow = memo(
+  SessionRowImpl,
+  (prev, next) =>
+    prev.session.id === next.session.id &&
+    prev.session.checkOut?.getTime() === next.session.checkOut?.getTime() &&
+    prev.session.note === next.session.note &&
+    prev.session.category === next.session.category &&
+    prev.accentRunning === next.accentRunning &&
+    (next.session.checkOut !== null || prev.now.getTime() === next.now.getTime()),
+);

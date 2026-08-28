@@ -169,6 +169,7 @@ export default function LogsScreen() {
         ) : (
           <Pressable
             key={week.key}
+            android_ripple={{ color: theme.inset, foreground: true }}
             style={({ pressed }) => [
               styles.collapsed,
               { backgroundColor: theme.surface },
