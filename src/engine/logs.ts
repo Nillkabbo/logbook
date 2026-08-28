@@ -1,5 +1,5 @@
 import { formatDuration } from './durations';
-import { sessionDurationSeconds } from './sessions';
+import { sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { formatDayLabel, weekRange, weekRangeLabel, type WeekRange } from './weeks';
 
@@ -37,12 +37,6 @@ function localMidnight(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function sumCompleted(sessions: Session[]): number {
-  return sessions
-    .filter((s) => s.checkOut !== null)
-    .reduce((sum, s) => sum + sessionDurationSeconds(s), 0);
-}
-
 /**
  * Full history grouped newest-first: weeks (bounded by the configured week-start
  * day, labeled by date range) containing days (check-in-day ownership) containing
@@ -64,7 +58,7 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
   const targetSeconds = Math.round(settings.weeklyTargetHours * 3600);
 
   return weeks.map(({ range, sessions }) => {
-    const totalSeconds = sumCompleted(sessions);
+    const totalSeconds = sumCompletedSessions(sessions);
 
     const byDay = new Map<number, { date: Date; sessions: Session[] }>();
     for (const session of sessions) {
@@ -78,7 +72,7 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .map(({ date, sessions: daySessions }) => {
         daySessions.sort((a, b) => a.checkIn.getTime() - b.checkIn.getTime());
-        const dayTotal = sumCompleted(daySessions);
+        const dayTotal = sumCompletedSessions(daySessions);
         return {
           key: localDayKey(date),
           label: formatDayLabel(date),

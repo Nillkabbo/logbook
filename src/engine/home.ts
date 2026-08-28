@@ -1,5 +1,5 @@
 import { formatDuration, formatElapsed } from './durations';
-import { sessionDurationSeconds } from './sessions';
+import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { weekRange } from './weeks';
 
@@ -12,8 +12,8 @@ export interface HomeModel {
   todayTotalSeconds: number;
   todayTotalLabel: string;
   /** Completed sessions owned by the current week (check-in day ownership), running excluded. */
-  weekTotalSeconds: number;
-  weekTotalLabel: string;
+  weekToDateSeconds: number;
+  weekToDateLabel: string;
   weeklyTargetSeconds: number;
   weeklyTargetLabel: string;
   /** Fraction of target reached; exceeds 1 in an over-target week. */
@@ -40,19 +40,15 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
   const todaySessions = sessions
     .filter((s) => isSameLocalDay(s.checkIn, now))
     .sort((a, b) => a.checkIn.getTime() - b.checkIn.getTime());
-  const todayTotalSeconds = todaySessions
-    .filter((s) => s.checkOut !== null)
-    .reduce((sum, s) => sum + sessionDurationSeconds(s), 0);
+  const todayTotalSeconds = sumCompletedSessions(todaySessions);
 
   const week = weekRange(now, settings.weekStartDay);
-  const weekTotalSeconds = sessions
-    .filter(
+  const weekToDateSeconds = sumCompletedSessions(
+    sessions.filter(
       (s) =>
-        s.checkOut !== null &&
-        s.checkIn.getTime() >= week.start.getTime() &&
-        s.checkIn.getTime() < week.end.getTime(),
-    )
-    .reduce((sum, s) => sum + sessionDurationSeconds(s), 0);
+        s.checkIn.getTime() >= week.start.getTime() && s.checkIn.getTime() < week.end.getTime(),
+    ),
+  );
   const weeklyTargetSeconds = Math.round(settings.weeklyTargetHours * 3600);
 
   return {
@@ -62,12 +58,12 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
     todaySessions,
     todayTotalSeconds,
     todayTotalLabel: formatDuration(todayTotalSeconds),
-    weekTotalSeconds,
-    weekTotalLabel: formatDuration(weekTotalSeconds),
+    weekToDateSeconds,
+    weekToDateLabel: formatDuration(weekToDateSeconds),
     weeklyTargetSeconds,
     weeklyTargetLabel: formatDuration(weeklyTargetSeconds),
-    weekProgress: weeklyTargetSeconds === 0 ? 0 : weekTotalSeconds / weeklyTargetSeconds,
-    overTarget: weekTotalSeconds > weeklyTargetSeconds,
+    weekProgress: weeklyTargetSeconds === 0 ? 0 : weekToDateSeconds / weeklyTargetSeconds,
+    overTarget: weekToDateSeconds > weeklyTargetSeconds,
   };
 }
 

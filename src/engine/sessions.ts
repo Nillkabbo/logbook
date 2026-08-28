@@ -8,3 +8,10 @@ export function sessionDurationSeconds(session: Session, now?: Date): number {
   }
   return Math.floor((end.getTime() - session.checkIn.getTime()) / 1000);
 }
+
+/** Sum of completed-session durations in seconds; running sessions contribute nothing. */
+export function sumCompletedSessions(sessions: Session[]): number {
+  return sessions
+    .filter((s) => s.checkOut !== null)
+    .reduce((sum, s) => sum + sessionDurationSeconds(s), 0);
+}

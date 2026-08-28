@@ -14,8 +14,8 @@ export interface WeekRange {
  */
 export function weekRange(date: Date, weekStartDay: Weekday): WeekRange {
   const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const shift = (start.getDay() - weekStartDay + 7) % 7;
-  start.setDate(start.getDate() - shift);
+  const daysSinceWeekStart = (start.getDay() - weekStartDay + 7) % 7;
+  start.setDate(start.getDate() - daysSinceWeekStart);
   const end = new Date(start);
   end.setDate(end.getDate() + 7);
   return { start, end };

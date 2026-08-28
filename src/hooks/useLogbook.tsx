@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
 import {
   completeSession,
@@ -8,17 +16,35 @@ import {
   listSessions,
   updateSession as updateSessionInDb,
   updateSettings as updateSettingsInDb,
+  type SessionPatch,
 } from '@/db/database';
+import { cancelCheckInReminder, scheduleCheckInReminder } from '@/notifications/reminders';
 import type { Session, Settings } from '@/engine/types';
 import { DEFAULT_SETTINGS } from '@/engine/types';
-import type { SessionPatch } from '@/db/database';
-import { cancelCheckInReminder, scheduleCheckInReminder } from '@/notifications/reminders';
 
 /**
- * App-side store over the SQLite adapter: loads sessions + settings, exposes
- * actions, and keeps a ticking `now` while a session is running (for the live timer).
+ * App-wide store over the SQLite adapter, shared by every screen via
+ * <LogbookProvider>. Loads sessions + settings, exposes actions, and ticks a
+ * `now` clock while a session runs (for the live timer).
  */
-export function useLogbook() {
+
+interface Logbook {
+  sessions: Session[];
+  settings: Settings;
+  now: Date;
+  ready: boolean;
+  running: Session | null;
+  refresh: () => Promise<void>;
+  checkIn: () => Promise<void>;
+  checkOut: () => Promise<void>;
+  saveSession: (id: number, patch: SessionPatch) => Promise<void>;
+  removeSession: (id: number) => Promise<void>;
+  saveSettings: (patch: Partial<Settings>) => Promise<void>;
+}
+
+const LogbookContext = createContext<Logbook | null>(null);
+
+export function LogbookProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [now, setNow] = useState(() => new Date());
@@ -48,15 +74,17 @@ export function useLogbook() {
   const checkIn = useCallback(async () => {
     const checkInAt = new Date();
     await insertSession(checkInAt);
-    await scheduleCheckInReminder(checkInAt, settings.reminderThresholdHours);
     await refresh();
+    // Schedule after refresh: the OS permission prompt must never delay the
+    // button/timer flipping to the running state.
+    await scheduleCheckInReminder(checkInAt, settings.reminderThresholdHours);
   }, [refresh, settings.reminderThresholdHours]);
 
   const checkOut = useCallback(async () => {
     if (!running) return;
     await completeSession(running.id, new Date());
-    await cancelCheckInReminder();
     await refresh();
+    await cancelCheckInReminder();
   }, [running, refresh]);
 
   const saveSession = useCallback(
@@ -93,17 +121,43 @@ export function useLogbook() {
     [refresh],
   );
 
-  return {
-    sessions,
-    settings,
-    now,
-    ready,
-    running,
-    refresh,
-    checkIn,
-    checkOut,
-    saveSession,
-    removeSession,
-    saveSettings,
-  };
+  // Memoised: consumers depend on this identity for effects (focus refresh).
+  const value = useMemo<Logbook>(
+    () => ({
+      sessions,
+      settings,
+      now,
+      ready,
+      running,
+      refresh,
+      checkIn,
+      checkOut,
+      saveSession,
+      removeSession,
+      saveSettings,
+    }),
+    [
+      sessions,
+      settings,
+      now,
+      ready,
+      running,
+      refresh,
+      checkIn,
+      checkOut,
+      saveSession,
+      removeSession,
+      saveSettings,
+    ],
+  );
+
+  return <LogbookContext.Provider value={value}>{children}</LogbookContext.Provider>;
+}
+
+export function useLogbook(): Logbook {
+  const logbook = useContext(LogbookContext);
+  if (!logbook) {
+    throw new Error('useLogbook must be used inside <LogbookProvider>');
+  }
+  return logbook;
 }

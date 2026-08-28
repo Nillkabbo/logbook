@@ -40,3 +40,8 @@ export function validateWeeklyTarget(hours: number): string | null {
   }
   return null;
 }
+
+/** Parses user-typed hours, accepting either decimal separator; NaN when not numeric. */
+export function parseHoursInput(raw: string): number {
+  return Number(raw.trim().replace(',', '.'));
+}

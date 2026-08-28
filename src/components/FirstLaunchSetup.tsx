@@ -2,44 +2,34 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useLogbook } from '@/hooks/useLogbook';
-import { validateWeeklyTarget } from '@/engine/validation';
-import type { Weekday } from '@/engine/types';
-
-const WEEKDAY_NAMES = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-] as const;
+import { parseHoursInput, validateWeeklyTarget } from '@/engine/validation';
+import { WEEKDAY_NAMES, type Weekday } from '@/engine/types';
 
 /**
  * One-time setup shown on first launch: week-start day + weekly target.
  * Skippable — defaults (Sunday, 40h) apply and everything is changeable in Settings.
  */
 export function FirstLaunchSetup() {
-  const logbook = useLogbook();
+  const { ready, settings, saveSettings } = useLogbook();
   const [weekStartDay, setWeekStartDay] = useState<number>(0);
   const [target, setTarget] = useState('40');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Don't flash the modal before settings have loaded.
-  if (!logbook.ready || logbook.settings.setupCompleted) return null;
+  if (!ready || settings.setupCompleted) return null;
 
-  const finish = async (patch: Parameters<typeof logbook.saveSettings>[0]) => {
+  const finish = async (patch: Parameters<typeof saveSettings>[0]) => {
     setBusy(true);
     try {
-      await logbook.saveSettings({ setupCompleted: true, ...patch });
+      await saveSettings({ setupCompleted: true, ...patch });
     } finally {
       setBusy(false);
     }
   };
 
   const start = async () => {
-    const hours = Number(target.replace(',', '.'));
+    const hours = parseHoursInput(target);
     const validationError = validateWeeklyTarget(hours);
     if (validationError) {
       setError(validationError);

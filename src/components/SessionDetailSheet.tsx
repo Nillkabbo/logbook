@@ -54,11 +54,6 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
     if (Platform.OS === 'android') setPicker(null);
   };
 
-  const onPick =
-    (field: 'in' | 'out') =>
-    (_event: DateTimePickerEvent, selected?: Date): void =>
-      applyPicker(field, selected);
-
   const save = async () => {
     const validationError = validateSessionTimes(checkIn, checkOut, new Date());
     if (validationError) {
@@ -93,38 +88,39 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
     const disabled = field === 'out' && running;
     const label = field === 'in' ? 'Check-in' : 'Check-out';
 
-    const pressable = (
-      <Pressable
-        style={[styles.field, disabled && styles.fieldDisabled]}
-        disabled={disabled}
-        onPress={() => setPicker(picker === field ? null : field)}>
-        <Text style={styles.fieldLabel}>{label}</Text>
-        <Text style={styles.fieldValue}>{value ? formatDateTime(value) : '—'}</Text>
-      </Pressable>
+    const labelRow = (
+      <Text style={[styles.fieldLabel, disabled && styles.fieldDisabled]}>{label}</Text>
     );
+    const onPick =
+      (_event: DateTimePickerEvent, selected?: Date): void => applyPicker(field, selected);
 
-    // iOS renders compact inline pickers directly; Android needs on-demand dialogs.
-    if (Platform.OS === 'ios' && !disabled) {
-      return (
+    if (Platform.OS === 'ios') {
+      // iOS: the compact picker is the control itself; a running session has no checkout to edit.
+      return disabled ? (
         <View style={styles.fieldGroup}>
-          {pressable}
-          <DateTimePicker
-            value={value ?? checkIn}
-            mode="datetime"
-            onChange={onPick(field)}
-          />
+          {labelRow}
+          <Text style={styles.fieldValue}>—</Text>
+        </View>
+      ) : (
+        <View style={styles.fieldGroup}>
+          {labelRow}
+          <DateTimePicker value={value ?? checkIn} mode="datetime" onChange={onPick} />
         </View>
       );
     }
+
+    // Android: the picker is a dialog opened from a tappable field.
     return (
       <View style={styles.fieldGroup}>
-        {pressable}
+        {labelRow}
+        <Pressable
+          style={[styles.field, disabled && styles.fieldDisabled]}
+          disabled={disabled}
+          onPress={() => setPicker(picker === field ? null : field)}>
+          <Text style={styles.fieldValue}>{value ? formatDateTime(value) : '—'}</Text>
+        </Pressable>
         {picker === field && value && (
-          <DateTimePicker
-            value={value}
-            mode="datetime"
-            onChange={onPick(field)}
-          />
+          <DateTimePicker value={value} mode="datetime" onChange={onPick} />
         )}
       </View>
     );
@@ -138,10 +134,9 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
         {renderField('in')}
         <View style={styles.runningRow}>
           <Text style={styles.runningLabel}>Still running</Text>
-          <Switch
-            value={running}
-            onValueChange={(on) => setCheckOut(on ? null : new Date())}
-          />
+          {/* Turning it off anchors the checkout at the check-in: the user must
+              pick an explicit time before Save passes validation. */}
+          <Switch value={running} onValueChange={(on) => setCheckOut(on ? null : checkIn)} />
         </View>
         {renderField('out')}
 

@@ -80,23 +80,23 @@ describe('homeModel week-to-date', () => {
 
   it('Thursday-start week: Wednesday session belongs to the previous week; running excluded', () => {
     const model = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
-    expect(model.weekTotalSeconds).toBe(2700 + 5400);
-    expect(model.weekTotalLabel).toBe('2:15');
+    expect(model.weekToDateSeconds).toBe(2700 + 5400);
+    expect(model.weekToDateLabel).toBe('2:15');
     expect(model.overTarget).toBe(false);
     expect(model.weekProgress).toBeCloseTo(8100 / 144000, 5); // vs 40h target
   });
 
   it('Sunday-start week: the same Wednesday session joins this week', () => {
     const model = homeModel(SESSIONS, DEFAULT_SETTINGS, NOW);
-    expect(model.weekTotalSeconds).toBe(7200 + 2700 + 5400);
-    expect(model.weekTotalLabel).toBe('4:15');
+    expect(model.weekToDateSeconds).toBe(7200 + 2700 + 5400);
+    expect(model.weekToDateLabel).toBe('4:15');
   });
 
   it('a midnight-crossing session counts toward its check-in week (ADR-0001)', () => {
     // Wed Aug 26 23:00 → Thu Aug 27 01:00, Thursday-start weeks: owned by the Aug 20 week.
     const overnight = session(7, at(2026, 7, 26, 23, 0), at(2026, 7, 27, 1, 0));
     const model = homeModel([overnight], { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
-    expect(model.weekTotalSeconds).toBe(0); // the Aug 20–26 week is not the current week
+    expect(model.weekToDateSeconds).toBe(0); // the Aug 20–26 week is not the current week
   });
 
   it('flags over-target weeks and lets progress exceed 1', () => {

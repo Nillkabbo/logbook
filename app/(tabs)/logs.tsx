@@ -3,25 +3,23 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
+import { SessionRow } from '@/components/SessionRow';
+import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { logsModel } from '@/engine/logs';
-import { formatTimeOfDay } from '@/engine/home';
-import { formatDuration } from '@/engine/durations';
-import { sessionDurationSeconds } from '@/engine/sessions';
 import type { Session } from '@/engine/types';
 
 export default function LogsScreen() {
-  const logbook = useLogbook();
+  const { refresh, sessions, settings, now, saveSession, removeSession } = useLogbook();
   const [selected, setSelected] = useState<Session | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      logbook.refresh();
-    }, [logbook]),
+      refresh();
+    }, [refresh]),
   );
 
-  const weeks = logsModel(logbook.sessions, logbook.settings);
-  const now = logbook.now;
+  const weeks = logsModel(sessions, settings);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -30,18 +28,12 @@ export default function LogsScreen() {
         <View key={week.key} style={styles.week}>
           <View style={styles.weekHeader}>
             <Text style={styles.weekLabel}>{week.label}</Text>
-            <Text style={[styles.weekTotal, week.overTarget && styles.overTargetText]}>
-              {week.totalLabel} / {week.targetLabel}
-            </Text>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  week.overTarget && styles.progressFillOver,
-                  { width: `${Math.min(1, week.progress) * 100}%` },
-                ]}
-              />
-            </View>
+            <WeekProgress
+              totalLabel={week.totalLabel}
+              targetLabel={week.targetLabel}
+              progress={week.progress}
+              overTarget={week.overTarget}
+            />
           </View>
 
           {week.days.map((day) => (
@@ -53,18 +45,9 @@ export default function LogsScreen() {
               {day.sessions.map((session) => (
                 <Pressable
                   key={session.id}
-                  style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+                  style={({ pressed }) => [styles.rowWrap, pressed && styles.rowPressed]}
                   onPress={() => setSelected(session)}>
-                  <View style={styles.rowMain}>
-                    <Text style={styles.rowTimes}>
-                      {formatTimeOfDay(session.checkIn)} –{' '}
-                      {session.checkOut ? formatTimeOfDay(session.checkOut) : 'now'}
-                    </Text>
-                    <Text style={styles.rowDuration}>
-                      {formatDuration(sessionDurationSeconds(session, session.checkOut ?? now))}
-                    </Text>
-                  </View>
-                  {session.note.length > 0 && <Text style={styles.rowNote}>{session.note}</Text>}
+                  <SessionRow session={session} now={now} />
                 </Pressable>
               ))}
             </View>
@@ -75,8 +58,8 @@ export default function LogsScreen() {
       {selected && (
         <SessionDetailSheet
           session={selected}
-          onSave={(patch) => logbook.saveSession(selected.id, patch)}
-          onDelete={logbook.removeSession}
+          onSave={(patch) => saveSession(selected.id, patch)}
+          onDelete={removeSession}
           onClose={() => setSelected(null)}
         />
       )}
@@ -108,27 +91,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  weekTotal: {
-    fontSize: 14,
-    fontVariant: ['tabular-nums'],
-  },
-  overTargetText: {
-    color: '#c0392b',
-    fontWeight: '700',
-  },
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(128,128,128,0.25)',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 6,
-    backgroundColor: '#0a7ea4',
-  },
-  progressFillOver: {
-    backgroundColor: '#c0392b',
-  },
   day: {
     gap: 4,
     marginTop: 4,
@@ -148,31 +110,10 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     opacity: 0.7,
   },
-  row: {
-    padding: 12,
+  rowWrap: {
     borderRadius: 8,
-    backgroundColor: 'rgba(128,128,128,0.12)',
-    gap: 2,
   },
   rowPressed: {
-    backgroundColor: 'rgba(128,128,128,0.25)',
-  },
-  rowMain: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-  },
-  rowTimes: {
-    fontSize: 15,
-    fontVariant: ['tabular-nums'],
-  },
-  rowDuration: {
-    fontSize: 15,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
-  rowNote: {
-    fontSize: 13,
     opacity: 0.7,
   },
 });

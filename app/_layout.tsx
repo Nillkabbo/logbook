@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { FirstLaunchSetup } from '@/components/FirstLaunchSetup';
+import { LogbookProvider } from '@/hooks/useLogbook';
 import { initNotificationHandling } from '@/notifications/reminders';
 
 export {
@@ -30,10 +31,12 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-      <FirstLaunchSetup />
+      <LogbookProvider>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+        <FirstLaunchSetup />
+      </LogbookProvider>
     </ThemeProvider>
   );
 }

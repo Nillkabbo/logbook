@@ -2,33 +2,33 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { SessionRow } from '@/components/SessionRow';
+import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
-import { homeModel, formatTimeOfDay } from '@/engine/home';
-import { formatDuration } from '@/engine/durations';
-import { sessionDurationSeconds } from '@/engine/sessions';
+import { homeModel } from '@/engine/home';
 
 export default function HomeScreen() {
-  const logbook = useLogbook();
+  const { refresh, checkIn, checkOut, sessions, settings, now } = useLogbook();
   const [busy, setBusy] = useState(false);
 
-  // Re-read on focus so check-ins made elsewhere (or app restarts) are reflected.
+  // Re-read on focus so data written elsewhere (or app restarts) is reflected.
   useFocusEffect(
     useCallback(() => {
-      logbook.refresh();
-    }, [logbook]),
+      refresh();
+    }, [refresh]),
   );
 
-  // The hook's `now` ticks every second while a session runs, re-driving this model.
-  const model = homeModel(logbook.sessions, logbook.settings, logbook.now);
+  // The store's `now` ticks every second while a session runs, re-driving this model.
+  const model = homeModel(sessions, settings, now);
 
   const onToggle = async () => {
     if (busy) return;
     setBusy(true);
     try {
       if (model.running) {
-        await logbook.checkOut();
+        await checkOut();
       } else {
-        await logbook.checkIn();
+        await checkIn();
       }
     } catch (error) {
       Alert.alert('Something went wrong', String(error));
@@ -60,35 +60,19 @@ export default function HomeScreen() {
         </View>
         <View style={[styles.totalItem, styles.weekItem]}>
           <Text style={styles.totalLabel}>This week</Text>
-          <Text style={[styles.totalValue, model.overTarget && styles.overTargetText]}>
-            {model.weekTotalLabel} / {model.weeklyTargetLabel}
-          </Text>
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                model.overTarget && styles.progressFillOver,
-                { width: `${Math.min(1, model.weekProgress) * 100}%` },
-              ]}
-            />
-          </View>
+          <WeekProgress
+            totalLabel={model.weekToDateLabel}
+            targetLabel={model.weeklyTargetLabel}
+            progress={model.weekProgress}
+            overTarget={model.overTarget}
+            emphasized
+          />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
         {model.todaySessions.map((session) => (
-          <View key={session.id} style={styles.row}>
-            <Text style={styles.rowTimes}>
-              {formatTimeOfDay(session.checkIn)} –{' '}
-              {session.checkOut ? formatTimeOfDay(session.checkOut) : 'now'}
-            </Text>
-            <Text style={styles.rowDuration}>
-              {session.checkOut
-                ? formatDuration(sessionDurationSeconds(session))
-                : formatDuration(sessionDurationSeconds(session, logbook.now))}
-            </Text>
-            {session.note.length > 0 && <Text style={styles.rowNote}>{session.note}</Text>}
-          </View>
+          <SessionRow key={session.id} session={session} now={now} />
         ))}
         {model.todaySessions.length === 0 && (
           <Text style={styles.empty}>No sessions yet today.</Text>
@@ -150,24 +134,6 @@ const styles = StyleSheet.create({
   weekItem: {
     minWidth: 150,
   },
-  overTargetText: {
-    color: '#c0392b',
-  },
-  progressTrack: {
-    alignSelf: 'stretch',
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(128,128,128,0.25)',
-    marginTop: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 6,
-    backgroundColor: '#0a7ea4',
-  },
-  progressFillOver: {
-    backgroundColor: '#c0392b',
-  },
   totalLabel: {
     fontSize: 13,
     opacity: 0.6,
@@ -182,25 +148,6 @@ const styles = StyleSheet.create({
   list: {
     gap: 8,
     paddingBottom: 24,
-  },
-  row: {
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: 'rgba(128,128,128,0.12)',
-    gap: 2,
-  },
-  rowTimes: {
-    fontSize: 15,
-    fontVariant: ['tabular-nums'],
-  },
-  rowDuration: {
-    fontSize: 15,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
-  rowNote: {
-    fontSize: 13,
-    opacity: 0.7,
   },
   empty: {
     textAlign: 'center',

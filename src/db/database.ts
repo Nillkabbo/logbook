@@ -62,14 +62,6 @@ export async function listSessions(): Promise<Session[]> {
   return rows.map(rowToSession);
 }
 
-export async function getRunningSession(): Promise<Session | null> {
-  const db = await getDb();
-  const row = await db.getFirstAsync<SessionRow>(
-    'SELECT id, check_in_utc, check_out_utc, note FROM sessions WHERE check_out_utc IS NULL',
-  );
-  return row ? rowToSession(row) : null;
-}
-
 export async function insertSession(checkIn: Date, note = ''): Promise<number> {
   const db = await getDb();
   const result = await db.runAsync(

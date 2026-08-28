@@ -6,10 +6,10 @@ Parent spec: `.scratch/logbook-v1/spec.md`
 
 **Blocked by:** 07 (the export button lives in Settings).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Settings has an export button that generates a CSV of all sessions
-- [ ] Each row carries `date, check_in, check_out, duration_minutes, note`; running sessions have a blank checkout
-- [ ] Unit tests pass for CSV row generation, including running sessions and notes containing commas
-- [ ] Export opens the OS share sheet; the shared file opens correctly in another app (e.g. a spreadsheet)
-- [ ] Works in Expo Go (local file + share, no dev build)
+- [x] Settings has an export button that generates a CSV of all sessions
+- [x] Each row carries `date, check_in, check_out, duration_minutes, note`; running sessions have a blank checkout
+- [x] Unit tests pass for CSV row generation, including running sessions and notes containing commas
+- [ ] Export opens the OS share sheet; the shared file opens correctly in another app (e.g. a spreadsheet) *(pending user verification on phone)*
+- [x] Works in Expo Go (local file + share, no dev build)
