@@ -1,9 +1,11 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useLogbook } from '@/hooks/useLogbook';
+import { sessionsToCsv } from '@/engine/csv';
 import { validateReminderThreshold, validateWeeklyTarget } from '@/engine/validation';
+import { exportCsvViaShareSheet } from '@/export/csvExport';
 import type { Weekday } from '@/engine/types';
 
 const WEEKDAY_NAMES = [
@@ -21,6 +23,7 @@ export default function SettingsScreen() {
   const [target, setTarget] = useState(String(logbook.settings.weeklyTargetHours));
   const [threshold, setThreshold] = useState(String(logbook.settings.reminderThresholdHours));
   const [errors, setErrors] = useState<{ target?: string; threshold?: string }>({});
+  const [exporting, setExporting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -50,6 +53,21 @@ export default function SettingsScreen() {
     setErrors((prev) => ({ ...prev, threshold: error ?? undefined }));
     if (error) return;
     logbook.saveSettings({ reminderThresholdHours: hours });
+  };
+
+  const exportCsv = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const shared = await exportCsvViaShareSheet(sessionsToCsv(logbook.sessions));
+      if (!shared) {
+        Alert.alert('Export unavailable', 'Sharing is not available on this device.');
+      }
+    } catch (error) {
+      Alert.alert('Export failed', String(error));
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -95,6 +113,15 @@ export default function SettingsScreen() {
       />
       {errors.threshold && <Text style={styles.error}>{errors.threshold}</Text>}
       <Text style={styles.hint}>Applies to your next check-in.</Text>
+
+      <Text style={styles.sectionTitle}>Export</Text>
+      <Pressable
+        style={[styles.exportButton, exporting && styles.buttonDisabled]}
+        disabled={exporting}
+        onPress={exportCsv}>
+        <Text style={styles.exportText}>Export all sessions (CSV)</Text>
+      </Pressable>
+      <Text style={styles.hint}>One row per session via the share sheet.</Text>
     </ScrollView>
   );
 }
@@ -147,5 +174,19 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: 13,
     opacity: 0.6,
+  },
+  exportButton: {
+    backgroundColor: '#0a7ea4',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  exportText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
