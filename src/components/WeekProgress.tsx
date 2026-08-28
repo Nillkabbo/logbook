@@ -72,7 +72,9 @@ export function WeekProgress({
         />
       </View>
       {earningsLabel && emphasized && (
-        <Text style={[styles.earnings, { color: theme.accent }]}>{earningsLabel}</Text>
+        <Text style={[styles.earnings, { color: theme.accent }]}>
+          {t('earnedLabel')} · {earningsLabel}
+        </Text>
       )}
     </View>
   );

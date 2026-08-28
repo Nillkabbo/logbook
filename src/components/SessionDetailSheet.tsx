@@ -52,6 +52,23 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   }, [session]);
 
   const running = checkOut === null;
+  const dirty =
+    checkIn !== session.checkIn ||
+    checkOut !== session.checkOut ||
+    note !== session.note ||
+    category !== session.category;
+
+  // Swipe-down or Cancel on an edited form confirms before discarding.
+  const requestClose = () => {
+    if (!dirty) {
+      onClose();
+      return;
+    }
+    Alert.alert(t('discardChanges'), t('discardChangesBody'), [
+      { text: t('keepEditing'), style: 'cancel' },
+      { text: t('discard'), style: 'destructive', onPress: onClose },
+    ]);
+  };
 
   const save = async () => {
     const validationError = validateSessionTimes(checkIn, checkOut, new Date());
@@ -99,7 +116,8 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   );
 
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={requestClose}>
+
       <View style={{ backgroundColor: theme.canvas, borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
       <View style={styles.grabberRow}>
         <View style={[styles.grabber, { backgroundColor: '#D4D4D8' }]} />
@@ -110,7 +128,12 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.container}>
-        <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
+        <View style={styles.titleRow}>
+          <Pressable hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} onPress={requestClose}>
+            <Text style={[styles.cancelText, { color: theme.muted }]}>{t('cancel')}</Text>
+          </Pressable>
+          <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
+        </View>
 
         {renderField('in')}
         <View style={[styles.runningCard, cardStyle(theme)]}>
@@ -196,11 +219,20 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 999,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',
+    flex: 1,
     textAlign: 'center',
-    marginBottom: 8,
+  },
+  cancelText: {
+    fontSize: 16,
   },
   fieldGroup: {
     gap: 8,

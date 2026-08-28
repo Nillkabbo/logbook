@@ -76,7 +76,10 @@ export function DateTimeField({
         ]}
         disabled={disabled}
         onPress={() => setOpen((prev) => !prev)}>
-        <Text style={[styles.value, { color: theme.text }]}>{disabled ? '—' : display}</Text>
+        <View style={styles.valueRow}>
+          <Text style={[styles.value, { color: theme.text }]}>{disabled ? '—' : display}</Text>
+          <Text style={[styles.pickerCue, { color: theme.muted }]}>›</Text>
+        </View>
       </Pressable>
       {open && value && <DateTimePicker value={value} mode={mode} onChange={onPick} />}
     </View>
@@ -105,9 +108,18 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.control,
     padding: 12,
   },
+  valueRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   value: {
     fontSize: 15,
     fontVariant: ['tabular-nums'],
+  },
+  pickerCue: {
+    fontSize: 18,
+    fontWeight: '600',
   },
   disabled: {
     opacity: 0.4,

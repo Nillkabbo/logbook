@@ -81,7 +81,7 @@ const dark: Theme = {
   canvas: '#18181B',
   inset: '#3F3F46',
   text: '#FAFAFA',
-  muted: 'rgba(250,250,250,0.6)',
+  muted: 'rgba(250,250,250,0.75)',
   cardShadow: {
     boxShadow: '0px 4px 24px rgba(0,0,0,0.2)',
   },
