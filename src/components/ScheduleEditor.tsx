@@ -88,7 +88,7 @@ export function ScheduleEditor({
       ))}
 
       <View style={[styles.formCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
-        <WeekdayPicker value={days} onChange={(next) => setDays(next as Weekday[])} />
+        <WeekdayPicker variant="segmented" value={days} onChange={(next) => setDays(next as Weekday[])} />
         <View style={styles.timeRow}>
           {timeField('start', 'From', start)}
           {timeField('end', 'To', end)}
@@ -109,19 +109,20 @@ export function ScheduleEditor({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 10,
+    gap: 16,
   },
   formCard: {
-    borderRadius: RADIUS.card,
-    padding: 16,
-    gap: 10,
+    borderRadius: 16,
+    padding: 24,
+    gap: 24,
+    marginTop: 8,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: RADIUS.card,
-    padding: 14,
+    borderRadius: 16,
+    padding: 16,
   },
   rowText: {
     fontSize: 14,
@@ -133,13 +134,13 @@ const styles = StyleSheet.create({
   },
   timeRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 16,
   },
   timeField: {
     flex: 1,
     borderRadius: RADIUS.control,
     padding: 12,
-    gap: 2,
+    gap: 4,
   },
   timeLabel: {
     fontSize: 11,
@@ -151,9 +152,10 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   addButton: {
-    borderRadius: RADIUS.control,
-    padding: 12,
+    borderRadius: 16,
+    height: 48,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   addText: {
     fontSize: 15,

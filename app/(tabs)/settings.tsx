@@ -54,22 +54,20 @@ export default function SettingsScreen() {
     resetRate(settings.hourlyRate > 0 ? String(settings.hourlyRate) : '');
   }, [settings.weeklyTargetHours, settings.reminderThresholdHours, settings.hourlyRate, resetTarget, resetThreshold, resetRate]);
 
-  const insetInput = (value: string, onChangeText: (next: string) => void, onBlur: () => void) => (
-    <TextInput
-      style={[styles.input, { color: theme.text, backgroundColor: theme.inset }]}
-      value={value}
-      onChangeText={onChangeText}
-      onBlur={onBlur}
-      keyboardType="decimal-pad"
-      placeholderTextColor={theme.muted}
-    />
-  );
-  const fieldRow = (label: string, input: React.ReactNode) => (
-    <View style={styles.fieldRow}>
+  const labeledInput = (label: string, value: string, onChangeText: (next: string) => void, onBlur: () => void) => (
+    <View style={styles.fieldStack}>
       <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
-      {input}
+      <TextInput
+        style={[styles.input, { color: theme.text, backgroundColor: theme.inset }]}
+        value={value}
+        onChangeText={onChangeText}
+        onBlur={onBlur}
+        keyboardType="decimal-pad"
+        placeholderTextColor={theme.muted}
+      />
     </View>
   );
+
 
   // The Schedule row's sub-label: the single block's range, or a count when several exist.
   const blockSummary =
@@ -90,18 +88,18 @@ export default function SettingsScreen() {
           value={settings.weekStartDay}
           onChange={useCallback((day: Weekday | Weekday[]) => saveSettings({ weekStartDay: day as Weekday }), [saveSettings])}
         />
-        {fieldRow(t('weeklyTarget'), insetInput(target.value, target.onChangeText, target.onBlur))}
+        {labeledInput(t('weeklyTarget'), target.value, target.onChangeText, target.onBlur)}
         {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
-        {fieldRow(t('reminderThreshold'), insetInput(threshold.value, threshold.onChangeText, threshold.onBlur))}
+        {labeledInput(t('reminderThreshold'), threshold.value, threshold.onChangeText, threshold.onBlur)}
         {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{t(threshold.error as StringKey)}</Text>}
-        <Text style={[styles.hint, { color: theme.muted }]}>{t('reminderHint')}</Text>
+        <Text style={[styles.hint, styles.hintTuck, { color: theme.muted }]}>{t('reminderHint')}</Text>
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('earnings')}</Text>
-      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
-        {fieldRow(t('hourlyRate'), insetInput(rate.value, rate.onChangeText, rate.onBlur))}
+      <View style={[styles.card, styles.cardTight, { backgroundColor: theme.surface }, theme.cardShadow]}>
+        {labeledInput(t('hourlyRate'), rate.value, rate.onChangeText, rate.onBlur)}
         {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
-        <Text style={[styles.hint, { color: theme.muted }]}>{t('rateHint')}</Text>
+        <Text style={[styles.hint, styles.hintTuck, { color: theme.muted }]}>{t('rateHint')}</Text>
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
@@ -112,6 +110,7 @@ export default function SettingsScreen() {
           </View>
           <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
         </Pressable>
+        <View style={[styles.navDivider, { backgroundColor: theme.canvas }]} />
         <Pressable style={styles.navRow} onPress={() => router.push('/(tabs)/data')}>
           <View style={styles.navText}>
             <Text style={[styles.navTitle, { color: theme.text }]}>{t('data')}</Text>
@@ -154,31 +153,40 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
+    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     marginTop: 8,
+    marginBottom: 8,
+    marginLeft: 8,
   },
   card: {
     borderRadius: RADIUS.card,
-    padding: 16,
-    gap: 10,
+    padding: 24,
+    gap: 24,
+  },
+  cardTight: {
+    gap: 8,
+  },
+  fieldStack: {
+    gap: 8,
+  },
+  hintTuck: {
+    marginTop: -16,
   },
   rowLabel: {
     fontSize: 15,
   },
-  fieldRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-  },
   input: {
     borderRadius: RADIUS.control,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    fontSize: 16,
-    minWidth: 88,
-    textAlign: 'right',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 14,
+    fontVariant: ['tabular-nums'],
+  },
+  navDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 24,
   },
   error: {
     fontSize: 14,
@@ -208,7 +216,10 @@ const styles = StyleSheet.create({
   },
   pill: {
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 20,
     borderRadius: RADIUS.pill,
+  },
+  pillText: {
+    fontSize: 14,
   },
 });

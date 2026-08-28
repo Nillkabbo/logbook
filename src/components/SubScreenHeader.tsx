@@ -35,8 +35,9 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.3,
     flex: 1,
     textAlign: 'center',
   },

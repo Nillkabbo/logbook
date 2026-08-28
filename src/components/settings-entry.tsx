@@ -15,9 +15,12 @@ type HoursValidator = (hours: number) => string | null;
 export function WeekdayPicker({
   value,
   onChange,
+  variant = 'wrap',
 }: {
   value: Weekday | Weekday[];
   onChange: (day: Weekday | Weekday[]) => void;
+  /** wrap: natural pills (Settings, Setup); segmented: equal-width row (Schedule form). */
+  variant?: 'wrap' | 'segmented' | 'setup';
 }) {
   const theme = useTheme();
   const { weekdayShortName } = useI18n();
@@ -40,12 +43,16 @@ export function WeekdayPicker({
             key={name}
             style={[
               styles.pill,
+              variant === 'segmented' && styles.pillSegmented,
+              variant === 'setup' && styles.pillSetup,
               { backgroundColor: active ? theme.accent : theme.inset },
             ]}
             onPress={() => press(index)}>
             <Text
               style={[
                 styles.pillText,
+                variant === 'segmented' && styles.pillTextSegmented,
+                variant === 'setup' && styles.pillTextSetup,
                 { color: active ? theme.onAccent : theme.text },
                 active && styles.pillTextActive,
               ]}>
@@ -103,16 +110,33 @@ export function useValidatedHours(
 const styles = StyleSheet.create({
   pillRow: {
     flexDirection: 'row',
-    gap: 6,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   pill: {
-    flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
+  },
+  pillSegmented: {
+    flex: 1,
+    height: 36,
+    paddingHorizontal: 0,
+    borderRadius: RADIUS.control,
   },
   pillText: {
     fontSize: 14,
+  },
+  pillTextSegmented: {
+    fontSize: 13,
+  },
+  pillSetup: {
+    borderRadius: RADIUS.control,
+    paddingVertical: 8,
+  },
+  pillTextSetup: {
+    fontSize: 15,
   },
   pillTextActive: {
     fontWeight: '600',

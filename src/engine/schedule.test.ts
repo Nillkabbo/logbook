@@ -108,7 +108,7 @@ describe('blockRangeLabel', () => {
 
   it('joins the weekdays and the time range', () => {
     const block = { id: 1, weekdays: [0, 1, 2, 3, 4] as Weekday[], startMinute: 9 * 60, endMinute: 17 * 60 };
-    expect(blockRangeLabel(block, names)).toBe('Sun, Mon, Tue, Wed, Thu · 09:00–17:00');
+    expect(blockRangeLabel(block, names)).toBe('Sun–Thu · 09:00–17:00');
   });
 
   it('formats a single weekday and honors hour12', () => {

@@ -113,7 +113,7 @@ export function blockTriggers(block: WorkBlock): BlockTrigger[] {
   return triggers;
 }
 
-/** One work block's row/sub-label text: "Sun, Mon · 9:00 AM–5:00 PM". */
+/** One work block's row/sub-label text: "Sun–Thu · 9:00 AM–5:00 PM". */
 export function blockRangeLabel(
   block: WorkBlock,
   weekdayName: (weekday: number) => string,
@@ -122,8 +122,19 @@ export function blockRangeLabel(
   const atMinutes = (minutes: number) =>
     new Date(2026, 0, 1, Math.floor(minutes / 60), minutes % 60);
   return (
-    `${block.weekdays.map((d) => weekdayName(d)).join(', ')} · ` +
+    `${weekdayRuns(block.weekdays).map(([a, b]) => (a === b ? weekdayName(a) : `${weekdayName(a)}–${weekdayName(b)}`)).join(', ')} · ` +
     `${formatTimeOfDay(atMinutes(block.startMinute), hour12)}–` +
     `${formatTimeOfDay(atMinutes(block.endMinute), hour12)}`
   );
+}
+
+/** Compresses sorted weekdays into consecutive runs: [0,1,2,4] → [[0,2],[4,4]]. */
+function weekdayRuns(weekdays: WorkBlock['weekdays']): Array<[number, number]> {
+  const runs: Array<[number, number]> = [];
+  for (const day of weekdays) {
+    const last = runs[runs.length - 1];
+    if (last && day === last[1] + 1) last[1] = day;
+    else runs.push([day, day]);
+  }
+  return runs;
 }

@@ -90,7 +90,7 @@ export default function DataScreen() {
           <Text style={[styles.primaryText, { color: theme.onAccent }]}>{t('exportAll')}</Text>
         </Pressable>
         <Text style={[styles.hint, { color: theme.muted }]}>{t('exportHint')}</Text>
-        <Text style={[styles.hint, { color: theme.muted }]}>{lastExportLabel}</Text>
+        <Text style={[styles.hint, styles.numeric, { color: theme.muted }]}>{lastExportLabel}</Text>
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
@@ -114,12 +114,13 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: RADIUS.card,
-    padding: 16,
-    gap: 10,
+    padding: 24,
+    gap: 16,
   },
   primary: {
-    borderRadius: RADIUS.control,
-    padding: 14,
+    borderRadius: RADIUS.card,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     alignItems: 'center',
   },
   primaryText: {
@@ -127,8 +128,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   secondary: {
-    borderRadius: RADIUS.control,
-    padding: 14,
+    borderRadius: RADIUS.card,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     alignItems: 'center',
   },
   secondaryText: {
@@ -137,6 +139,9 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 13,
+  },
+  numeric: {
+    fontVariant: ['tabular-nums'],
   },
   disabled: {
     opacity: 0.6,
