@@ -28,8 +28,6 @@ export interface Theme {
   muted: string;
   /** Soft ambient shadow that lifts a floating card off the canvas. */
   cardShadow: Shadow;
-  /** Legacy hairline — retiring with the bordered-card look. */
-  border: string;
   /** The working state: check-in, active pills, fills, links. */
   accent: string;
   /** ~10% accent tint — tonal chip fills. */
@@ -61,7 +59,6 @@ const light: Theme = {
     shadowRadius: 24,
     elevation: 2,
   },
-  border: 'rgba(24,24,27,0.08)',
   accent: '#059669',
   accentSoft: 'rgba(5,150,105,0.1)',
   onAccent: '#FFFFFF',
@@ -85,7 +82,6 @@ const dark: Theme = {
     shadowRadius: 24,
     elevation: 3,
   },
-  border: 'rgba(250,250,250,0.12)',
   accent: '#34D399',
   accentSoft: 'rgba(52,211,153,0.15)',
   onAccent: '#0B3B2E',
