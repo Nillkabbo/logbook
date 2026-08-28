@@ -1,18 +1,43 @@
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
-import { weekKey } from '@/engine/weeks';
 import { categorySuggestions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
-import { logsModel, type LogWeek } from '@/engine/logs';
+import { logsModel, type LogDay, type LogWeek } from '@/engine/logs';
 import type { Session } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
+
+/** One virtualized row: a week's summary card, a day header, a session card, or a collapsed week. */
+type Row =
+  | { kind: 'week'; key: string; week: LogWeek }
+  | { kind: 'day'; key: string; day: LogDay }
+  | { kind: 'session'; key: string; session: Session }
+  | { kind: 'collapsed'; key: string; week: LogWeek };
+
+/** Flattens the grouped model newest-first into FlatList rows; expanded weeks contribute their days and sessions. */
+function buildRows(weeks: LogWeek[], isExpanded: (week: LogWeek) => boolean): Row[] {
+  const rows: Row[] = [];
+  for (const week of weeks) {
+    if (!isExpanded(week)) {
+      rows.push({ kind: 'collapsed', key: `w-${week.key}`, week });
+      continue;
+    }
+    rows.push({ kind: 'week', key: `w-${week.key}`, week });
+    for (const day of week.days) {
+      rows.push({ kind: 'day', key: `d-${day.key}`, day });
+      for (const session of day.sessions) {
+        rows.push({ kind: 'session', key: `s-${session.id}`, session });
+      }
+    }
+  }
+  return rows;
+}
 
 export default function LogsScreen() {
   const insets = useSafeAreaInsets();
@@ -46,15 +71,137 @@ export default function LogsScreen() {
 
   const weeks = logsModel(sessions, settings, now, categoryFilter ?? undefined, locale);
   const suggestions = categorySuggestions(sessions);
+  const rows = buildRows(weeks, isExpanded);
+
+  const renderWeekCard = (week: LogWeek) => (
+    <View style={[styles.weekCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
+      <View style={styles.weekHeader}>
+        <Pressable
+          style={styles.weekTitleBlock}
+          accessibilityRole="button"
+          accessibilityLabel={t('markOff')}
+          onPress={() => toggleWeek(week)}>
+          {week.isCurrent && (
+            <Text style={[styles.weekEyebrow, { color: theme.muted }]}>{t('currentWeek')}</Text>
+          )}
+          <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
+        </Pressable>
+        <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => toggleOff(week.key)}>
+          <Text style={[styles.offToggle, { color: theme.muted }]}>
+            {week.off ? t('markOn') : t('markOff')}
+          </Text>
+        </Pressable>
+      </View>
+      {week.off ? (
+        <View style={styles.offRow}>
+          <Text style={[styles.offTotal, { color: theme.text }]}>{week.totalLabel}</Text>
+          <View style={[styles.offBadge, { backgroundColor: theme.accentSoft }]}>
+            <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
+          </View>
+        </View>
+      ) : (
+        <WeekProgress
+          totalLabel={week.totalLabel}
+          targetLabel={week.targetLabel}
+          progress={week.progress}
+          overTarget={week.overTarget}
+          overByLabel={week.overByLabel}
+          row
+          earningsLabel={week.earningsLabel}
+        />
+      )}
+      <View style={styles.bars}>
+        {week.dayBars.map((bar) => (
+          <View
+            key={bar.key}
+            style={[
+              styles.bar,
+              {
+                height: 3 + bar.intensity * 28,
+                backgroundColor: bar.isToday ? theme.accent : theme.inset,
+              },
+            ]}
+          />
+        ))}
+      </View>
+      {week.categoryBreakdown.length > 0 && (
+        <View style={[styles.breakdown, { borderTopColor: theme.canvas }]}>
+          {week.categoryBreakdown.map((entry, index) => (
+            <View key={entry.label || '__none__'} style={styles.breakdownRow}>
+              <View style={[styles.breakdownDot, { backgroundColor: dotColor(theme, index) }]} />
+              <Text style={[styles.breakdownLabel, { color: theme.muted }]}>
+                {entry.label || t('uncategorised')}
+              </Text>
+              <Text style={[styles.breakdownTotal, { color: theme.text }]}>
+                {entry.totalLabel}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+
+  const renderItem = ({ item }: { item: Row }) => {
+    switch (item.kind) {
+      case 'week':
+        return renderWeekCard(item.week);
+      case 'day':
+        return (
+          <View style={styles.day}>
+            <View style={styles.dayHeader}>
+              <Text style={[styles.dayLabel, { color: theme.text }]}>{item.day.label}</Text>
+              <Text style={[styles.dayTotal, { color: theme.muted }]}>{item.day.totalLabel}</Text>
+            </View>
+          </View>
+        );
+      case 'session':
+        return (
+          <Pressable
+            android_ripple={{ color: theme.inset, foreground: true }}
+            style={({ pressed }) => [styles.rowWrap, pressed && { opacity: 0.8 }]}
+            onPress={() => setSelected(item.session)}>
+            <SessionRow session={item.session} now={now} accentRunning />
+          </Pressable>
+        );
+      case 'collapsed':
+        return (
+          <Pressable
+            android_ripple={{ color: theme.inset, foreground: true }}
+            style={({ pressed }) => [
+              styles.collapsed,
+              { backgroundColor: theme.surface },
+              theme.cardShadow,
+              pressed && { opacity: 0.85 },
+            ]}
+            onPress={() => toggleWeek(item.week)}>
+            <Text style={[styles.collapsedLabel, { color: theme.text }]}>{item.week.label}</Text>
+            <View style={styles.collapsedRight}>
+              <Text style={[styles.collapsedTotal, { color: theme.muted }]}>{item.week.totalLabel}</Text>
+              {item.week.off ? (
+                <View style={[styles.statusPill, { backgroundColor: theme.accentSoft }]}>
+                  <Text style={[styles.statusText, { color: theme.accent }]}>{t('offWeek')}</Text>
+                </View>
+              ) : (
+                item.week.overTarget && (
+                  <View style={[styles.statusPill, { backgroundColor: theme.stopSoft }]}>
+                    <Text style={[styles.statusText, { color: theme.stopOnSoft }]}>
+                      {t('overLabel')}{item.week.overByLabel ? ` +${item.week.overByLabel}` : ''}
+                    </Text>
+                  </View>
+                )
+              )}
+              <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
+            </View>
+          </Pressable>
+        );
+    }
+  };
 
   return (
-    <ScrollView
-      style={{ backgroundColor: theme.canvas }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}>
+    <View style={{ flex: 1, backgroundColor: theme.canvas }}>
       {suggestions.length > 0 && (
-        <View style={styles.filterRow}>
+        <View style={[styles.filterRow, { paddingTop: insets.top + 12 }]}>
           <Pressable
             style={[styles.filterChip, categoryFilter === null && { backgroundColor: theme.accent }]}
             onPress={() => setCategoryFilter(null)}>
@@ -73,131 +220,20 @@ export default function LogsScreen() {
           })}
         </View>
       )}
-      {weeks.length === 0 && (
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyIcon}>🕘</Text>
-          <Text style={[styles.empty, { color: theme.muted }]}>{t('emptyLogs')}</Text>
-        </View>
-      )}
-      {weeks.map((week) =>
-        isExpanded(week) ? (
-          <View key={week.key} style={styles.weekBlock}>
-          <View style={[styles.weekCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
-            <View style={styles.weekHeader}>
-              <Pressable
-              style={styles.weekTitleBlock}
-              accessibilityRole="button"
-              accessibilityLabel={t('markOff')}
-              onPress={() => toggleWeek(week)}>
-                {week.isCurrent && (
-                  <Text style={[styles.weekEyebrow, { color: theme.muted }]}>{t('currentWeek')}</Text>
-                )}
-                <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
-              </Pressable>
-              <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => toggleOff(week.key)}>
-                <Text style={[styles.offToggle, { color: theme.muted }]}>
-                  {week.off ? t('markOn') : t('markOff')}
-                </Text>
-              </Pressable>
-            </View>
-            {week.off ? (
-              <View style={styles.offRow}>
-                <Text style={[styles.offTotal, { color: theme.text }]}>{week.totalLabel}</Text>
-                <View style={[styles.offBadge, { backgroundColor: theme.accentSoft }]}>
-                  <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
-                </View>
-              </View>
-            ) : (
-              <WeekProgress
-                totalLabel={week.totalLabel}
-                targetLabel={week.targetLabel}
-                progress={week.progress}
-                overTarget={week.overTarget}
-                overByLabel={week.overByLabel}
-                row
-                earningsLabel={week.earningsLabel}
-              />
-            )}
-            <View style={styles.bars}>
-              {week.dayBars.map((bar) => (
-                <View
-                  key={bar.key}
-                  style={[
-                    styles.bar,
-                    {
-                      height: 3 + bar.intensity * 28,
-                      backgroundColor: bar.isToday ? theme.accent : theme.inset,
-                    },
-                  ]}
-                />
-              ))}
-            </View>
-            {week.categoryBreakdown.length > 0 && (
-              <View style={[styles.breakdown, { borderTopColor: theme.canvas }]}>
-                {week.categoryBreakdown.map((entry, index) => (
-                  <View key={entry.label || '__none__'} style={styles.breakdownRow}>
-                    <View style={[styles.breakdownDot, { backgroundColor: dotColor(theme, index) }]} />
-                    <Text style={[styles.breakdownLabel, { color: theme.muted }]}>
-                      {entry.label || t('uncategorised')}
-                    </Text>
-                    <Text style={[styles.breakdownTotal, { color: theme.text }]}>
-                      {entry.totalLabel}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
 
-          {week.days.map((day) => (
-            <View key={day.key} style={styles.day}>
-              <View style={styles.dayHeader}>
-                <Text style={[styles.dayLabel, { color: theme.text }]}>{day.label}</Text>
-                <Text style={[styles.dayTotal, { color: theme.muted }]}>{day.totalLabel}</Text>
-              </View>
-              {day.sessions.map((session) => (
-                <Pressable
-                  key={session.id}
-                  style={({ pressed }) => [styles.rowWrap, pressed && { opacity: 0.8 }]}
-                  onPress={() => setSelected(session)}>
-                  <SessionRow session={session} now={now} accentRunning />
-                </Pressable>
-              ))}
-            </View>
-          ))}
+      <FlatList
+        data={rows}
+        keyExtractor={(item) => item.key}
+        renderItem={renderItem}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyIcon}>🕘</Text>
+            <Text style={[styles.empty, { color: theme.muted }]}>{t('emptyLogs')}</Text>
           </View>
-        ) : (
-          <Pressable
-            key={week.key}
-            android_ripple={{ color: theme.inset, foreground: true }}
-            style={({ pressed }) => [
-              styles.collapsed,
-              { backgroundColor: theme.surface },
-              theme.cardShadow,
-              pressed && { opacity: 0.85 },
-            ]}
-            onPress={() => toggleWeek(week)}>
-            <Text style={[styles.collapsedLabel, { color: theme.text }]}>{week.label}</Text>
-            <View style={styles.collapsedRight}>
-              <Text style={[styles.collapsedTotal, { color: theme.muted }]}>{week.totalLabel}</Text>
-              {week.off ? (
-                <View style={[styles.statusPill, { backgroundColor: theme.accentSoft }]}>
-                  <Text style={[styles.statusText, { color: theme.accent }]}>{t('offWeek')}</Text>
-                </View>
-              ) : (
-                week.overTarget && (
-                  <View style={[styles.statusPill, { backgroundColor: theme.stopSoft }]}>
-                    <Text style={[styles.statusText, { color: theme.stop }]}>
-                      {t('overLabel')}{week.overByLabel ? ` +${week.overByLabel}` : ''}
-                    </Text>
-                  </View>
-                )
-              )}
-              <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
-            </View>
-          </Pressable>
-        ),
-      )}
+        }
+      />
 
       {selected && (
         <SessionDetailSheet
@@ -208,7 +244,7 @@ export default function LogsScreen() {
           onClose={() => setSelected(null)}
         />
       )}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -219,10 +255,10 @@ function dotColor(theme: ReturnType<typeof useTheme>, index: number): string {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  list: {
     padding: 16,
     paddingBottom: 32,
-    gap: 24,
+    gap: 16,
   },
   empty: {
     textAlign: 'center',
@@ -239,6 +275,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'nowrap',
     gap: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
   filterChip: {
     paddingVertical: 8,
@@ -253,17 +291,13 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.card,
     padding: 24,
     gap: 24,
+    marginBottom: 24,
   },
   weekHeader: {
     gap: 4,
   },
   weekTitleBlock: {
     gap: 2,
-  },
-  weekTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   weekEyebrow: {
     fontSize: 12,
@@ -303,11 +337,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-  earnings: {
-    fontSize: 14,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
   bars: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -342,11 +371,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
-  weekBlock: {
-    gap: 24,
-  },
   day: {
     gap: 16,
+    marginTop: 8,
   },
   dayHeader: {
     flexDirection: 'row',
