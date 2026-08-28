@@ -58,6 +58,8 @@ interface Logbook {
   importCsv: (csv: string) => Promise<CsvImportResult>;
   /** Dev-only: populates ~2 months of sample data. */
   loadSampleData: () => void;
+  /** Deletes all sessions, blocks, and settings (after confirmation). */
+  clearAllData: () => Promise<void>;
 }
 
 const LogbookContext = createContext<Logbook | null>(null);
@@ -244,6 +246,21 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     })();
   }, [refresh]);
 
+  const clearAllData = useCallback(async () => {
+    for (const session of await listSessions()) {
+      await deleteSessionInDb(session.id);
+    }
+    for (const block of await listBlocks()) {
+      await deleteBlockInDb(block.id);
+    }
+    await updateSettingsInDb({
+      hourlyRate: 0,
+      lastExportAt: null,
+      offWeeks: [],
+    });
+    await refresh();
+  }, [refresh]);
+
   const checkIn = useCallback(async () => {
     const checkInAt = new Date();
     await insertSession(checkInAt);
@@ -359,6 +376,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       removeBlock,
       importCsv,
       loadSampleData,
+      clearAllData,
     }),
     [
       sessions,

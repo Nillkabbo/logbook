@@ -254,15 +254,7 @@ export default function LogsScreen() {
     <View style={{ flex: 1, backgroundColor: theme.canvas }}>
       <View style={[styles.filterOuter, { paddingTop: insets.top + 12 }]}>
       <View style={[styles.filterArea, cardStyle(theme)]}>
-        <View style={styles.filterHeader}>
-          <ChipRow
-            accessibilityLabel={t('tabLogs')}
-            options={[t('all'), ...suggestions]}
-            isSelected={(option) => (categoryFilter === null ? option === t('all') : option === categoryFilter)}
-            onSelect={(option) => setCategoryFilter(option === t('all') ? null : option)}
-            selectedStyle="dark"
-          />
-          <View style={styles.toolbarRight}>
+        <View style={styles.toolbarRow}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('calendar')}
@@ -282,7 +274,13 @@ export default function LogsScreen() {
             <Text style={{ fontSize: 16 }}>↗</Text>
           </Pressable>
         </View>
-        </View>
+        <ChipRow
+          accessibilityLabel={t('tabLogs')}
+          options={[t('all'), ...suggestions]}
+          isSelected={(option) => (categoryFilter === null ? option === t('all') : option === categoryFilter)}
+          onSelect={(option) => setCategoryFilter(option === t('all') ? null : option)}
+          selectedStyle="dark"
+        />
         {calendarOpen && (
           <CalendarView
             year={calMonth.getFullYear()}
@@ -459,13 +457,9 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 8,
   },
-  filterHeader: {
+  toolbarRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  toolbarRight: {
-    flexDirection: 'row',
+    justifyContent: 'flex-end',
     gap: 8,
   },
   toolbarButton: {

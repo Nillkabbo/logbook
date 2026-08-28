@@ -16,7 +16,7 @@ export default function DataScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale } = useI18n();
-  const { refresh, settings, sessions, exportBackup, importCsv, loadSampleData } = useLogbook();
+  const { refresh, settings, sessions, exportBackup, importCsv, loadSampleData, clearAllData } = useLogbook();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
 
@@ -103,6 +103,17 @@ export default function DataScreen() {
           style={[styles.secondary, insetInput(theme)]}
           onPress={loadSampleData}>
           <Text style={[styles.secondaryText, { color: theme.accent }]}>{t('loadSample')}</Text>
+        </Pressable>
+        <Pressable
+          android_ripple={{ color: theme.muted, borderless: false }}
+          style={[styles.secondary, insetInput(theme)]}
+          onPress={() =>
+            Alert.alert(t('clearDataConfirm'), t('clearDataBody'), [
+              { text: t('cancel'), style: 'cancel' },
+              { text: t('clearDataAction'), style: 'destructive', onPress: clearAllData },
+            ])
+          }>
+          <Text style={[styles.secondaryText, { color: theme.stop }]}>{t('clearData')}</Text>
         </Pressable>
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
