@@ -1,23 +1,27 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 
+import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { sessionsToCsv } from '@/engine/csv';
-import {
-  parseHoursInput,
-  validateReminderThreshold,
-  validateWeeklyTarget,
-} from '@/engine/validation';
+import { validateReminderThreshold, validateWeeklyTarget } from '@/engine/validation';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
-import { WEEKDAY_NAMES, type Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
   const { refresh, sessions, settings, saveSettings } = useLogbook();
-  const [target, setTarget] = useState(String(settings.weeklyTargetHours));
-  const [threshold, setThreshold] = useState(String(settings.reminderThresholdHours));
-  const [errors, setErrors] = useState<{ target?: string; threshold?: string }>({});
   const [exporting, setExporting] = useState(false);
+
+  const target = useValidatedHours(
+    String(settings.weeklyTargetHours),
+    validateWeeklyTarget,
+    useCallback((hours: number) => saveSettings({ weeklyTargetHours: hours }), [saveSettings]),
+  );
+  const threshold = useValidatedHours(
+    String(settings.reminderThresholdHours),
+    validateReminderThreshold,
+    useCallback((hours: number) => saveSettings({ reminderThresholdHours: hours }), [saveSettings]),
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -27,27 +31,9 @@ export default function SettingsScreen() {
 
   // Sync the inputs whenever the persisted settings change elsewhere.
   useEffect(() => {
-    setTarget(String(settings.weeklyTargetHours));
-    setThreshold(String(settings.reminderThresholdHours));
-  }, [settings.weeklyTargetHours, settings.reminderThresholdHours]);
-
-  const pickWeekStart = (day: number) => saveSettings({ weekStartDay: day as Weekday });
-
-  const commitTarget = () => {
-    const hours = parseHoursInput(target);
-    const error = validateWeeklyTarget(hours);
-    setErrors((prev) => ({ ...prev, target: error ?? undefined }));
-    if (error) return;
-    saveSettings({ weeklyTargetHours: hours });
-  };
-
-  const commitThreshold = () => {
-    const hours = parseHoursInput(threshold);
-    const error = validateReminderThreshold(hours);
-    setErrors((prev) => ({ ...prev, threshold: error ?? undefined }));
-    if (error) return;
-    saveSettings({ reminderThresholdHours: hours });
-  };
+    target.reset(String(settings.weeklyTargetHours));
+    threshold.reset(String(settings.reminderThresholdHours));
+  }, [settings.weeklyTargetHours, settings.reminderThresholdHours, target, threshold]);
 
   const exportCsv = async () => {
     if (exporting) return;
@@ -67,45 +53,30 @@ export default function SettingsScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.sectionTitle}>Week starts on</Text>
-      <View style={styles.pillRow}>
-        {WEEKDAY_NAMES.map((name, index) => (
-          <Pressable
-            key={name}
-            style={[
-              styles.pill,
-              settings.weekStartDay === index && styles.pillActive,
-            ]}
-            onPress={() => pickWeekStart(index)}>
-            <Text
-              style={[
-                styles.pillText,
-                settings.weekStartDay === index && styles.pillTextActive,
-              ]}>
-              {name}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <WeekdayPicker
+        value={settings.weekStartDay}
+        onChange={useCallback((day: Parameters<typeof saveSettings>[0]['weekStartDay']) => saveSettings({ weekStartDay: day }), [saveSettings])}
+      />
 
       <Text style={styles.sectionTitle}>Weekly target (hours)</Text>
       <TextInput
         style={styles.input}
-        value={target}
-        onChangeText={setTarget}
-        onBlur={commitTarget}
+        value={target.value}
+        onChangeText={target.onChangeText}
+        onBlur={target.onBlur}
         keyboardType="decimal-pad"
       />
-      {errors.target && <Text style={styles.error}>{errors.target}</Text>}
+      {target.error && <Text style={styles.error}>{target.error}</Text>}
 
       <Text style={styles.sectionTitle}>Reminder threshold (hours, 1–16)</Text>
       <TextInput
         style={styles.input}
-        value={threshold}
-        onChangeText={setThreshold}
-        onBlur={commitThreshold}
+        value={threshold.value}
+        onChangeText={threshold.onChangeText}
+        onBlur={threshold.onBlur}
         keyboardType="decimal-pad"
       />
-      {errors.threshold && <Text style={styles.error}>{errors.threshold}</Text>}
+      {threshold.error && <Text style={styles.error}>{threshold.error}</Text>}
       <Text style={styles.hint}>Applies to your next check-in.</Text>
 
       <Text style={styles.sectionTitle}>Export</Text>
@@ -132,27 +103,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     opacity: 0.6,
     marginTop: 8,
-  },
-  pillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  pill: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    backgroundColor: 'rgba(128,128,128,0.15)',
-  },
-  pillActive: {
-    backgroundColor: '#0a7ea4',
-  },
-  pillText: {
-    fontSize: 14,
-  },
-  pillTextActive: {
-    color: '#ffffff',
-    fontWeight: '600',
   },
   input: {
     borderWidth: 1,

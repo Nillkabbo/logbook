@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
-import { parseHoursInput, validateWeeklyTarget } from '@/engine/validation';
-import { WEEKDAY_NAMES, type Weekday } from '@/engine/types';
+import { validateWeeklyTarget } from '@/engine/validation';
+import type { Weekday } from '@/engine/types';
 
 /**
  * One-time setup shown on first launch: week-start day + weekly target.
@@ -11,9 +12,8 @@ import { WEEKDAY_NAMES, type Weekday } from '@/engine/types';
  */
 export function FirstLaunchSetup() {
   const { ready, settings, saveSettings } = useLogbook();
-  const [weekStartDay, setWeekStartDay] = useState<number>(0);
-  const [target, setTarget] = useState('40');
-  const [error, setError] = useState<string | null>(null);
+  const [weekStartDay, setWeekStartDay] = useState<Weekday>(0);
+  const target = useValidatedHours('40', validateWeeklyTarget);
   const [busy, setBusy] = useState(false);
 
   // Don't flash the modal before settings have loaded.
@@ -29,13 +29,9 @@ export function FirstLaunchSetup() {
   };
 
   const start = async () => {
-    const hours = parseHoursInput(target);
-    const validationError = validateWeeklyTarget(hours);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    await finish({ weekStartDay: weekStartDay as Weekday, weeklyTargetHours: hours });
+    const hours = target.commitNow();
+    if (hours === null) return;
+    await finish({ weekStartDay, weeklyTargetHours: hours });
   };
 
   return (
@@ -47,28 +43,17 @@ export function FirstLaunchSetup() {
         </Text>
 
         <Text style={styles.label}>When does your week start?</Text>
-        <View style={styles.pillRow}>
-          {WEEKDAY_NAMES.map((name, index) => (
-            <Pressable
-              key={name}
-              style={[styles.pill, weekStartDay === index && styles.pillActive]}
-              onPress={() => setWeekStartDay(index)}>
-              <Text style={[styles.pillText, weekStartDay === index && styles.pillTextActive]}>
-                {name.slice(0, 3)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <WeekdayPicker value={weekStartDay} onChange={setWeekStartDay} />
 
         <Text style={styles.label}>Weekly target (hours)</Text>
         <TextInput
           style={styles.input}
-          value={target}
-          onChangeText={setTarget}
+          value={target.value}
+          onChangeText={target.onChangeText}
+          onBlur={target.onBlur}
           keyboardType="decimal-pad"
         />
-
-        {error && <Text style={styles.error}>{error}</Text>}
+        {target.error && <Text style={styles.error}>{target.error}</Text>}
 
         <Pressable
           style={[styles.primaryButton, busy && styles.buttonDisabled]}
@@ -107,27 +92,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     opacity: 0.6,
     marginTop: 8,
-  },
-  pillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  pill: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: 'rgba(128,128,128,0.15)',
-  },
-  pillActive: {
-    backgroundColor: '#0a7ea4',
-  },
-  pillText: {
-    fontSize: 14,
-  },
-  pillTextActive: {
-    color: '#ffffff',
-    fontWeight: '600',
   },
   input: {
     borderWidth: 1,
