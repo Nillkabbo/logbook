@@ -1,0 +1,15 @@
+# 04: Reminder notification on check-in
+
+Parent spec: `.scratch/logbook-v1/spec.md`
+
+**What to build:** So the user never forgets to check out: on check-in, schedule a local notification to fire after the reminder-threshold hours (read from settings, default 10h). On check-out, cancel the pending notification. On Android 13+, request notification permission before scheduling, degrading gracefully if denied. The whole flow works in Expo Go.
+
+**Blocked by:** 02 — Check-in/check-out loop with SQLite persistence.
+
+**Status:** ready-for-agent
+
+- [ ] Checking in schedules a local notification to fire after the configured reminder threshold (default 10h from settings)
+- [ ] Checking out cancels the pending notification — it never fires after checkout
+- [ ] On Android 13+, `requestPermissionsAsync()` is called before scheduling; denial doesn't break check-in
+- [ ] Manually verified on device with a low threshold: the notification fires while the app is backgrounded
+- [ ] No remote push, no dev build — local notifications only, Expo Go compatible
