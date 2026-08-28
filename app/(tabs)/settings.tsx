@@ -14,7 +14,7 @@ import {
   validateWeeklyTarget,
 } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
-import { useI18n, type LanguageSetting } from '@/ui/i18n';
+import { useI18n, type LanguageSetting, type StringKey } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
@@ -120,7 +120,7 @@ export default function SettingsScreen() {
         keyboardType="decimal-pad"
         placeholderTextColor={theme.muted}
       />
-      {target.error && <Text style={[styles.error, { color: theme.stop }]}>{target.error}</Text>}
+      {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('reminderThreshold')}</Text>
       <TextInput
@@ -131,7 +131,7 @@ export default function SettingsScreen() {
         keyboardType="decimal-pad"
         placeholderTextColor={theme.muted}
       />
-      {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{threshold.error}</Text>}
+      {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{t(threshold.error as StringKey)}</Text>}
       <Text style={[styles.hint, { color: theme.muted }]}>{t('reminderHint')}</Text>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('hourlyRate')}</Text>
@@ -144,7 +144,7 @@ export default function SettingsScreen() {
         placeholder="Not set"
         placeholderTextColor={theme.muted}
       />
-      {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{rate.error}</Text>}
+      {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
       <Text style={[styles.hint, { color: theme.muted }]}>
         {t('rateHint')}
       </Text>

@@ -66,7 +66,7 @@ export function FirstLaunchSetup() {
           style={[styles.primaryButton, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
           disabled={busy}
           onPress={start}>
-          <Text style={[styles.primaryText, { color: theme.onAccent }]}>Start tracking</Text>
+          <Text style={[styles.primaryText, { color: theme.onAccent }]}>{t('startTracking')}</Text>
         </Pressable>
         <Pressable disabled={busy} onPress={() => finish({})}>
           <Text style={[styles.skipText, { color: theme.accent }]}>

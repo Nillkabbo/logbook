@@ -7,16 +7,12 @@ import {
 } from 'react';
 import { getLocales } from 'expo-localization';
 
-import type { Settings } from '@/engine/types';
+import { dateLocale } from '@/engine/weeks';
+import type { LanguageSetting } from '@/engine/types';
 
-/** Two UI languages; Bangla dates keep Latin digits via the -u-nu-latn extension. */
+/** Two UI languages; Bangla dates keep Latin digits (see engine dateLocale). */
 export type Language = 'en' | 'bn';
-export type LanguageSetting = 'system' | Language;
-
-export const DATE_LOCALES: Record<Language, string> = {
-  en: 'en-US',
-  bn: 'bn-BD-u-nu-latn',
-};
+export type { LanguageSetting };
 
 const WEEKDAYS: Record<Language, readonly string[]> = {
   en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -64,6 +60,15 @@ const STRINGS = {
     exportFailed: 'Export failed', deleteSession: 'Delete session?',
     deleteSessionBody: 'This session will be removed permanently.',
     cancel: 'Cancel', markOff: 'Mark off', markOn: 'Mark on',
+    errCheckinFuture: 'Check-in cannot be in the future.',
+    errCheckoutFuture: 'Check-out cannot be in the future.',
+    errCheckoutAfter: 'Check-out must be after check-in.',
+    errThresholdRange: 'Reminder threshold must be between 1 and 16 hours.',
+    errNotNumber: 'Reminder threshold must be a number.',
+    errTargetNumber: 'Weekly target must be a number.',
+    errTargetPositive: 'Weekly target must be a positive number of hours.',
+    errRateNumber: 'Hourly rate must be a number.',
+    errRateNegative: 'Hourly rate cannot be negative — leave it empty to hide earnings.',
     notifReminderTitle: 'Still working?',
     notifReminderBody: 'Your session is still running. Check out of LogBook if you have finished for now.',
     notifBlockStartTitle: 'Work block starting',
@@ -74,13 +79,13 @@ const STRINGS = {
   bn: {
     tabHome: 'হোম', tabLogs: 'লগ', tabSettings: 'সেটিংস',
     checkIn: 'চেক ইন', checkOut: 'চেক আউট',
-    today: 'আজ', thisWeek: 'এই সপ্তাহ', offWeek: 'ছুটির সপ্তাহ',
+    today: 'আজ', thisWeek: 'এই সপ্তাহ', offWeek: 'অফ সপ্তাহ',
     nextBlock: 'পরের ব্লক', blockInProgress: 'কাজের ব্লক চলছে — চেক ইন করেছেন?',
     emptyHome: 'আজ এখনো কিছু লেখা হয়নি।\nকাজ শুরু করার সময় চেক ইন চাপুন।',
     emptyLogs: 'এখনো কোনো সেশন নেই — আপনার ইতিহাস এখানে জমা হবে।',
     backupTitle: 'লগের ব্যাকআপ নিন — শেষ এক্সপোর্ট এক মাসের বেশি আগে (বা কখনোই নয়)।',
     exportNow: 'এখনই এক্সপোর্ট', dismiss: 'বন্ধ করুন',
-    weekStartsOn: 'সপ্তাহ শুরু হয়', weeklyTarget: 'সাপ্তাহিক লক্ষ্য (ঘণ্টা)',
+    weekStartsOn: 'সপ্তাহ শুরু হয়', weeklyTarget: 'সাপ্তাহিক টার্গেট (ঘণ্টা)',
     reminderThreshold: 'রিমাইন্ডার (ঘণ্টা, ১–১৬)',
     reminderHint: 'আপনার পরের চেক ইনে প্রযোজ্য।',
     hourlyRate: 'ঘণ্টার হার ($, ঐচ্ছিক)',
@@ -110,7 +115,16 @@ const STRINGS = {
     exportUnavailable: 'এক্সপোর্ট সম্ভব নয়', exportUnavailableBody: 'এই ডিভাইসে শেয়ারিং নেই।',
     exportFailed: 'এক্সপোর্ট ব্যর্থ', deleteSession: 'সেশন মুছে ফেলবেন?',
     deleteSessionBody: 'এই সেশনটি চিরতরে মুছে যাবে।',
-    cancel: 'বাতিল', markOff: 'ছুটি করুন', markOn: 'ফিরিয়ে আনুন',
+    cancel: 'বাতিল', markOff: 'অফ করুন', markOn: 'অফ সরান',
+    errCheckinFuture: 'চেক ইন ভবিষ্যতের সময় হতে পারে না।',
+    errCheckoutFuture: 'চেক আউট ভবিষ্যতের সময় হতে পারে না।',
+    errCheckoutAfter: 'চেক আউট চেক ইনের পরে হতে হবে।',
+    errThresholdRange: 'রিমাইন্ডার ১ থেকে ১৬ ঘণ্টার মধ্যে হতে হবে।',
+    errNotNumber: 'রিমাইন্ডার একটি সংখ্যা হতে হবে।',
+    errTargetNumber: 'সাপ্তাহিক টার্গেট একটি সংখ্যা হতে হবে।',
+    errTargetPositive: 'সাপ্তাহিক টার্গেট ধনাত্মক ঘণ্টা হতে হবে।',
+    errRateNumber: 'ঘণ্টার হার একটি সংখ্যা হতে হবে।',
+    errRateNegative: 'ঘণ্টার হার ঋণাত্মক হতে পারে না — আয় লুকাতে খালি রাখুন।',
     notifReminderTitle: 'এখনো কাজ করছেন?',
     notifReminderBody: 'আপনার সেশন এখনো চলছে। শেষ হলে LogBook থেকে চেক আউট করুন।',
     notifBlockStartTitle: 'কাজের ব্লক শুরু হচ্ছে',
@@ -149,7 +163,7 @@ export function I18nProvider({
   const value = useMemo<I18n>(
     () => ({
       language,
-      locale: DATE_LOCALES[language],
+      locale: dateLocale(language),
       t: (key) => STRINGS[language][key],
       weekdayName: (weekday) => WEEKDAYS[language][weekday] ?? '',
     }),

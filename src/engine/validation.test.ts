@@ -23,22 +23,16 @@ describe('validateSessionTimes', () => {
   });
 
   it('rejects checkout at or before check-in', () => {
-    expect(validateSessionTimes(at(2026, 7, 27, 9, 0), at(2026, 7, 27, 9, 0), NOW)).toMatch(
-      /after/i,
-    );
-    expect(validateSessionTimes(at(2026, 7, 27, 9, 0), at(2026, 7, 27, 8, 0), NOW)).toMatch(
-      /after/i,
-    );
+    expect(validateSessionTimes(at(2026, 7, 27, 9, 0), at(2026, 7, 27, 9, 0), NOW)).toBe('errCheckoutAfter');
+    expect(validateSessionTimes(at(2026, 7, 27, 9, 0), at(2026, 7, 27, 8, 0), NOW)).toBe('errCheckoutAfter');
   });
 
   it('rejects a future check-in', () => {
-    expect(validateSessionTimes(at(2026, 7, 27, 12, 1), null, NOW)).toMatch(/future/i);
+    expect(validateSessionTimes(at(2026, 7, 27, 12, 1), null, NOW)).toBe('errCheckinFuture');
   });
 
   it('rejects a future checkout', () => {
-    expect(validateSessionTimes(at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 1), NOW)).toMatch(
-      /future/i,
-    );
+    expect(validateSessionTimes(at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 1), NOW)).toBe('errCheckoutFuture');
   });
 });
 
@@ -51,9 +45,9 @@ describe('validateReminderThreshold', () => {
   });
 
   it('rejects values outside 1–16 and non-numbers', () => {
-    expect(validateReminderThreshold(0.5)).toMatch(/1.*16/i);
-    expect(validateReminderThreshold(17)).toMatch(/1.*16/i);
-    expect(validateReminderThreshold(Number.NaN)).toMatch(/number/i);
+    expect(validateReminderThreshold(0.5)).toBe('errThresholdRange');
+    expect(validateReminderThreshold(17)).toBe('errThresholdRange');
+    expect(validateReminderThreshold(Number.NaN)).toBe('errNotNumber');
   });
 });
 
@@ -64,9 +58,9 @@ describe('validateWeeklyTarget', () => {
   });
 
   it('rejects zero, negatives, and non-numbers', () => {
-    expect(validateWeeklyTarget(0)).toMatch(/positive/i);
-    expect(validateWeeklyTarget(-5)).toMatch(/positive/i);
-    expect(validateWeeklyTarget(Number.NaN)).toMatch(/number/i);
+    expect(validateWeeklyTarget(0)).toBe('errTargetPositive');
+    expect(validateWeeklyTarget(-5)).toBe('errTargetPositive');
+    expect(validateWeeklyTarget(Number.NaN)).toBe('errTargetNumber');
   });
 });
 
@@ -78,7 +72,7 @@ describe('validateHourlyRate', () => {
   });
 
   it('rejects negatives and non-numbers', () => {
-    expect(validateHourlyRate(-1)).toMatch(/negative/i);
-    expect(validateHourlyRate(Number.NaN)).toMatch(/number/i);
+    expect(validateHourlyRate(-1)).toBe('errRateNegative');
+    expect(validateHourlyRate(Number.NaN)).toBe('errRateNumber');
   });
 });

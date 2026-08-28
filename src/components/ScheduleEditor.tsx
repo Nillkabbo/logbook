@@ -7,7 +7,8 @@ import { formatTimeOfDay } from '@/engine/time';
 import { validateBlockTimes, type WorkBlock } from '@/engine/schedule';
 import type { Weekday } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
-import { useI18n } from '@/ui/i18n';
+import { useI18n, type StringKey } from '@/ui/i18n';
+import { useHour12 } from '@/ui/clock';
 
 const minutesOfDay = (date: Date) => date.getHours() * 60 + date.getMinutes();
 const atMinutes = (minutes: number) =>
@@ -25,6 +26,7 @@ export function ScheduleEditor({
 }) {
   const theme = useTheme();
   const { t, weekdayName } = useI18n();
+  const hour12 = useHour12();
   const [days, setDays] = useState<Weekday[]>([]);
   const [start, setStart] = useState(() => atMinutes(9 * 60));
   const [end, setEnd] = useState(() => atMinutes(17 * 60));
@@ -48,7 +50,7 @@ export function ScheduleEditor({
     }
     const error = validateBlockTimes(minutesOfDay(start), minutesOfDay(end));
     if (error) {
-      Alert.alert(t('checkTimes'), error);
+      Alert.alert(t('checkTimes'), t(error as StringKey));
       return;
     }
     setBusy(true);
@@ -65,7 +67,7 @@ export function ScheduleEditor({
       style={[styles.timeField, { borderColor: theme.border, backgroundColor: theme.surface }]}
       onPress={() => setPicker(field)}>
       <Text style={[styles.timeLabel, { color: theme.muted }]}>{field === 'start' ? t('from') : t('to')}</Text>
-      <Text style={[styles.timeValue, { color: theme.text }]}>{formatTimeOfDay(value)}</Text>
+      <Text style={[styles.timeValue, { color: theme.text }]}>{formatTimeOfDay(value, hour12)}</Text>
       {picker === field && <DateTimePicker value={value} mode="time" onChange={onPick(field)} />}
     </Pressable>
   );
@@ -78,8 +80,8 @@ export function ScheduleEditor({
           style={[styles.row, { borderColor: theme.border, backgroundColor: theme.surface }]}>
           <Text style={[styles.rowText, { color: theme.text }]}>
             {block.weekdays.map((d) => weekdayName(d)).join(', ')} ·{' '}
-            {formatTimeOfDay(atMinutes(block.startMinute))}–
-            {formatTimeOfDay(atMinutes(block.endMinute))}
+            {formatTimeOfDay(atMinutes(block.startMinute), hour12)}–
+            {formatTimeOfDay(atMinutes(block.endMinute), hour12)}
           </Text>
           <Pressable onPress={() => onRemove(block.id)}>
             <Text style={[styles.remove, { color: theme.stop }]}>{t('remove')}</Text>

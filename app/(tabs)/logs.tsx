@@ -14,7 +14,7 @@ import { useTheme } from '@/theme';
 
 export default function LogsScreen() {
   const theme = useTheme();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings } =
     useLogbook();
 
@@ -34,7 +34,7 @@ export default function LogsScreen() {
     }, [refresh]),
   );
 
-  const weeks = logsModel(sessions, settings, now, categoryFilter ?? undefined);
+  const weeks = logsModel(sessions, settings, now, categoryFilter ?? undefined, locale);
   const categorySuggestions = [...new Set(sessions.map((s) => s.category))].filter(
     (c) => c.length > 0,
   );
@@ -64,7 +64,10 @@ export default function LogsScreen() {
         </View>
       )}
       {weeks.length === 0 && (
-        <Text style={[styles.empty, { color: theme.muted }]}>{t('emptyLogs')}</Text>
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyIcon}>🕘</Text>
+          <Text style={[styles.empty, { color: theme.muted }]}>{t('emptyLogs')}</Text>
+        </View>
       )}
       {weeks.map((week) => (
         <View key={week.key} style={styles.week}>
@@ -166,7 +169,14 @@ const styles = StyleSheet.create({
   },
   empty: {
     textAlign: 'center',
+  },
+  emptyWrap: {
+    alignItems: 'center',
+    gap: 8,
     paddingVertical: 32,
+  },
+  emptyIcon: {
+    fontSize: 40,
   },
   filterRow: {
     flexDirection: 'row',

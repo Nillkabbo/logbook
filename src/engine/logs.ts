@@ -67,9 +67,9 @@ export function logsModel(
   settings: Settings,
   now: Date = new Date(),
   category?: string,
+  locale = 'en-US',
 ): LogWeek[] {
   const effective = category === undefined ? sessions : sessions.filter((s) => s.category === category);
-  const locale = dateLocale(settings.language);
   const byWeek = new Map<number, { range: WeekRange; sessions: Session[] }>();
   for (const session of effective) {
     const range = weekRange(session.checkIn, settings.weekStartDay);

@@ -20,7 +20,7 @@ import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
-import { useI18n } from '@/ui/i18n';
+import { useI18n, type StringKey } from '@/ui/i18n';
 
 interface Props {
   session: Session;
@@ -76,8 +76,6 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
       await onSave({ checkIn, checkOut, note: note.trim(), category: category.trim() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       onClose();
-    } catch {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
     } finally {
       setBusy(false);
     }
@@ -87,7 +85,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
     Alert.alert(t('deleteSession'), t('deleteSessionBody'), [
       { text: t('cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('delete'),
         style: 'destructive',
         onPress: async () => {
           await onDelete(session.id);
@@ -207,7 +205,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           multiline
         />
 
-        {error && <Text style={[styles.error, { color: theme.stop }]}>{error}</Text>}
+        {error && <Text style={[styles.error, { color: theme.stop }]}>{t(error as StringKey)}</Text>}
 
         <Pressable
           style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}

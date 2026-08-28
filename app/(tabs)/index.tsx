@@ -98,7 +98,7 @@ export default function HomeScreen() {
         <CheckInToggle running={model.running !== null} disabled={busy} onPress={onToggle} />
       </View>
 
-      {runningUncategorised && recentCategories.length > 0 && (
+      {runningUncategorised && (
         <View style={styles.quickCategoryRow}>
           {recentCategories.map((category) => (
             <Pressable
@@ -122,8 +122,11 @@ export default function HomeScreen() {
         <View style={[styles.totalItem, styles.weekItem]}>
           <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('thisWeek')}</Text>
           {model.off ? (
-            <View style={[styles.offBadge, { borderColor: theme.accent }]}>
-              <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
+            <View style={styles.offRow}>
+              <Text style={[styles.offTotal, { color: theme.text }]}>{model.weekToDateLabel}</Text>
+              <View style={[styles.offBadge, { borderColor: theme.accent }]}>
+                <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
+              </View>
             </View>
           ) : (
             <WeekProgress
@@ -290,12 +293,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 6,
   },
+  offRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  offTotal: {
+    fontSize: 24,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
   offBadge: {
     borderRadius: 18,
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    marginTop: 4,
+  },
+  emptyWrap: {
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  emptyIcon: {
+    fontSize: 40,
   },
   offBadgeText: {
     fontSize: 11,
