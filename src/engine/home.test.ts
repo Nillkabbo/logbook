@@ -96,10 +96,16 @@ describe('homeModel week-to-date', () => {
     expect(model.weekToDateLabel).toBe('0:00'); // the Aug 20–26 week is not the current week
   });
 
-  it('flags over-target weeks and lets progress exceed 1', () => {
+  it('flags over-target weeks and labels the overage', () => {
     const model = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4, weeklyTargetHours: 2 }, NOW);
     expect(model.overTarget).toBe(true);
     expect(model.weekProgress).toBeGreaterThan(1);
     expect(model.weeklyTargetLabel).toBe('2:00');
+    expect(model.overByLabel).toBe('0:15'); // 2:15 total − 2:00 target
+  });
+
+  it('under target: no overage label', () => {
+    const model = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
+    expect(model.overByLabel).toBeNull();
   });
 });

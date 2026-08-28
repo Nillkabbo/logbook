@@ -22,6 +22,8 @@ export interface LogWeek {
   targetLabel: string;
   progress: number;
   overTarget: boolean;
+  /** Clock-style overage (e.g. "2:00") in an over-target week; null otherwise. */
+  overByLabel: string | null;
 }
 
 function localDayKey(date: Date): string {
@@ -88,6 +90,7 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
       targetLabel: formatDuration(targetSeconds),
       progress: progress.progress,
       overTarget: progress.overTarget,
+      overByLabel: progress.overTarget ? formatDuration(totalSeconds - targetSeconds) : null,
     };
   });
 }

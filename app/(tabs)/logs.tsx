@@ -8,8 +8,10 @@ import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { logsModel } from '@/engine/logs';
 import type { Session } from '@/engine/types';
+import { useTheme } from '@/theme';
 
 export default function LogsScreen() {
+  const theme = useTheme();
   const { refresh, sessions, settings, now, saveSession, removeSession } = useLogbook();
   const [selected, setSelected] = useState<Session | null>(null);
 
@@ -22,30 +24,35 @@ export default function LogsScreen() {
   const weeks = logsModel(sessions, settings);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {weeks.length === 0 && <Text style={styles.empty}>No sessions logged yet.</Text>}
+    <ScrollView
+      style={{ backgroundColor: theme.subtle }}
+      contentContainerStyle={styles.container}>
+      {weeks.length === 0 && (
+        <Text style={[styles.empty, { color: theme.muted }]}>No sessions logged yet.</Text>
+      )}
       {weeks.map((week) => (
         <View key={week.key} style={styles.week}>
-          <View style={styles.weekHeader}>
-            <Text style={styles.weekLabel}>{week.label}</Text>
+          <View style={[styles.weekHeader, { borderBottomColor: theme.border }]}>
+            <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
             <WeekProgress
               totalLabel={week.totalLabel}
               targetLabel={week.targetLabel}
               progress={week.progress}
               overTarget={week.overTarget}
+              overByLabel={week.overByLabel}
             />
           </View>
 
           {week.days.map((day) => (
             <View key={day.key} style={styles.day}>
               <View style={styles.dayHeader}>
-                <Text style={styles.dayLabel}>{day.label}</Text>
-                <Text style={styles.dayTotal}>{day.totalLabel}</Text>
+                <Text style={[styles.dayLabel, { color: theme.text }]}>{day.label}</Text>
+                <Text style={[styles.dayTotal, { color: theme.muted }]}>{day.totalLabel}</Text>
               </View>
               {day.sessions.map((session) => (
                 <Pressable
                   key={session.id}
-                  style={({ pressed }) => [styles.rowWrap, pressed && styles.rowPressed]}
+                  style={({ pressed }) => [styles.rowWrap, pressed && { opacity: 0.7 }]}
                   onPress={() => setSelected(session)}>
                   <SessionRow session={session} now={now} />
                 </Pressable>
@@ -75,20 +82,18 @@ const styles = StyleSheet.create({
   },
   empty: {
     textAlign: 'center',
-    opacity: 0.5,
     paddingVertical: 32,
   },
   week: {
     gap: 8,
   },
   weekHeader: {
-    gap: 4,
+    gap: 6,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(128,128,128,0.4)',
   },
   weekLabel: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
   },
   day: {
@@ -103,17 +108,12 @@ const styles = StyleSheet.create({
   dayLabel: {
     fontSize: 14,
     fontWeight: '600',
-    opacity: 0.8,
   },
   dayTotal: {
     fontSize: 13,
     fontVariant: ['tabular-nums'],
-    opacity: 0.7,
   },
   rowWrap: {
-    borderRadius: 8,
-  },
-  rowPressed: {
-    opacity: 0.7,
+    borderRadius: 16,
   },
 });

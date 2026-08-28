@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { WEEKDAY_NAMES, type Weekday } from '@/engine/types';
 import { parseHoursInput } from '@/engine/validation';
+import { RADIUS, useTheme } from '@/theme';
 
 type HoursValidator = (hours: number) => string | null;
 
@@ -14,18 +15,31 @@ export function WeekdayPicker({
   value: Weekday;
   onChange: (day: Weekday) => void;
 }) {
+  const theme = useTheme();
   return (
     <View style={styles.pillRow}>
-      {WEEKDAY_NAMES.map((name, index) => (
-        <Pressable
-          key={name}
-          style={[styles.pill, value === index && styles.pillActive]}
-          onPress={() => onChange(index as Weekday)}>
-          <Text style={[styles.pillText, value === index && styles.pillTextActive]}>
-            {name}
-          </Text>
-        </Pressable>
-      ))}
+      {WEEKDAY_NAMES.map((name, index) => {
+        const active = value === index;
+        return (
+          <Pressable
+            key={name}
+            style={[
+              styles.pill,
+              { borderColor: active ? theme.accent : theme.border },
+              active && { backgroundColor: theme.accent },
+            ]}
+            onPress={() => onChange(index as Weekday)}>
+            <Text
+              style={[
+                styles.pillText,
+                { color: active ? '#ffffff' : theme.text },
+                active && styles.pillTextActive,
+              ]}>
+              {name}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -79,17 +93,13 @@ const styles = StyleSheet.create({
   pill: {
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 18,
-    backgroundColor: 'rgba(128,128,128,0.15)',
-  },
-  pillActive: {
-    backgroundColor: '#0a7ea4',
+    borderRadius: RADIUS.pill,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   pillText: {
     fontSize: 14,
   },
   pillTextActive: {
-    color: '#ffffff',
     fontWeight: '600',
   },
 });

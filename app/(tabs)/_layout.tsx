@@ -1,13 +1,14 @@
 import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
 
-const TINT = '#0a7ea4';
+import { useTheme } from '@/theme';
 
 export default function TabLayout() {
+  const theme = useTheme();
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: TINT,
+        tabBarActiveTintColor: theme.accent,
       }}>
       <Tabs.Screen
         name="index"

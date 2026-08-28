@@ -17,6 +17,7 @@ import { formatDayLabel } from '@/engine/weeks';
 import { formatTimeOfDay } from '@/engine/time';
 import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
+import { RADIUS, useTheme } from '@/theme';
 
 interface Props {
   session: Session;
@@ -28,6 +29,7 @@ interface Props {
 const formatDateTime = (date: Date) => `${formatDayLabel(date)}, ${formatTimeOfDay(date)}`;
 
 export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props) {
+  const theme = useTheme();
   const [checkIn, setCheckIn] = useState(session.checkIn);
   const [checkOut, setCheckOut] = useState(session.checkOut);
   const [note, setNote] = useState(session.note);
@@ -88,7 +90,9 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
     const label = field === 'in' ? 'Check-in' : 'Check-out';
 
     const labelRow = (
-      <Text style={[styles.fieldLabel, disabled && styles.fieldDisabled]}>{label}</Text>
+      <Text style={[styles.fieldLabel, { color: theme.muted }, disabled && styles.fieldDisabled]}>
+        {label}
+      </Text>
     );
     const onPick =
       (_event: DateTimePickerEvent, selected?: Date): void => applyPicker(field, selected);
@@ -98,7 +102,7 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
       return disabled ? (
         <View style={styles.fieldGroup}>
           {labelRow}
-          <Text style={styles.fieldValue}>—</Text>
+          <Text style={[styles.fieldValue, { color: theme.text }]}>—</Text>
         </View>
       ) : (
         <View style={styles.fieldGroup}>
@@ -113,10 +117,16 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
       <View style={styles.fieldGroup}>
         {labelRow}
         <Pressable
-          style={[styles.field, disabled && styles.fieldDisabled]}
+          style={[
+            styles.field,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            disabled && styles.fieldDisabled,
+          ]}
           disabled={disabled}
           onPress={() => setPicker(picker === field ? null : field)}>
-          <Text style={styles.fieldValue}>{value ? formatDateTime(value) : '—'}</Text>
+          <Text style={[styles.fieldValue, { color: theme.text }]}>
+            {value ? formatDateTime(value) : '—'}
+          </Text>
         </Pressable>
         {picker === field && value && (
           <DateTimePicker value={value} mode="datetime" onChange={onPick} />
@@ -127,35 +137,43 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
 
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Session</Text>
+      <ScrollView
+        style={{ backgroundColor: theme.subtle }}
+        contentContainerStyle={styles.container}>
+        <Text style={[styles.title, { color: theme.text }]}>Session</Text>
 
         {renderField('in')}
         <View style={styles.runningRow}>
-          <Text style={styles.runningLabel}>Still running</Text>
+          <Text style={[styles.runningLabel, { color: theme.text }]}>Still running</Text>
           {/* Turning it off anchors the checkout at the check-in: the user must
               pick an explicit time before Save passes validation. */}
           <Switch value={running} onValueChange={(on) => setCheckOut(on ? null : checkIn)} />
         </View>
         {renderField('out')}
 
-        <Text style={styles.fieldLabel}>Note</Text>
+        <Text style={[styles.fieldLabel, { color: theme.muted }]}>Note</Text>
         <TextInput
-          style={styles.noteInput}
+          style={[
+            styles.noteInput,
+            { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
+          ]}
           value={note}
           onChangeText={setNote}
           placeholder="What was this session for?"
+          placeholderTextColor={theme.muted}
           multiline
         />
 
-        {error && <Text style={styles.error}>{error}</Text>}
+        {error && <Text style={[styles.error, { color: theme.stop }]}>{error}</Text>}
 
         <View style={styles.actions}>
-          <Pressable style={[styles.button, styles.deleteButton]} onPress={confirmDelete}>
-            <Text style={styles.deleteText}>Delete</Text>
+          <Pressable
+            style={[styles.button, { borderColor: theme.stop }]}
+            onPress={confirmDelete}>
+            <Text style={[styles.deleteText, { color: theme.stop }]}>Delete</Text>
           </Pressable>
           <Pressable
-            style={[styles.button, styles.saveButton, busy && styles.buttonDisabled]}
+            style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
             disabled={busy}
             onPress={save}>
             <Text style={styles.saveText}>Save</Text>
@@ -180,8 +198,8 @@ const styles = StyleSheet.create({
   },
   field: {
     padding: 14,
-    borderRadius: 8,
-    backgroundColor: 'rgba(128,128,128,0.12)',
+    borderRadius: RADIUS.card,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   fieldDisabled: {
     opacity: 0.4,
@@ -190,7 +208,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    opacity: 0.6,
   },
   fieldValue: {
     fontSize: 16,
@@ -205,15 +222,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   noteInput: {
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.4)',
-    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: RADIUS.card,
     padding: 12,
     fontSize: 15,
     minHeight: 70,
   },
   error: {
-    color: '#c0392b',
     fontSize: 14,
   },
   actions: {
@@ -224,14 +239,9 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     padding: 14,
-    borderRadius: 8,
+    borderRadius: RADIUS.card,
     alignItems: 'center',
-  },
-  saveButton: {
-    backgroundColor: '#0a7ea4',
-  },
-  deleteButton: {
-    backgroundColor: 'rgba(192, 57, 43, 0.12)',
+    borderWidth: StyleSheet.hairlineWidth,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -242,7 +252,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   deleteText: {
-    color: '#c0392b',
     fontSize: 16,
     fontWeight: '600',
   },

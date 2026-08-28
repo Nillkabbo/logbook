@@ -5,12 +5,14 @@ import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { validateWeeklyTarget } from '@/engine/validation';
 import type { Weekday } from '@/engine/types';
+import { RADIUS, useTheme } from '@/theme';
 
 /**
  * One-time setup shown on first launch: week-start day + weekly target.
  * Skippable — defaults (Sunday, 40h) apply and everything is changeable in Settings.
  */
 export function FirstLaunchSetup() {
+  const theme = useTheme();
   const { ready, settings, saveSettings } = useLogbook();
   const [weekStartDay, setWeekStartDay] = useState<Weekday>(0);
   const target = useValidatedHours('40', validateWeeklyTarget);
@@ -36,33 +38,38 @@ export function FirstLaunchSetup() {
 
   return (
     <Modal visible animationType="fade" onRequestClose={() => {}}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Welcome to LogBook</Text>
-        <Text style={styles.intro}>
+      <ScrollView
+        style={{ backgroundColor: theme.subtle }}
+        contentContainerStyle={styles.container}>
+        <Text style={[styles.title, { color: theme.text }]}>Welcome to LogBook</Text>
+        <Text style={[styles.intro, { color: theme.muted }]}>
           Two quick choices — you can change both later in Settings, or skip for now.
         </Text>
 
-        <Text style={styles.label}>When does your week start?</Text>
+        <Text style={[styles.label, { color: theme.muted }]}>When does your week start?</Text>
         <WeekdayPicker value={weekStartDay} onChange={setWeekStartDay} />
 
-        <Text style={styles.label}>Weekly target (hours)</Text>
+        <Text style={[styles.label, { color: theme.muted }]}>Weekly target (hours)</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
           value={target.value}
           onChangeText={target.onChangeText}
           onBlur={target.onBlur}
           keyboardType="decimal-pad"
+          placeholderTextColor={theme.muted}
         />
-        {target.error && <Text style={styles.error}>{target.error}</Text>}
+        {target.error && <Text style={[styles.error, { color: theme.stop }]}>{target.error}</Text>}
 
         <Pressable
-          style={[styles.primaryButton, busy && styles.buttonDisabled]}
+          style={[styles.primaryButton, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
           disabled={busy}
           onPress={start}>
           <Text style={styles.primaryText}>Start tracking</Text>
         </Pressable>
         <Pressable disabled={busy} onPress={() => finish({})}>
-          <Text style={styles.skipText}>Skip — use defaults (Sunday, 40h)</Text>
+          <Text style={[styles.skipText, { color: theme.accent }]}>
+            Skip — use defaults (Sunday, 40h)
+          </Text>
         </Pressable>
       </ScrollView>
     </Modal>
@@ -90,23 +97,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    opacity: 0.6,
     marginTop: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.4)',
-    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: RADIUS.card,
     padding: 12,
     fontSize: 16,
   },
   error: {
-    color: '#c0392b',
     fontSize: 14,
   },
   primaryButton: {
-    backgroundColor: '#0a7ea4',
-    borderRadius: 8,
+    borderRadius: RADIUS.card,
     padding: 14,
     alignItems: 'center',
     marginTop: 8,
@@ -121,7 +124,6 @@ const styles = StyleSheet.create({
   },
   skipText: {
     textAlign: 'center',
-    color: '#0a7ea4',
     fontSize: 14,
     paddingVertical: 8,
   },

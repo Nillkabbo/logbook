@@ -1,29 +1,44 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-/** A week's total against its target with a progress bar; over-target weeks render distinctly. */
+import { RADIUS, TYPE, useTheme } from '@/theme';
+
+/** A week's total against its target with a progress bar; over-target shows an OVER chip. */
 export function WeekProgress({
   totalLabel,
   targetLabel,
   progress,
   overTarget,
+  overByLabel = null,
   emphasized = false,
 }: {
   totalLabel: string;
   targetLabel: string;
   progress: number;
   overTarget: boolean;
+  overByLabel?: string | null;
   emphasized?: boolean;
 }) {
+  const theme = useTheme();
+  const valueColor = overTarget ? theme.stop : theme.text;
   return (
     <View style={styles.container}>
-      <Text style={[emphasized ? styles.totalLarge : styles.total, overTarget && styles.overTarget]}>
-        {totalLabel} / {targetLabel}
-      </Text>
-      <View style={styles.track}>
+      <View style={[styles.valueRow, emphasized && styles.valueRowCentered]}>
+        <Text style={[emphasized ? styles.valueLarge : styles.value, { color: valueColor }]}>
+          {totalLabel} / {targetLabel}
+        </Text>
+        {overTarget && (
+          <View style={[styles.chip, { borderColor: theme.stop }]}>
+            <Text style={[styles.chipText, { color: theme.stop }]}>
+              OVER{overByLabel ? ` +${overByLabel}` : ''}
+            </Text>
+          </View>
+        )}
+      </View>
+      <View style={[styles.track, { backgroundColor: theme.track }]}>
         <View
           style={[
             styles.fill,
-            overTarget && styles.fillOver,
+            { backgroundColor: overTarget ? theme.stop : theme.accent },
             { width: `${Math.min(1, progress) * 100}%` },
           ]}
         />
@@ -35,33 +50,44 @@ export function WeekProgress({
 const styles = StyleSheet.create({
   container: {
     alignSelf: 'stretch',
-    gap: 4,
+    gap: 6,
   },
-  total: {
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  valueRowCentered: {
+    justifyContent: 'center',
+  },
+  value: {
     fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
-  totalLarge: {
+  valueLarge: {
+    ...TYPE.display,
     fontSize: 24,
-    fontWeight: '600',
     fontVariant: ['tabular-nums'],
-    textAlign: 'center',
   },
-  overTarget: {
-    color: '#c0392b',
+  chip: {
+    borderRadius: RADIUS.pill,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  chipText: {
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 0.5,
+    fontVariant: ['tabular-nums'],
   },
   track: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(128,128,128,0.25)',
+    height: RADIUS.bar,
+    borderRadius: RADIUS.bar / 2,
     overflow: 'hidden',
   },
   fill: {
-    height: 6,
-    backgroundColor: '#0a7ea4',
-  },
-  fillOver: {
-    backgroundColor: '#c0392b',
+    height: RADIUS.bar,
+    borderRadius: RADIUS.bar / 2,
   },
 });

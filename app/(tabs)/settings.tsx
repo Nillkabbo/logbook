@@ -7,8 +7,10 @@ import { useLogbook } from '@/hooks/useLogbook';
 import { sessionsToCsv } from '@/engine/csv';
 import { validateReminderThreshold, validateWeeklyTarget } from '@/engine/validation';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
+import { RADIUS, useTheme } from '@/theme';
 
 export default function SettingsScreen() {
+  const theme = useTheme();
   const { refresh, sessions, settings, saveSettings } = useLogbook();
   const [exporting, setExporting] = useState(false);
 
@@ -51,42 +53,46 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.sectionTitle}>Week starts on</Text>
+    <ScrollView
+      style={{ backgroundColor: theme.subtle }}
+      contentContainerStyle={styles.container}>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Week starts on</Text>
       <WeekdayPicker
         value={settings.weekStartDay}
         onChange={useCallback((day: Parameters<typeof saveSettings>[0]['weekStartDay']) => saveSettings({ weekStartDay: day }), [saveSettings])}
       />
 
-      <Text style={styles.sectionTitle}>Weekly target (hours)</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Weekly target (hours)</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
         value={target.value}
         onChangeText={target.onChangeText}
         onBlur={target.onBlur}
         keyboardType="decimal-pad"
+        placeholderTextColor={theme.muted}
       />
-      {target.error && <Text style={styles.error}>{target.error}</Text>}
+      {target.error && <Text style={[styles.error, { color: theme.stop }]}>{target.error}</Text>}
 
-      <Text style={styles.sectionTitle}>Reminder threshold (hours, 1–16)</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Reminder threshold (hours, 1–16)</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
         value={threshold.value}
         onChangeText={threshold.onChangeText}
         onBlur={threshold.onBlur}
         keyboardType="decimal-pad"
+        placeholderTextColor={theme.muted}
       />
-      {threshold.error && <Text style={styles.error}>{threshold.error}</Text>}
-      <Text style={styles.hint}>Applies to your next check-in.</Text>
+      {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{threshold.error}</Text>}
+      <Text style={[styles.hint, { color: theme.muted }]}>Applies to your next check-in.</Text>
 
-      <Text style={styles.sectionTitle}>Export</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Export</Text>
       <Pressable
-        style={[styles.exportButton, exporting && styles.buttonDisabled]}
+        style={[styles.exportButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
         disabled={exporting}
         onPress={exportCsv}>
         <Text style={styles.exportText}>Export all sessions (CSV)</Text>
       </Pressable>
-      <Text style={styles.hint}>One row per session via the share sheet.</Text>
+      <Text style={[styles.hint, { color: theme.muted }]}>One row per session via the share sheet.</Text>
     </ScrollView>
   );
 }
@@ -101,27 +107,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    opacity: 0.6,
     marginTop: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.4)',
-    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: RADIUS.card,
     padding: 12,
     fontSize: 16,
   },
   error: {
-    color: '#c0392b',
     fontSize: 14,
   },
   hint: {
     fontSize: 13,
-    opacity: 0.6,
   },
   exportButton: {
-    backgroundColor: '#0a7ea4',
-    borderRadius: 8,
+    borderRadius: RADIUS.card,
     padding: 14,
     alignItems: 'center',
   },

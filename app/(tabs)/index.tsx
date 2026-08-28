@@ -1,13 +1,16 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { CheckInToggle } from '@/components/CheckInToggle';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { homeModel } from '@/engine/home';
+import { TYPE, useTheme } from '@/theme';
 
 export default function HomeScreen() {
+  const theme = useTheme();
   const { refresh, checkIn, checkOut, sessions, settings, now } = useLogbook();
   const [busy, setBusy] = useState(false);
 
@@ -38,33 +41,27 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: theme.subtle }]}>
       <View style={styles.header}>
-        {model.running && model.elapsedLabel ? (
-          <Text style={styles.elapsed}>{model.elapsedLabel}</Text>
-        ) : (
-          <Text style={styles.elapsedPlaceholder}> </Text>
-        )}
-        <Pressable
-          style={[styles.toggle, model.running ? styles.toggleOut : styles.toggleIn, busy && styles.toggleDisabled]}
-          disabled={busy}
-          onPress={onToggle}>
-          <Text style={styles.toggleText}>{model.running ? 'Check out' : 'Check in'}</Text>
-        </Pressable>
+        <Text style={[styles.elapsed, { color: theme.text }]}>
+          {model.running && model.elapsedLabel ? model.elapsedLabel : ' '}
+        </Text>
+        <CheckInToggle running={model.running !== null} disabled={busy} onPress={onToggle} />
       </View>
 
       <View style={styles.totals}>
         <View style={styles.totalItem}>
-          <Text style={styles.totalLabel}>Today</Text>
-          <Text style={styles.totalValue}>{model.todayTotalLabel}</Text>
+          <Text style={[styles.totalLabel, { color: theme.muted }]}>Today</Text>
+          <Text style={[styles.totalValue, { color: theme.text }]}>{model.todayTotalLabel}</Text>
         </View>
         <View style={[styles.totalItem, styles.weekItem]}>
-          <Text style={styles.totalLabel}>This week</Text>
+          <Text style={[styles.totalLabel, { color: theme.muted }]}>This week</Text>
           <WeekProgress
             totalLabel={model.weekToDateLabel}
             targetLabel={model.weeklyTargetLabel}
             progress={model.weekProgress}
             overTarget={model.overTarget}
+            overByLabel={model.overByLabel}
             emphasized
           />
         </View>
@@ -75,7 +72,7 @@ export default function HomeScreen() {
           <SessionRow key={session.id} session={session} now={now} />
         ))}
         {model.todaySessions.length === 0 && (
-          <Text style={styles.empty}>No sessions yet today.</Text>
+          <Text style={[styles.empty, { color: theme.muted }]}>No sessions yet today.</Text>
         )}
       </ScrollView>
     </View>
@@ -90,37 +87,13 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingVertical: 24,
-    gap: 16,
+    paddingVertical: 16,
+    gap: 8,
   },
   elapsed: {
-    fontSize: 44,
-    fontWeight: '600',
+    ...TYPE.display,
     fontVariant: ['tabular-nums'],
-  },
-  elapsedPlaceholder: {
-    fontSize: 44,
-  },
-  toggle: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  toggleIn: {
-    backgroundColor: '#0a7ea4',
-  },
-  toggleOut: {
-    backgroundColor: '#c0392b',
-  },
-  toggleDisabled: {
-    opacity: 0.6,
-  },
-  toggleText: {
-    color: '#ffffff',
-    fontSize: 26,
-    fontWeight: '700',
+    minHeight: 60,
   },
   totals: {
     flexDirection: 'row',
@@ -132,11 +105,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   weekItem: {
-    minWidth: 150,
+    minWidth: 170,
   },
   totalLabel: {
-    fontSize: 13,
-    opacity: 0.6,
+    ...TYPE.caption,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -151,7 +123,6 @@ const styles = StyleSheet.create({
   },
   empty: {
     textAlign: 'center',
-    opacity: 0.5,
     paddingVertical: 16,
   },
 });

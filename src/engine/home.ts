@@ -16,6 +16,8 @@ export interface HomeModel {
   /** Fraction of target reached; exceeds 1 in an over-target week. */
   weekProgress: number;
   overTarget: boolean;
+  /** Clock-style overage (e.g. "0:15") in an over-target week; null otherwise. */
+  overByLabel: string | null;
 }
 
 function isSameLocalDay(a: Date, b: Date): boolean {
@@ -59,5 +61,6 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
     weeklyTargetLabel: formatDuration(weeklyTargetSeconds),
     weekProgress: progress.progress,
     overTarget: progress.overTarget,
+    overByLabel: progress.overTarget ? formatDuration(weekToDateSeconds - weeklyTargetSeconds) : null,
   };
 }

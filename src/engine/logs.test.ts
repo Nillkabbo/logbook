@@ -40,12 +40,14 @@ describe('logsModel', () => {
     expect(weeks[0].targetLabel).toBe('40:00');
     expect(weeks[0].progress).toBeCloseTo(8100 / 144000, 5);
     expect(weeks[0].overTarget).toBe(false);
+    expect(weeks[0].overByLabel).toBeNull(); // under target — no chip
   });
 
-  it('flags an over-target week', () => {
+  it('flags an over-target week and labels the overage', () => {
     const weeks = logsModel([tue, wed, overnight], { ...THURSDAY, weeklyTargetHours: 4 });
     expect(weeks[0].overTarget).toBe(true);
     expect(weeks[0].progress).toBeGreaterThan(1);
+    expect(weeks[0].overByLabel).toBe('2:00'); // 6:00 total − 4:00 target
   });
 
   it('groups days within a week newest first, sessions within a day oldest first', () => {
