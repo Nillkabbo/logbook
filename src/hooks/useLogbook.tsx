@@ -136,6 +136,77 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     syncAfter(null);
   }, [ready, syncAfter]);
 
+  // DEV-ONLY dummy data: 2 months of realistic sessions for functionality
+  // testing. Runs when the DB is empty; remove after testing.
+  useEffect(() => {
+    if (!__DEV__) return;
+    if (!ready) return;
+    if (sessions.length > 0) return;
+    (async () => {
+      // Deterministic pseudo-random for reproducibility
+      let seed = 42;
+      const rand = () => {
+        seed = (seed * 16807) % 2147483647;
+      return (seed - 1) / 2147483646;
+      };
+      const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
+      const randInt = (min: number, max: number) => min + Math.floor(rand() * (max - min + 1));
+
+      const categories = ['Deep work', 'Deep work', 'Deep work', 'Meetings', 'Meetings', 'Admin', 'Writing'];
+      const notes: Record<string, string[]> = {
+        'Deep work': ['payments refactor', 'auth flow', 'dashboard polish', 'API migration', 'bug hunt', 'perf pass', ''],
+        'Meetings': ['sprint planning', '1:1 with Sam', 'design review', 'client call', 'standup', ''],
+        'Admin': ['expenses', 'inbox zero', 'timesheet', ''],
+        'Writing': ['blog post', 'release notes', 'docs update', ''],
+      };
+      const now = new Date();
+      const days = 60;
+      const threeWeeksAgoStart = new Date(now);
+      threeWeeksAgoStart.setDate(now.getDate() - now.getDay() - 21);
+
+      for (let d = days; d >= 0; d--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - d);
+        const dow = date.getDay();
+
+        // Weekends mostly off (85% chance of no sessions)
+        if ((dow === 0 || dow === 6) && rand() < 0.85) continue;
+
+        // ~20% of weekdays off too (vacation/sick)
+        if (dow >= 1 && dow <= 5 && rand() < 0.2) continue;
+
+        // One full off week 3 weeks ago
+        const threeWeeksAgoEnd = new Date(threeWeeksAgoStart);
+        threeWeeksAgoEnd.setDate(threeWeeksAgoStart.getDate() + 7);
+        if (date >= threeWeeksAgoStart && date < threeWeeksAgoEnd) continue;
+
+        // 1-3 sessions per day
+        const sessionCount = randInt(1, 3);
+        let cursor = 8 + randInt(0, 60); // start between 8:00 and 9:00
+
+        for (let i = 0; i < sessionCount; i++) {
+          const cat = pick(categories);
+          const note = pick(notes[cat] ?? ['']);
+          const durMin = randInt(45, 240); // 45min to 4h
+          const startMin = cursor;
+          const endMin = cursor + durMin;
+          if (endMin > 17 * 60 + 30) break; // don't go past ~5:30 PM
+
+          const checkIn = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(startMin / 60), startMin % 60);
+          const checkOut = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(endMin / 60), endMin % 60);
+          await insertSession(checkIn, note, cat);
+          cursor = endMin + randInt(30, 90); // lunch/gap
+        }
+      }
+
+      // Settings: rate + one off week
+      const offWeekStart = threeWeeksAgoStart;
+      const offKey = `${offWeekStart.getFullYear()}-${String(offWeekStart.getMonth() + 1).padStart(2, '0')}-${String(offWeekStart.getDate()).padStart(2, '0')}`;
+      await updateSettingsInDb({ hourlyRate: 30, setupCompleted: true, offWeeks: [offKey] });
+      await refresh();
+    })();
+  }, [ready, sessions.length, refresh]);
+
   const checkIn = useCallback(async () => {
     const checkInAt = new Date();
     await insertSession(checkInAt);
