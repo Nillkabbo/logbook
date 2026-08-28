@@ -59,3 +59,7 @@ _Avoid_: tag, project, client
 **Rate**:
 The configurable dollars earned per worked hour; the basis of a week's earnings. Optional — unset means earnings are not shown.
 _Avoid_: salary, wage
+
+**Work block**:
+A recurring weekly commitment — chosen weekdays plus a start and end time. Prompts a check-in; never clocks one in.
+_Avoid_: shift, appointment, schedule entry
