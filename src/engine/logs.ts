@@ -27,6 +27,29 @@ export interface DayBar {
   intensity: number;
 }
 
+/** The filter dimensions the Logs screen offers. All optional; AND-combined. */
+export interface LogsFilter {
+  /** Exact category match. */
+  category?: string;
+  /** 'week' = current week only; 'month' = trailing 30 days; 'all' = everything. */
+  dateRange?: 'week' | 'month' | 'all';
+  /** Case-insensitive substring match on note and category. */
+  query?: string;
+}
+
+/** Summary of the filtered set — shown when any filter is active. */
+export interface FilteredSummary {
+  sessionCount: number;
+  totalLabel: string;
+  earningsLabel: string | null;
+}
+
+/** logsModel's result: grouped weeks plus the filtered-set summary. */
+export interface LogsResult {
+  weeks: LogWeek[];
+  summary: FilteredSummary | null;
+}
+
 export interface LogWeek {
   /** Week-start identity for list keys: `YYYY-MM-DD`. */
   key: string;
@@ -63,17 +86,52 @@ function localMidnight(date: Date): Date {
  * sessions (oldest first). Totals count completed sessions only.
  */
 /**
- * Full history grouped newest-first. An optional category filter recomputes
- * every number over the matching sessions only; weeks without matches hide.
+ * Full history grouped newest-first. Filters (category, date range, search)
+ * recompute every number over the matching sessions only; weeks without
+ * matches hide. The summary aggregates the filtered set for the totals bar.
  */
 export function logsModel(
   sessions: Session[],
   settings: Settings,
   now: Date = new Date(),
-  category?: string,
+  filter?: LogsFilter,
   locale = 'en-US',
-): LogWeek[] {
-  const effective = category === undefined ? sessions : sessions.filter((s) => s.category === category);
+): LogsResult {
+  let effective = sessions;
+  if (filter?.category !== undefined) {
+    effective = effective.filter((s) => s.category === filter.category);
+  }
+  if (filter?.dateRange === 'week') {
+    const week = weekRange(now, settings.weekStartDay);
+    effective = effective.filter(
+      (s) => s.checkIn.getTime() >= week.start.getTime() && s.checkIn.getTime() < week.end.getTime(),
+    );
+  } else if (filter?.dateRange === 'month') {
+    const cutoff = now.getTime() - 30 * 24 * 3600 * 1000;
+    effective = effective.filter((s) => s.checkIn.getTime() >= cutoff);
+  }
+  if (filter?.query && filter.query.trim().length > 0) {
+    const q = filter.query.trim().toLowerCase();
+    effective = effective.filter(
+      (s) => s.note.toLowerCase().includes(q) || s.category.toLowerCase().includes(q),
+    );
+  }
+
+  // Filtered summary — only when a filter narrowed the set.
+  const hasActiveFilter =
+    (filter?.category !== undefined && filter.category !== null) ||
+    (filter?.dateRange !== undefined && filter.dateRange !== 'all') ||
+    (filter?.query !== undefined && filter.query.trim().length > 0);
+  const summary: FilteredSummary | null = hasActiveFilter
+    ? {
+        sessionCount: effective.length,
+        totalLabel: formatDuration(sumCompletedSessions(effective)),
+        earningsLabel:
+          settings.hourlyRate > 0
+            ? `$${((sumCompletedSessions(effective) / 3600) * settings.hourlyRate).toFixed(2)}`
+            : null,
+      }
+    : null;
   const byWeek = new Map<number, { range: WeekRange; sessions: Session[] }>();
   for (const session of effective) {
     const range = weekRange(session.checkIn, settings.weekStartDay);
@@ -89,7 +147,7 @@ export function logsModel(
   const targetSeconds = Math.round(settings.weeklyTargetHours * 3600);
   const currentWeekStart = weekRange(now, settings.weekStartDay).start.getTime();
 
-  return weeks.map(({ range, sessions }) => {
+  const groupedWeeks = weeks.map(({ range, sessions }) => {
     const totalSeconds = sumCompletedSessions(sessions);
     const off = settings.offWeeks.includes(weekKey(range.start));
     const summary = weekSummary(totalSeconds, targetSeconds, off, settings.hourlyRate);
@@ -173,4 +231,6 @@ export function logsModel(
       categoryBreakdown,
     };
   });
+
+  return { weeks: groupedWeeks, summary };
 }

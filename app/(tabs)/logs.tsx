@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
@@ -55,6 +55,8 @@ export default function LogsScreen() {
     });
   const [selected, setSelected] = useState<Session | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<'week' | 'month' | 'all'>('all');
+  const [query, setQuery] = useState('');
   // Per-visit expansion overrides on top of the model's defaults — never persisted.
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const isExpanded = (week: LogWeek) => expanded[week.key] ?? week.defaultExpanded;
@@ -66,13 +68,21 @@ export default function LogsScreen() {
     useCallback(() => {
       refresh();
       setCategoryFilter(null); // filters are per-visit, not sticky
+      setDateRange('all');
+      setQuery('');
       setExpanded({}); // expansion overrides are per-visit too
     }, [refresh]),
   );
 
-  const weeks = logsModel(sessions, settings, now, categoryFilter ?? undefined, locale);
+  const { weeks, summary } = logsModel(sessions, settings, now, {
+    category: categoryFilter ?? undefined,
+    dateRange,
+    query: query.trim().length > 0 ? query : undefined,
+  }, locale);
   const suggestions = categorySuggestions(sessions);
   const rows = buildRows(weeks, isExpanded);
+  const hasActiveFilter =
+    categoryFilter !== null || dateRange !== 'all' || query.trim().length > 0;
 
   const renderWeekCard = (week: LogWeek) => (
     <View style={[styles.weekCard, cardStyle(theme)]}>
@@ -207,7 +217,7 @@ export default function LogsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.canvas }}>
-      <View style={[styles.filterRow, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.filterArea, { paddingTop: insets.top + 12 }]}>
         <ChipRow
           accessibilityLabel={t('tabLogs')}
           options={[t('all'), ...suggestions]}
@@ -215,6 +225,45 @@ export default function LogsScreen() {
           onSelect={(option) => setCategoryFilter(option === t('all') ? null : option)}
           selectedStyle="dark"
         />
+        <View style={styles.dateRangeRow}>
+          {(['week', 'month', 'all'] as const).map((range) => (
+            <Pressable
+              key={range}
+              accessibilityRole="button"
+              accessibilityState={{ selected: dateRange === range }}
+              android_ripple={{ color: theme.muted, borderless: false }}
+              style={[
+                styles.dateRangeChip,
+                { backgroundColor: dateRange === range ? theme.text : theme.inset },
+              ]}
+              onPress={() => setDateRange(range)}>
+              <Text
+                style={[
+                  styles.dateRangeText,
+                  { color: dateRange === range ? theme.surface : theme.text },
+                ]}>
+                {range === 'week' ? t('thisWeek') : range === 'month' ? t('month') : t('all')}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <TextInput
+          style={[styles.searchInput, { color: theme.text, backgroundColor: theme.inset }]}
+          value={query}
+          onChangeText={setQuery}
+          placeholder={t('searchHint')}
+          placeholderTextColor={theme.muted}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        {hasActiveFilter && summary && (
+          <View style={[styles.summaryStrip, { backgroundColor: theme.inset }]}>
+            <Text style={[styles.summaryText, { color: theme.muted }]}>
+              {t('nSessions', { n: summary.sessionCount })} · {summary.totalLabel}
+              {summary.earningsLabel ? ` · ${summary.earningsLabel}` : ''}
+            </Text>
+          </View>
+        )}
       </View>
 
       <FlatList
@@ -268,9 +317,40 @@ const styles = StyleSheet.create({
   emptyIcon: {
     fontSize: 40,
   },
-  filterRow: {
+  filterArea: {
     paddingHorizontal: 16,
     paddingBottom: 12,
+    gap: 8,
+  },
+  dateRangeRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  dateRangeChip: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  dateRangeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  searchInput: {
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    fontSize: 14,
+  },
+  summaryStrip: {
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  summaryText: {
+    fontSize: 13,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
   },
   weekCard: {
     borderRadius: RADIUS.card,
