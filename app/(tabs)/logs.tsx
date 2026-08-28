@@ -14,14 +14,16 @@ export default function LogsScreen() {
   const theme = useTheme();
   const { refresh, sessions, settings, now, saveSession, removeSession } = useLogbook();
   const [selected, setSelected] = useState<Session | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       refresh();
+      setCategoryFilter(null); // filters are per-visit, not sticky
     }, [refresh]),
   );
 
-  const weeks = logsModel(sessions, settings, now);
+  const weeks = logsModel(sessions, settings, now, categoryFilter ?? undefined);
   const categorySuggestions = [...new Set(sessions.map((s) => s.category))].filter(
     (c) => c.length > 0,
   );
@@ -30,6 +32,26 @@ export default function LogsScreen() {
     <ScrollView
       style={{ backgroundColor: theme.subtle }}
       contentContainerStyle={styles.container}>
+      {categorySuggestions.length > 0 && (
+        <View style={styles.filterRow}>
+          <Pressable
+            style={[styles.filterChip, categoryFilter === null && { backgroundColor: theme.accent, borderColor: theme.accent }]}
+            onPress={() => setCategoryFilter(null)}>
+            <Text style={[styles.filterText, { color: categoryFilter === null ? theme.onAccent : theme.text }]}>All</Text>
+          </Pressable>
+          {categorySuggestions.map((chip) => {
+            const active = categoryFilter === chip;
+            return (
+              <Pressable
+                key={chip}
+                style={[styles.filterChip, { borderColor: theme.border }, active && { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                onPress={() => setCategoryFilter(active ? null : chip)}>
+                <Text style={[styles.filterText, { color: active ? theme.onAccent : theme.text }]}>{chip}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
       {weeks.length === 0 && (
         <Text style={[styles.empty, { color: theme.muted }]}>No sessions yet — your history builds here.</Text>
       )}
@@ -118,6 +140,20 @@ const styles = StyleSheet.create({
   empty: {
     textAlign: 'center',
     paddingVertical: 32,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  filterChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  filterText: {
+    fontSize: 13,
   },
   week: {
     gap: 8,

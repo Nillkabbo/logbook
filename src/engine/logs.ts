@@ -56,9 +56,19 @@ function localMidnight(date: Date): Date {
  * day, labeled by date range) containing days (check-in-day ownership) containing
  * sessions (oldest first). Totals count completed sessions only.
  */
-export function logsModel(sessions: Session[], settings: Settings, now: Date = new Date()): LogWeek[] {
+/**
+ * Full history grouped newest-first. An optional category filter recomputes
+ * every number over the matching sessions only; weeks without matches hide.
+ */
+export function logsModel(
+  sessions: Session[],
+  settings: Settings,
+  now: Date = new Date(),
+  category?: string,
+): LogWeek[] {
+  const effective = category === undefined ? sessions : sessions.filter((s) => s.category === category);
   const byWeek = new Map<number, { range: WeekRange; sessions: Session[] }>();
-  for (const session of sessions) {
+  for (const session of effective) {
     const range = weekRange(session.checkIn, settings.weekStartDay);
     const key = range.start.getTime();
     const bucket = byWeek.get(key) ?? { range, sessions: [] };

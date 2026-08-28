@@ -83,6 +83,20 @@ describe('logsModel', () => {
     expect(logsModel([], THURSDAY)).toEqual([]);
   });
 
+  it('a category filter recomputes everything over matches and hides empty weeks', () => {
+    const NOW = at(2026, 7, 27, 12, 0);
+    const weekBClient = session(7, at(2026, 7, 25, 8, 0), at(2026, 7, 25, 10, 0), '', 'client');
+    const weekAClient = session(8, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 10, 30), '', 'client');
+    const filtered = logsModel([weekBClient, weekAClient, early, late], THURSDAY, NOW, 'client');
+    // Both weeks keep a client match; non-matching sessions drop out of every number.
+    expect(filtered).toHaveLength(2);
+    expect(filtered[0].totalLabel).toBe('1:30'); // week A: only weekAClient counts
+    expect(filtered[0].categoryBreakdown).toEqual([{ label: 'client', totalLabel: '1:30' }]);
+    expect(filtered[1].totalLabel).toBe('2:00'); // week B
+    // A category with no matches yields an empty list
+    expect(logsModel([early], THURSDAY, NOW, 'client')).toEqual([]);
+  });
+
   it('weeks expose seven day bars scaled to the busiest day, today marked', () => {
     const NOW = at(2026, 7, 27, 12, 0); // Thursday, inside week A
     const weeks = logsModel([tue, wed, early, late], THURSDAY, NOW);
