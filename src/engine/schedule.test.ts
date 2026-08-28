@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { blockOccurring, blockTriggers, nextBlockOccurrence, validateBlockTimes } from './schedule';
+import { blockOccurring, blockRangeLabel, blockTriggers, nextBlockOccurrence, validateBlockTimes } from './schedule';
 import type { WorkBlock } from './schedule';
 import type { Weekday } from './types';
 
@@ -100,5 +100,19 @@ describe('blockTriggers — notification specs, overnight owned by start day', (
   it('a Sunday-night block ends on Monday', () => {
     const sunLate = block(3, [0 as Weekday], 23 * 60, 1 * 60);
     expect(blockTriggers(sunLate)[1]).toEqual({ kind: 'end', weekday: 1 as Weekday, hour: 1, minute: 0 });
+  });
+});
+
+describe('blockRangeLabel', () => {
+  const names = (d: number) => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d];
+
+  it('joins the weekdays and the time range', () => {
+    const block = { id: 1, weekdays: [0, 1, 2, 3, 4] as Weekday[], startMinute: 9 * 60, endMinute: 17 * 60 };
+    expect(blockRangeLabel(block, names)).toBe('Sun, Mon, Tue, Wed, Thu · 09:00–17:00');
+  });
+
+  it('formats a single weekday and honors hour12', () => {
+    const block = { id: 2, weekdays: [6] as Weekday[], startMinute: 10 * 60, endMinute: 14 * 60 };
+    expect(blockRangeLabel(block, names, true)).toBe('Sat · 10:00 AM–2:00 PM');
   });
 });

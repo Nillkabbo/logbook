@@ -60,6 +60,8 @@ export default function DataScreen() {
       if (!shared) {
         Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
       }
+    } catch (error) {
+      Alert.alert(t('exportFailed'), String(error));
     } finally {
       setExporting(false);
     }

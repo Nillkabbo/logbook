@@ -4,7 +4,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { WeekdayPicker } from '@/components/settings-entry';
 import { formatTimeOfDay } from '@/engine/time';
-import { validateBlockTimes, type WorkBlock } from '@/engine/schedule';
+import { blockRangeLabel, validateBlockTimes, type WorkBlock } from '@/engine/schedule';
 import type { Weekday } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
 import { useI18n, type StringKey } from '@/ui/i18n';
@@ -79,9 +79,7 @@ export function ScheduleEditor({
           key={block.id}
           style={[styles.row, { backgroundColor: theme.surface }, theme.cardShadow]}>
           <Text style={[styles.rowText, { color: theme.text }]}>
-            {block.weekdays.map((d) => weekdayName(d)).join(', ')} ·{' '}
-            {formatTimeOfDay(atMinutes(block.startMinute), hour12)}–
-            {formatTimeOfDay(atMinutes(block.endMinute), hour12)}
+            {blockRangeLabel(block, weekdayName, hour12)}
           </Text>
           <Pressable onPress={() => onRemove(block.id)}>
             <Text style={[styles.remove, { color: theme.stop }]}>{t('remove')}</Text>

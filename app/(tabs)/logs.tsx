@@ -30,8 +30,9 @@ export default function LogsScreen() {
   // Per-visit expansion overrides on top of the model's defaults — never persisted.
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const isExpanded = (week: LogWeek) => expanded[week.key] ?? week.defaultExpanded;
-  const toggleWeek = (key: string) =>
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+  // Toggle from the *effective* state, so a default-expanded week collapses on first tap.
+  const toggleWeek = (week: LogWeek) =>
+    setExpanded((prev) => ({ ...prev, [week.key]: !(prev[week.key] ?? week.defaultExpanded) }));
 
   useFocusEffect(
     useCallback(() => {
@@ -78,7 +79,7 @@ export default function LogsScreen() {
         isExpanded(week) ? (
           <View key={week.key} style={styles.week}>
             <View style={styles.weekHeader}>
-              <Pressable style={styles.weekTitleRow} onPress={() => toggleWeek(week.key)}>
+              <Pressable style={styles.weekTitleRow} onPress={() => toggleWeek(week)}>
                 <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
                 <Text style={[styles.chevron, { color: theme.muted }]}>⌄</Text>
               </Pressable>
@@ -162,7 +163,7 @@ export default function LogsScreen() {
               theme.cardShadow,
               pressed && { opacity: 0.85 },
             ]}
-            onPress={() => toggleWeek(week.key)}>
+            onPress={() => toggleWeek(week)}>
             <Text style={[styles.collapsedLabel, { color: theme.text }]}>{week.label}</Text>
             <View style={styles.collapsedRight}>
               <Text style={[styles.collapsedTotal, { color: theme.muted }]}>{week.totalLabel}</Text>
@@ -174,7 +175,7 @@ export default function LogsScreen() {
                 week.overTarget && (
                   <View style={[styles.statusPill, { backgroundColor: theme.stopSoft }]}>
                     <Text style={[styles.statusText, { color: theme.stop }]}>
-                      OVER{week.overByLabel ? ` +${week.overByLabel}` : ''}
+                      {t('overLabel')}{week.overByLabel ? ` +${week.overByLabel}` : ''}
                     </Text>
                   </View>
                 )

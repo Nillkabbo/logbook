@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
-import { formatTimeOfDay } from '@/engine/time';
+import { blockRangeLabel } from '@/engine/schedule';
 import {
   validateHourlyRate,
   validateReminderThreshold,
@@ -65,16 +65,13 @@ export default function SettingsScreen() {
     />
   );
 
-  // The first work block summarised, as the Schedule row's sub-label.
-  const atMinutes = (minutes: number) =>
-    new Date(2026, 0, 1, Math.floor(minutes / 60), minutes % 60);
+  // The Schedule row's sub-label: the single block's range, or a count when several exist.
   const blockSummary =
     blocks.length === 0
       ? t('noBlocks')
-      : `${blocks[0].weekdays.map((d) => weekdayName(d)).join(', ')} · ${formatTimeOfDay(
-          atMinutes(blocks[0].startMinute),
-          false,
-        )}–${formatTimeOfDay(atMinutes(blocks[0].endMinute), false)}`;
+      : blocks.length === 1
+        ? blockRangeLabel(blocks[0], weekdayName)
+        : t('nBlocks').replace('{n}', String(blocks.length));
 
   return (
     <ScrollView
@@ -192,6 +189,7 @@ const styles = StyleSheet.create({
   },
   navSub: {
     fontSize: 13,
+    fontVariant: ['tabular-nums'],
   },
   chevron: {
     fontSize: 20,

@@ -21,7 +21,7 @@ Strict layering — dependencies point downward only:
 2. **`src/db/database.ts`** — the only module that touches expo-sqlite. Stores/returns plain `Session`/`Settings`/`WorkBlock` objects; timestamps as UTC ISO strings (`check_out_utc` NULL = running). Schema lives in `open()`; adding a column to an existing table also needs an `addColumnIfMissing` migration line there.
 3. **`src/hooks/useLogbook.tsx`** — `LogbookProvider`, the app-wide store every screen consumes. Loads db → state, exposes actions (`checkIn`, `saveSession`, …), ticks a `now` clock only while a session runs, and owns `syncAfter`: the single place that runs a reminder-lifecycle decision and then rebuilds all OS notifications from current truth (also re-run once after first load, since OS triggers persist but go stale).
 4. **Adapters/UI** — `src/notifications/reminders.ts` (executes reminder/work-block decisions via expo-notifications; Android Expo Go can't host that module, so it lazy-loads and no-ops), `src/export/csvExport.ts` (share sheet), `src/components/`, `src/ui/i18n.tsx`, `src/theme.ts`.
-5. **`app/`** — expo-router file routes: tab group `(tabs)` (Home, Logs, Settings); root `_layout.tsx` wires the providers.
+5. **`app/`** — expo-router file routes: tab group `(tabs)` (Home, Logs, Settings) plus hidden pushed sub-screens (`schedule`, `data`) that stay inside the group so the tab bar persists; root `_layout.tsx` wires the providers.
 
 The recurring pattern: **the engine decides, adapters execute** (e.g. `reminderDecision` returns schedule/cancel/keep; the notifications adapter just does it). Keep decisions pure and push side effects to the edges.
 

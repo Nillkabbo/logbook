@@ -1,3 +1,4 @@
+import { formatTimeOfDay } from './time';
 import type { Weekday } from './types';
 
 /**
@@ -110,4 +111,19 @@ export function blockTriggers(block: WorkBlock): BlockTrigger[] {
     });
   }
   return triggers;
+}
+
+/** One work block's row/sub-label text: "Sun, Mon · 9:00 AM–5:00 PM". */
+export function blockRangeLabel(
+  block: WorkBlock,
+  weekdayName: (weekday: number) => string,
+  hour12 = false,
+): string {
+  const atMinutes = (minutes: number) =>
+    new Date(2026, 0, 1, Math.floor(minutes / 60), minutes % 60);
+  return (
+    `${block.weekdays.map((d) => weekdayName(d)).join(', ')} · ` +
+    `${formatTimeOfDay(atMinutes(block.startMinute), hour12)}–` +
+    `${formatTimeOfDay(atMinutes(block.endMinute), hour12)}`
+  );
 }

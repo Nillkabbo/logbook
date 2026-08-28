@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { RADIUS, TYPE, useTheme } from '@/theme';
+import { useI18n } from '@/ui/i18n';
 
 /** A week's total against its target with a progress bar; over-target shows an OVER chip. */
 export function WeekProgress({
@@ -19,6 +20,7 @@ export function WeekProgress({
   emphasized?: boolean;
 }) {
   const theme = useTheme();
+  const { t } = useI18n();
   const valueColor = overTarget ? theme.stop : theme.text;
   return (
     <View style={styles.container}>
@@ -33,7 +35,7 @@ export function WeekProgress({
         {overTarget && (
           <View style={[styles.chip, { backgroundColor: theme.stopSoft }]}>
             <Text style={[styles.chipText, { color: theme.stop }]}>
-              OVER{overByLabel ? ` +${overByLabel}` : ''}
+              {t('overLabel')}{overByLabel ? ` +${overByLabel}` : ''}
             </Text>
           </View>
         )}
