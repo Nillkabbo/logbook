@@ -5,7 +5,11 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { sessionsToCsv } from '@/engine/csv';
-import { validateReminderThreshold, validateWeeklyTarget } from '@/engine/validation';
+import {
+  validateHourlyRate,
+  validateReminderThreshold,
+  validateWeeklyTarget,
+} from '@/engine/validation';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
 import { RADIUS, useTheme } from '@/theme';
 
@@ -24,6 +28,12 @@ export default function SettingsScreen() {
     validateReminderThreshold,
     useCallback((hours: number) => saveSettings({ reminderThresholdHours: hours }), [saveSettings]),
   );
+  const rate = useValidatedHours(
+    settings.hourlyRate > 0 ? String(settings.hourlyRate) : '',
+    validateHourlyRate,
+    useCallback((value: number) => saveSettings({ hourlyRate: value }), [saveSettings]),
+    0, // empty input commits as unset
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -35,7 +45,8 @@ export default function SettingsScreen() {
   useEffect(() => {
     target.reset(String(settings.weeklyTargetHours));
     threshold.reset(String(settings.reminderThresholdHours));
-  }, [settings.weeklyTargetHours, settings.reminderThresholdHours, target, threshold]);
+    rate.reset(settings.hourlyRate > 0 ? String(settings.hourlyRate) : '');
+  }, [settings.weeklyTargetHours, settings.reminderThresholdHours, settings.hourlyRate, target, threshold, rate]);
 
   const exportCsv = async () => {
     if (exporting) return;
@@ -84,6 +95,21 @@ export default function SettingsScreen() {
       />
       {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{threshold.error}</Text>}
       <Text style={[styles.hint, { color: theme.muted }]}>Applies to your next check-in.</Text>
+
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Hourly rate ($, optional)</Text>
+      <TextInput
+        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+        value={rate.value}
+        onChangeText={rate.onChangeText}
+        onBlur={rate.onBlur}
+        keyboardType="decimal-pad"
+        placeholder="Not set"
+        placeholderTextColor={theme.muted}
+      />
+      {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{rate.error}</Text>}
+      <Text style={[styles.hint, { color: theme.muted }]}>
+        When set, weeks show their earnings. Empty hides them.
+      </Text>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>Export</Text>
       <Pressable

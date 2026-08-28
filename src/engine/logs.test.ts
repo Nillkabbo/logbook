@@ -83,8 +83,16 @@ describe('logsModel', () => {
     expect(logsModel([], THURSDAY)).toEqual([]);
   });
 
-  it('weeks carry a per-category breakdown of completed sessions, largest first', () => {
-    const a = session(7, at(2026, 7, 25, 8, 0), at(2026, 7, 25, 10, 0), '', 'client site');
+  it('weeks show earnings when a rate is set, per completed total', () => {
+    const weeks = logsModel(
+      [early, late], // week A total 2:15
+      { ...THURSDAY, hourlyRate: 25 },
+    );
+    expect(weeks[0].earningsLabel).toBe('$ 56.25');
+    expect(weeks[0].targetLabel).toBe('40:00');
+  });
+
+  it('weeks carry a per-category breakdown of completed sessions, largest first', () => {    const a = session(7, at(2026, 7, 25, 8, 0), at(2026, 7, 25, 10, 0), '', 'client site');
     const b = session(8, at(2026, 7, 26, 9, 0), at(2026, 7, 26, 12, 0), '', 'study');
     const c = session(9, at(2026, 7, 26, 13, 0), at(2026, 7, 26, 15, 30), '', 'client site');
     const uncat = session(10, at(2026, 7, 25, 11, 0), at(2026, 7, 25, 11, 45));

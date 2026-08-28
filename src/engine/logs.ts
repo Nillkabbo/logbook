@@ -1,4 +1,5 @@
 import { formatDuration } from './time';
+import { formatMoney } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { formatDayLabel, weekProgress, weekRange, weekRangeLabel, type WeekRange } from './weeks';
@@ -24,6 +25,8 @@ export interface LogWeek {
   overTarget: boolean;
   /** Clock-style overage (e.g. "2:00") in an over-target week; null otherwise. */
   overByLabel: string | null;
+  /** Week earnings at the set rate; null when no rate is set. */
+  earningsLabel: string | null;
   /** Completed-session totals per category, largest first; empty label = uncategorised. */
   categoryBreakdown: Array<{ label: string; totalLabel: string }>;
 }
@@ -113,6 +116,10 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
       progress: progress.progress,
       overTarget: progress.overTarget,
       overByLabel: progress.overTarget ? formatDuration(totalSeconds - targetSeconds) : null,
+      earningsLabel:
+        settings.hourlyRate > 0
+          ? formatMoney((totalSeconds / 3600) * settings.hourlyRate)
+          : null,
       categoryBreakdown,
     };
   });

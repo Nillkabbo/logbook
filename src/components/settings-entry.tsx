@@ -54,6 +54,8 @@ export function useValidatedHours(
   initial: string,
   validate: HoursValidator,
   onCommit?: (hours: number) => void,
+  /** Value an empty input commits as (e.g. 0 = unset for the hourly rate). */
+  emptyValue?: number,
 ) {
   const [value, setValue] = useState(initial);
   const [error, setError] = useState<string | null>(null);
@@ -69,13 +71,13 @@ export function useValidatedHours(
   }, []);
 
   const commitNow = useCallback((): number | null => {
-    const hours = parseHoursInput(value);
+    const hours = value.trim() === '' ? (emptyValue ?? Number.NaN) : parseHoursInput(value);
     const validationError = validate(hours);
     setError(validationError);
     if (validationError) return null;
     onCommit?.(hours);
     return hours;
-  }, [value, validate, onCommit]);
+  }, [value, validate, onCommit, emptyValue]);
 
   const onBlur = useCallback(() => {
     if (onCommit) commitNow();

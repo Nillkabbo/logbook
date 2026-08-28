@@ -27,6 +27,8 @@ export interface Settings {
   weekStartDay: Weekday;
   weeklyTargetHours: number;
   reminderThresholdHours: number;
+  /** Dollars per worked hour; 0 means unset — earnings hidden. */
+  hourlyRate: number;
   setupCompleted: boolean;
 }
 
@@ -34,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   weekStartDay: 0, // Sunday
   weeklyTargetHours: 40,
   reminderThresholdHours: 10,
+  hourlyRate: 0,
   setupCompleted: false,
 };
 

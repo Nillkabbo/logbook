@@ -44,6 +44,9 @@ export default function LogsScreen() {
               overTarget={week.overTarget}
               overByLabel={week.overByLabel}
             />
+            {week.earningsLabel && (
+              <Text style={[styles.earnings, { color: theme.accent }]}>{week.earningsLabel}</Text>
+            )}
             {week.categoryBreakdown.length > 0 && (
               <View style={styles.breakdown}>
                 {week.categoryBreakdown.map((entry) => (
@@ -113,6 +116,11 @@ const styles = StyleSheet.create({
   weekLabel: {
     fontSize: 17,
     fontWeight: '700',
+  },
+  earnings: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
   },
   breakdown: {
     gap: 2,

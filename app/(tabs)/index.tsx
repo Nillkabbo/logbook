@@ -64,6 +64,9 @@ export default function HomeScreen() {
             overByLabel={model.overByLabel}
             emphasized
           />
+          {model.earningsLabel && (
+            <Text style={[styles.earnings, { color: theme.accent }]}>{model.earningsLabel}</Text>
+          )}
         </View>
       </View>
 
@@ -114,6 +117,11 @@ const styles = StyleSheet.create({
   },
   totalValue: {
     fontSize: 24,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  earnings: {
+    fontSize: 15,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },

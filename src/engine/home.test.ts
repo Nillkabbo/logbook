@@ -115,4 +115,16 @@ describe('homeModel week-to-date', () => {
     const model = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
     expect(model.overByLabel).toBeNull();
   });
+
+  it('earnings appear when a rate is set; hidden when unset', () => {
+    const withRate = homeModel(
+      SESSIONS,
+      { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25 },
+      NOW,
+    );
+    // 2:15 completed × $25/h = 2.25h × 25 = $56.25
+    expect(withRate.earningsLabel).toBe('$ 56.25');
+    const withoutRate = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
+    expect(withoutRate.earningsLabel).toBeNull();
+  });
 });

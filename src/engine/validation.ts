@@ -45,3 +45,14 @@ export function validateWeeklyTarget(hours: number): string | null {
 export function parseHoursInput(raw: string): number {
   return Number(raw.trim().replace(',', '.'));
 }
+
+/** Hourly rate must be zero (unset) or a positive finite number. */
+export function validateHourlyRate(rate: number): string | null {
+  if (!Number.isFinite(rate)) {
+    return 'Hourly rate must be a number.';
+  }
+  if (rate < 0) {
+    return 'Hourly rate cannot be negative — leave it empty to hide earnings.';
+  }
+  return null;
+}

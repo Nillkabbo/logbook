@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateReminderThreshold, validateSessionTimes, validateWeeklyTarget } from './validation';
+import {
+  validateHourlyRate,
+  validateReminderThreshold,
+  validateSessionTimes,
+  validateWeeklyTarget,
+} from './validation';
 
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
   new Date(y, mo, d, h, mi, s);
@@ -62,5 +67,18 @@ describe('validateWeeklyTarget', () => {
     expect(validateWeeklyTarget(0)).toMatch(/positive/i);
     expect(validateWeeklyTarget(-5)).toMatch(/positive/i);
     expect(validateWeeklyTarget(Number.NaN)).toMatch(/number/i);
+  });
+});
+
+describe('validateHourlyRate', () => {
+  it('accepts zero (unset) and positive rates', () => {
+    expect(validateHourlyRate(0)).toBeNull();
+    expect(validateHourlyRate(25)).toBeNull();
+    expect(validateHourlyRate(12.5)).toBeNull();
+  });
+
+  it('rejects negatives and non-numbers', () => {
+    expect(validateHourlyRate(-1)).toMatch(/negative/i);
+    expect(validateHourlyRate(Number.NaN)).toMatch(/number/i);
   });
 });
