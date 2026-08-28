@@ -11,6 +11,7 @@ import { categorySuggestions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
 import { logsModel, type LogDay, type LogWeek } from '@/engine/logs';
 import type { Session } from '@/engine/types';
+import { ChipRow } from '@/components/ChipRow';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
 
 /** One virtualized row: a week's summary card, a day header, a session card, or a collapsed week. */
@@ -199,26 +200,14 @@ export default function LogsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.canvas }}>
-      {suggestions.length > 0 && (
-        <View style={[styles.filterRow, { paddingTop: insets.top + 12 }]}>
-          <Pressable
-            style={[styles.filterChip, categoryFilter === null && { backgroundColor: theme.accent }]}
-            onPress={() => setCategoryFilter(null)}>
-            <Text style={[styles.filterText, { color: categoryFilter === null ? theme.onAccent : theme.text }]}>{t('all')}</Text>
-          </Pressable>
-          {suggestions.map((chip) => {
-            const active = categoryFilter === chip;
-            return (
-              <Pressable
-                key={chip}
-                style={[styles.filterChip, { backgroundColor: theme.inset }, active && { backgroundColor: theme.accent }]}
-                onPress={() => setCategoryFilter(active ? null : chip)}>
-                <Text style={[styles.filterText, { color: active ? theme.onAccent : theme.text }]}>{chip}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
+      <View style={[styles.filterRow, { paddingTop: insets.top + 12 }]}>
+        <ChipRow
+          accessibilityLabel={t('tabLogs')}
+          options={[t('all'), ...suggestions]}
+          isSelected={(option) => (categoryFilter === null ? option === t('all') : option === categoryFilter)}
+          onSelect={(option) => setCategoryFilter(option === t('all') ? null : option)}
+        />
+      </View>
 
       <FlatList
         data={rows}
@@ -271,20 +260,8 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   filterRow: {
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    gap: 12,
     paddingHorizontal: 16,
     paddingBottom: 12,
-  },
-  filterChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: RADIUS.pill,
-  },
-  filterText: {
-    fontSize: 12,
-    fontWeight: '500',
   },
   weekCard: {
     borderRadius: RADIUS.card,

@@ -6,6 +6,7 @@ import { useLogbook } from '@/hooks/useLogbook';
 import { isBackupDue } from '@/engine/backup';
 import { blockOccurring } from '@/engine/schedule';
 import { useI18n } from '@/ui/i18n';
+import { ChipRow } from '@/components/ChipRow';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
 
 /** The stale-export nudge; dismissable until the next launch. */
@@ -80,15 +81,8 @@ export function QuickCategoryRow({
   const theme = useTheme();
   return (
     <View style={styles.chipRow}>
-      {categories.map((category) => (
-        <Pressable
-          key={category}
-          style={[styles.chip, { backgroundColor: theme.accentSoft }]}
-          onPress={() => onPick(category)}>
-          <Text style={[styles.chipText, { color: theme.accent }]}>{category}</Text>
-        </Pressable>
-      ))}
-      <Pressable onPress={onMore}>
+      <ChipRow options={categories} isSelected={() => false} onSelect={onPick} />
+      <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={onMore}>
         <Text style={[styles.more, { color: theme.muted }]}>…</Text>
       </Pressable>
     </View>
@@ -133,15 +127,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-  },
-  chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: RADIUS.pill,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   more: {
     fontSize: 16,

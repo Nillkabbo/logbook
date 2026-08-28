@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { ChipRow } from '@/components/ChipRow';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { blockRangeLabel } from '@/engine/schedule';
@@ -134,23 +135,14 @@ export default function SettingsScreen() {
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('language')}</Text>
       <View style={[styles.card, cardStyle(theme)]}>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {(['system', 'en', 'bn'] as LanguageSetting[]).map((option) => {
-            const active = settings.language === option;
-            const label = option === 'system' ? t('system') : option === 'en' ? 'English' : 'বাংলা';
-            return (
-              <Pressable
-                key={option}
-                android_ripple={{ color: theme.muted, borderless: false }}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                style={({ pressed }) => [styles.pill, pressed && styles.pressed, { backgroundColor: active ? theme.accent : theme.inset }]}
-                onPress={() => saveSettings({ language: option })}>
-                <Text style={{ fontSize: 14, color: active ? theme.onAccent : theme.text }}>{label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <ChipRow
+          size="lg"
+          accessibilityLabel={t('language')}
+          options={['system', 'en', 'bn']}
+          isSelected={(option) => settings.language === option}
+          onSelect={(option) => saveSettings({ language: option as LanguageSetting })}
+          labelOf={(option) => (option === 'system' ? t('system') : option === 'en' ? 'English' : 'বাংলা')}
+        />
       </View>
 
     </ScrollView>
