@@ -40,7 +40,7 @@ export default function LogsScreen() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.subtle }}
+      style={{ backgroundColor: theme.canvas }}
       contentContainerStyle={styles.container}>
       {categorySuggestions.length > 0 && (
         <View style={styles.filterRow}>

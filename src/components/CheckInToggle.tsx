@@ -85,13 +85,13 @@ export function CheckInToggle({
           onPress={press}
           disabled={disabled}>
           {running ? (
-            <View style={[styles.circle, { backgroundColor: theme.stop }]}>
+            <View style={[styles.circle, { backgroundColor: theme.stop }, theme.cardShadow]}>
               <Text style={[styles.label, { color: theme.onAccent }]}>{t('checkOut')}</Text>
             </View>
           ) : (
             <LinearGradient
               colors={[theme.accent, theme.accentAlt]}
-              style={styles.circle}>
+              style={[styles.circle, theme.cardShadow]}>
               <Text style={[styles.label, { color: theme.onAccent }]}>{t('checkIn')}</Text>
             </LinearGradient>
           )}

@@ -67,7 +67,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: theme.subtle }]}>
+    <View style={[styles.screen, { backgroundColor: theme.canvas }]}>
       <View style={styles.header}>
         <Text style={[styles.elapsed, { color: theme.text }]}>
           {model.running && model.elapsedLabel ? model.elapsedLabel : ' '}
@@ -93,7 +93,7 @@ export default function HomeScreen() {
           {model.off ? (
             <View style={styles.offRow}>
               <Text style={[styles.offTotal, { color: theme.text }]}>{model.weekToDateLabel}</Text>
-              <View style={[styles.offBadge, { borderColor: theme.accent }]}>
+              <View style={[styles.offBadge, { backgroundColor: theme.accentSoft }]}>
                 <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
               </View>
             </View>
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   elapsed: {
     ...TYPE.display,
     fontVariant: ['tabular-nums'],
-    minHeight: 60,
+    minHeight: 72,
   },
   totals: {
     flexDirection: 'row',
@@ -209,9 +209,8 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   offBadge: {
-    borderRadius: 18,
-    borderWidth: 1,
-    paddingHorizontal: 8,
+    borderRadius: 999,
+    paddingHorizontal: 10,
     paddingVertical: 2,
   },
   offBadgeText: {

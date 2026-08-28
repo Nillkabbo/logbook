@@ -150,7 +150,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <ScrollView
-        style={{ backgroundColor: theme.subtle }}
+        style={{ backgroundColor: theme.canvas }}
         contentContainerStyle={styles.container}>
         <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
 

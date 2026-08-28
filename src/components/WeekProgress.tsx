@@ -24,17 +24,21 @@ export function WeekProgress({
     <View style={styles.container}>
       <View style={[styles.valueRow, emphasized && styles.valueRowCentered]}>
         <Text style={[emphasized ? styles.valueLarge : styles.value, { color: valueColor }]}>
-          {totalLabel} / {targetLabel}
+          {totalLabel}
+        </Text>
+        <Text style={[emphasized ? styles.targetLarge : styles.target, { color: theme.muted }]}>
+          {' / '}
+          {targetLabel}
         </Text>
         {overTarget && (
-          <View style={[styles.chip, { borderColor: theme.stop }]}>
+          <View style={[styles.chip, { backgroundColor: theme.stopSoft }]}>
             <Text style={[styles.chipText, { color: theme.stop }]}>
               OVER{overByLabel ? ` +${overByLabel}` : ''}
             </Text>
           </View>
         )}
       </View>
-      <View style={[styles.track, { backgroundColor: theme.track }]}>
+      <View style={[styles.track, { backgroundColor: theme.inset }]}>
         <View
           style={[
             styles.fill,
@@ -54,8 +58,8 @@ const styles = StyleSheet.create({
   },
   valueRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    alignItems: 'baseline',
+    gap: 2,
   },
   valueRowCentered: {
     justifyContent: 'center',
@@ -65,15 +69,23 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   valueLarge: {
-    ...TYPE.display,
-    fontSize: 24,
+    ...TYPE.stat,
+    fontVariant: ['tabular-nums'],
+  },
+  targetLarge: {
+    fontSize: 20,
+    fontVariant: ['tabular-nums'],
+  },
+  target: {
+    fontSize: 13,
     fontVariant: ['tabular-nums'],
   },
   chip: {
     borderRadius: RADIUS.pill,
-    borderWidth: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 2,
+    marginLeft: 6,
+    alignSelf: 'center',
   },
   chipText: {
     fontSize: 11,

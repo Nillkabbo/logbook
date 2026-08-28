@@ -41,7 +41,7 @@ export function FirstLaunchSetup() {
   return (
     <Modal visible animationType="fade" onRequestClose={() => {}}>
       <ScrollView
-        style={{ backgroundColor: theme.subtle }}
+        style={{ backgroundColor: theme.canvas }}
         contentContainerStyle={styles.container}>
         <Text style={[styles.title, { color: theme.text }]}>{t('welcome')}</Text>
         <Text style={[styles.intro, { color: theme.muted }]}>

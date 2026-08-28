@@ -105,7 +105,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.subtle }}
+      style={{ backgroundColor: theme.canvas }}
       contentContainerStyle={styles.container}>
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('weekStartsOn')}</Text>
       <WeekdayPicker

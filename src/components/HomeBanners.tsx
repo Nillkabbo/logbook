@@ -30,7 +30,7 @@ export function BackupBanner() {
   };
 
   return (
-    <View style={[styles.banner, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+    <View style={[styles.banner, { backgroundColor: theme.surface }, theme.cardShadow]}>
       <Text style={[styles.text, { color: theme.text }]}>{t('backupTitle')}</Text>
       <View style={styles.actions}>
         <Pressable
@@ -55,7 +55,7 @@ export function BlockBanner({ onCheckIn, busy }: { onCheckIn: () => void; busy: 
   const occurring = running ? null : blockOccurring(blocks, now);
   if (!occurring) return null;
   return (
-    <View style={[styles.banner, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+    <View style={[styles.banner, { backgroundColor: theme.surface }, theme.cardShadow]}>
       <Text style={[styles.text, { color: theme.text }]}>{t('blockInProgress')}</Text>
       <Pressable
         style={[styles.button, styles.selfStart, { backgroundColor: theme.accent }, busy && styles.disabled]}
@@ -83,7 +83,7 @@ export function QuickCategoryRow({
       {categories.map((category) => (
         <Pressable
           key={category}
-          style={[styles.chip, { borderColor: theme.accent }]}
+          style={[styles.chip, { backgroundColor: theme.accentSoft }]}
           onPress={() => onPick(category)}>
           <Text style={[styles.chipText, { color: theme.accent }]}>{category}</Text>
         </Pressable>
@@ -98,8 +98,7 @@ export function QuickCategoryRow({
 const styles = StyleSheet.create({
   banner: {
     borderRadius: RADIUS.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
+    padding: 16,
     gap: 10,
   },
   text: {
@@ -138,8 +137,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 18,
-    borderWidth: 1,
+    borderRadius: RADIUS.pill,
   },
   chipText: {
     fontSize: 13,

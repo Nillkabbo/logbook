@@ -13,7 +13,7 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
   const hour12 = useHour12();
   const { t } = useI18n();
   return (
-    <View style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+    <View style={[styles.row, { backgroundColor: theme.surface }, theme.cardShadow]}>
       <View style={styles.rowMain}>
         <Text style={[styles.rowTimes, { color: theme.text }]}>
           {formatTimeOfDay(session.checkIn, hour12)} –{' '}
@@ -24,7 +24,7 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
         </Text>
       </View>
       {session.category.length > 0 && (
-        <View style={[styles.chip, { borderColor: theme.accent }]}>
+        <View style={[styles.chip, { backgroundColor: theme.accentSoft }]}>
           <Text style={[styles.chipText, { color: theme.accent }]}>{session.category}</Text>
         </View>
       )}
@@ -35,17 +35,15 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
 
 const styles = StyleSheet.create({
   row: {
-    padding: 14,
+    padding: 16,
     borderRadius: RADIUS.card,
-    borderWidth: StyleSheet.hairlineWidth,
     gap: 4,
   },
   chip: {
     alignSelf: 'flex-start',
     borderRadius: RADIUS.pill,
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
   },
   chipText: {
     fontSize: 11,
