@@ -1,6 +1,5 @@
 import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
 
 import { useTheme } from '@/theme';
 import { useI18n } from '@/ui/i18n';
@@ -15,8 +14,6 @@ export default function TabLayout() {
         // Headerless by design: tab screens start directly with content;
         // pushed sub-screens carry their own SubScreenHeader.
         headerShown: false,
-        // Web has no safe-area inset, so the bar needs explicit bottom padding
-        // or the labels clip at the viewport edge.
         tabBarLabelStyle: { fontSize: 12, fontWeight: '500' },
         tabBarStyle: {
           borderTopWidth: 0,
@@ -27,7 +24,6 @@ export default function TabLayout() {
           shadowOpacity: 0.06,
           shadowRadius: 24,
           elevation: 6,
-          ...Platform.select({ web: { paddingBottom: 8, height: 56 } }),
         },
       }}>
       <Tabs.Screen
@@ -36,7 +32,7 @@ export default function TabLayout() {
           title: t('tabHome'),
           tabBarIcon: ({ color }) => (
             <SymbolView
-              name={{ ios: 'house', android: 'home', web: 'home' }}
+              name={{ ios: 'house', android: 'home' }}
               tintColor={color}
               size={24}
             />
@@ -49,7 +45,7 @@ export default function TabLayout() {
           title: t('tabLogs'),
           tabBarIcon: ({ color }) => (
             <SymbolView
-              name={{ ios: 'clock', android: 'schedule', web: 'history' }}
+              name={{ ios: 'clock', android: 'schedule' }}
               tintColor={color}
               size={24}
             />
@@ -62,7 +58,7 @@ export default function TabLayout() {
           title: t('tabSettings'),
           tabBarIcon: ({ color }) => (
             <SymbolView
-              name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
+              name={{ ios: 'gearshape', android: 'settings' }}
               tintColor={color}
               size={24}
             />

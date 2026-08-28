@@ -7,7 +7,7 @@ import { useColorScheme } from 'react-native';
  * check-out, over-target, and destructive. Follows the system light/dark mode.
  */
 
-/** A floating card's ambient shadow as one cross-platform `boxShadow` value (New Architecture + web). */
+/** A floating card's ambient shadow as one cross-platform `boxShadow` value. */
 export interface CardShadow {
   boxShadow: string;
 }
