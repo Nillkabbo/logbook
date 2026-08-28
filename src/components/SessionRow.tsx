@@ -26,7 +26,7 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
           {session.checkOut ? formatTimeOfDay(session.checkOut, hour12) : t('now')}
         </Text>
         <View style={styles.durationWrap}>
-          {running && <View style={[styles.liveDot, { backgroundColor: theme.accent }]} />}
+          {running && <View style={[styles.liveDot, { backgroundColor: theme.accent, boxShadow: theme.dotGlow }]} />}
           <Text style={[styles.rowDuration, { color: theme.text }]}>
             {formatDuration(sessionDurationSeconds(session, session.checkOut ?? now))}
           </Text>
@@ -52,12 +52,11 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
 
 const styles = StyleSheet.create({
   row: {
-    padding: 20,
-    paddingHorizontal: 22,
+    padding: 24,
     borderRadius: RADIUS.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
-    gap: 6,
+    gap: 16,
   },
   metaRow: {
     flexDirection: 'row',
@@ -70,19 +69,19 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   liveDot: {
-    width: 7,
-    height: 7,
+    width: 8,
+    height: 8,
     borderRadius: 999,
   },
   chip: {
     alignSelf: 'flex-start',
     borderRadius: RADIUS.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   chipText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '500',
   },
   rowMain: {
     flexDirection: 'row',
@@ -91,6 +90,7 @@ const styles = StyleSheet.create({
   },
   rowTimes: {
     fontSize: 15,
+    fontWeight: '500',
     fontVariant: ['tabular-nums'],
   },
   rowDuration: {

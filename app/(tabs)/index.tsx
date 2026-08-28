@@ -88,9 +88,9 @@ export default function HomeScreen() {
           <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('today')}</Text>
           <Text style={[styles.totalValue, { color: theme.text }]}>{model.todayTotalLabel}</Text>
         </View>
-        <View style={[styles.totalItem, styles.weekItem]}>
-          <View style={styles.weekInner}>
-            <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('thisWeek')}</Text>
+        <View style={[styles.divider, { backgroundColor: theme.inset }]} />
+        <View style={styles.totalItem}>
+          <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('thisWeek')}</Text>
           {model.off ? (
             <View style={styles.offRow}>
               <Text style={[styles.offTotal, { color: theme.text }]}>{model.weekToDateLabel}</Text>
@@ -106,11 +106,9 @@ export default function HomeScreen() {
               overTarget={model.overTarget}
               overByLabel={model.overByLabel}
               emphasized
-              fitContent
               earningsLabel={model.earningsLabel}
             />
           )}
-          </View>
         </View>
       </View>
 
@@ -166,7 +164,8 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingTop: 40,
+    paddingBottom: 52,
     gap: 8,
   },
   elapsed: {
@@ -175,26 +174,24 @@ const styles = StyleSheet.create({
   },
   totals: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 56,
-    paddingHorizontal: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 48,
+    marginBottom: 40,
   },
   totalItem: {
-    alignItems: 'flex-start',
-    gap: 2,
+    alignItems: 'center',
+    gap: 4,
   },
-  weekItem: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  weekInner: {
-    alignItems: 'flex-start',
+  divider: {
+    width: 1,
+    height: 48,
   },
   totalLabel: {
     ...TYPE.caption,
+    fontWeight: '500',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   totalValue: {
     fontSize: 24,
@@ -225,12 +222,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
+    marginBottom: 32,
   },
   list: {
-    gap: 8,
-    paddingBottom: 12,
-    flexGrow: 1,
-    justifyContent: 'flex-end',
+    gap: 16,
+    paddingBottom: 24,
   },
   listEmpty: {
     paddingBottom: 24,

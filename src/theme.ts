@@ -40,8 +40,14 @@ export interface Theme {
   glass: string;
   /** Hairline edge for the glass card. */
   glassEdge: string;
-  /** Ambient accent halo for the check-in hero circle. */
-  glow: string;
+  /** Ambient accent halo + drop for the check-in hero circle. */
+  heroGlow: string;
+  /** Glow for the red check-out circle while a session runs. */
+  stopGlow: string;
+  /** Glow behind the running card's live dot. */
+  dotGlow: string;
+  /** Label color on the red check-out circle. */
+  onStop: string;
 }
 
 const light: Theme = {
@@ -59,7 +65,10 @@ const light: Theme = {
   accentAlt: '#0D9488',
   stop: '#DC2626',
   stopSoft: 'rgba(220,38,38,0.1)',
-  glow: '0px 0px 64px 28px rgba(5,150,105,0.32)',
+  heroGlow: '0px 20px 40px rgba(5,150,105,0.3), 0px 0px 48px 18px rgba(5,150,105,0.22)',
+  stopGlow: '0px 0px 40px rgba(220,38,38,0.25)',
+  dotGlow: '0px 0px 10px rgba(5,150,105,0.5)',
+  onStop: '#FFFFFF',
   glass: 'rgba(255,255,255,0.72)',
   glassEdge: 'rgba(255,255,255,0.4)',
 };
@@ -71,7 +80,7 @@ const dark: Theme = {
   text: '#FAFAFA',
   muted: 'rgba(250,250,250,0.6)',
   cardShadow: {
-    boxShadow: '0px 8px 24px rgba(0,0,0,0.4)',
+    boxShadow: '0px 4px 24px rgba(0,0,0,0.2)',
   },
   accent: '#34D399',
   accentSoft: 'rgba(52,211,153,0.15)',
@@ -79,7 +88,10 @@ const dark: Theme = {
   accentAlt: '#2DD4BF',
   stop: '#F87171',
   stopSoft: 'rgba(248,113,113,0.15)',
-  glow: '0px 0px 64px 28px rgba(52,211,153,0.25)',
+  heroGlow: '0px 0px 40px rgba(52,211,153,0.15)',
+  stopGlow: '0px 0px 40px rgba(248,113,113,0.3)',
+  dotGlow: '0px 0px 10px rgba(52,211,153,0.5)',
+  onStop: '#450A0A',
   glass: 'rgba(39,39,42,0.7)',
   glassEdge: 'rgba(250,250,250,0.1)',
 };

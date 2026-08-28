@@ -17,7 +17,18 @@ export default function TabLayout() {
         headerShown: false,
         // Web has no safe-area inset, so the bar needs explicit bottom padding
         // or the labels clip at the viewport edge.
-        tabBarStyle: Platform.select({ web: { paddingBottom: 8, height: 56 } }),
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '500' },
+        tabBarStyle: {
+          borderTopWidth: 0,
+          borderTopLeftRadius: 12,
+          borderTopRightRadius: 12,
+          shadowColor: '#18181B',
+          shadowOffset: { width: 0, height: -8 },
+          shadowOpacity: 0.06,
+          shadowRadius: 24,
+          elevation: 6,
+          ...Platform.select({ web: { paddingBottom: 8, height: 56 } }),
+        },
       }}>
       <Tabs.Screen
         name="index"
@@ -27,7 +38,7 @@ export default function TabLayout() {
             <SymbolView
               name={{ ios: 'house', android: 'home', web: 'home' }}
               tintColor={color}
-              size={28}
+              size={24}
             />
           ),
         }}
@@ -40,7 +51,7 @@ export default function TabLayout() {
             <SymbolView
               name={{ ios: 'clock', android: 'schedule', web: 'history' }}
               tintColor={color}
-              size={28}
+              size={24}
             />
           ),
         }}
@@ -53,7 +64,7 @@ export default function TabLayout() {
             <SymbolView
               name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
               tintColor={color}
-              size={28}
+              size={24}
             />
           ),
         }}

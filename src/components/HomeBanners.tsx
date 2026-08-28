@@ -136,12 +136,12 @@ const styles = StyleSheet.create({
   },
   chip: {
     paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
   },
   chipText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
   more: {
     fontSize: 16,

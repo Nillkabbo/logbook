@@ -11,7 +11,6 @@ export function WeekProgress({
   overTarget,
   overByLabel = null,
   emphasized = false,
-  fitContent = false,
   earningsLabel = null,
 }: {
   totalLabel: string;
@@ -20,8 +19,6 @@ export function WeekProgress({
   overTarget: boolean;
   overByLabel?: string | null;
   emphasized?: boolean;
-  /** Hug the fraction's width (Home) instead of stretching to the column (Logs). */
-  fitContent?: boolean;
   /** Optional earnings line, centered under the bar. */
   earningsLabel?: string | null;
 }) {
@@ -29,8 +26,8 @@ export function WeekProgress({
   const { t } = useI18n();
   const valueColor = overTarget ? theme.stop : theme.text;
   return (
-    <View style={[styles.container, fitContent && styles.containerFit]}>
-      <View style={styles.valueRow}>
+    <View style={styles.container}>
+      <View style={[styles.valueRow, emphasized && styles.valueRowCentered]}>
         <Text style={[emphasized ? styles.valueLarge : styles.value, { color: valueColor }]}>
           {totalLabel}
         </Text>
@@ -46,7 +43,7 @@ export function WeekProgress({
           </View>
         )}
       </View>
-      <View style={[styles.track, { backgroundColor: theme.inset }]}>
+      <View style={[styles.track, emphasized && styles.trackWide, { backgroundColor: theme.inset }]}>
         <View
           style={[
             styles.fill,
@@ -65,15 +62,16 @@ export function WeekProgress({
 const styles = StyleSheet.create({
   container: {
     alignSelf: 'stretch',
+    alignItems: 'center',
     gap: 6,
-  },
-  containerFit: {
-    alignSelf: 'flex-start',
   },
   valueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 2,
+  },
+  valueRowCentered: {
+    justifyContent: 'center',
   },
   value: {
     fontSize: 14,
@@ -81,10 +79,12 @@ const styles = StyleSheet.create({
   },
   valueLarge: {
     ...TYPE.stat,
+    letterSpacing: -0.7,
     fontVariant: ['tabular-nums'],
   },
   targetLarge: {
     fontSize: 20,
+    fontWeight: '500',
     fontVariant: ['tabular-nums'],
   },
   target: {
@@ -108,6 +108,11 @@ const styles = StyleSheet.create({
     height: RADIUS.bar,
     borderRadius: RADIUS.bar / 2,
     overflow: 'hidden',
+    alignSelf: 'stretch',
+  },
+  trackWide: {
+    width: 128,
+    alignSelf: 'center',
   },
   fill: {
     height: RADIUS.bar,
