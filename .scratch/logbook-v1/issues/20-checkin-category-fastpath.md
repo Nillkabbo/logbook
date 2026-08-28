@@ -6,10 +6,10 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 4, grill session 2026-08-28)
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Chip row renders only while a session runs AND its category is empty
-- [ ] Chips = four most recently used categories (most recent first) + "…" into the sheet
-- [ ] Tapping a chip saves the category without leaving Home; row disappears once set
-- [ ] Styled from tokens; haptic on set
-- [ ] Engine tests green; typecheck clean; bundles export; verified on both phones
+- [x] Chip row renders only while a session runs AND its category is empty
+- [x] Chips = four most recently used categories (most recent first) + "…" into the sheet
+- [x] Tapping a chip saves the category without leaving Home; row disappears once set
+- [x] Styled from tokens; haptic on set
+- [x] Engine tests green; typecheck clean; bundles export; verified on both phones

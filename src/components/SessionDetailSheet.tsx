@@ -20,6 +20,7 @@ import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
+import { useI18n } from '@/ui/i18n';
 
 interface Props {
   session: Session;
@@ -36,6 +37,7 @@ const formatDateTime = (date: Date, hour12: boolean) =>
 export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose }: Props) {
   const theme = useTheme();
   const hour12 = useHour12();
+  const { t } = useI18n();
   const [checkIn, setCheckIn] = useState(session.checkIn);
   const [checkOut, setCheckOut] = useState(session.checkOut);
   const [note, setNote] = useState(session.note);
@@ -82,8 +84,8 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   };
 
   const confirmDelete = () => {
-    Alert.alert('Delete session?', 'This session will be removed permanently.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('deleteSession'), t('deleteSessionBody'), [
+      { text: t('cancel'), style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
@@ -99,7 +101,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   const renderField = (field: 'in' | 'out') => {
     const value = field === 'in' ? checkIn : checkOut;
     const disabled = field === 'out' && running;
-    const label = field === 'in' ? 'Check-in' : 'Check-out';
+    const label = field === 'in' ? t('checkInLabel') : t('checkOutLabel');
 
     const labelRow = (
       <Text style={[styles.fieldLabel, { color: theme.muted }, disabled && styles.fieldDisabled]}>
@@ -152,11 +154,11 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
       <ScrollView
         style={{ backgroundColor: theme.subtle }}
         contentContainerStyle={styles.container}>
-        <Text style={[styles.title, { color: theme.text }]}>Session</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
 
         {renderField('in')}
         <View style={styles.runningRow}>
-          <Text style={[styles.runningLabel, { color: theme.text }]}>Still running</Text>
+          <Text style={[styles.runningLabel, { color: theme.text }]}>{t('stillRunning')}</Text>
           {/* Turning it off anchors the checkout at the check-in: the user must
               pick an explicit time before Save passes validation. */}
           <Switch value={running} onValueChange={(on) => setCheckOut(on ? null : checkIn)} />
@@ -166,12 +168,12 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         {(checkOut === null || checkOut.getTime() > checkIn.getTime()) && (
           <Text style={[styles.durationPreview, { color: theme.muted }]}>
             {checkOut === null
-              ? `${formatDuration(Math.floor((Date.now() - checkIn.getTime()) / 1000))} so far`
+              ? `${formatDuration(Math.floor((Date.now() - checkIn.getTime()) / 1000))} ${t('soFar')}`
               : formatDuration(Math.floor((checkOut.getTime() - checkIn.getTime()) / 1000))}
           </Text>
         )}
 
-        <Text style={[styles.fieldLabel, { color: theme.muted }]}>Category</Text>
+        <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('category')}</Text>
         <TextInput
           style={[
             styles.noteInput,
@@ -179,7 +181,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           ]}
           value={category}
           onChangeText={setCategory}
-          placeholder="What kind of work?"
+          placeholder={t("categoryPlaceholder")}
           placeholderTextColor={theme.muted}
           autoCapitalize="none"
         />
@@ -192,7 +194,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
             </Pressable>
           ))}
 
-        <Text style={[styles.fieldLabel, { color: theme.muted }]}>Note</Text>
+        <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('note')}</Text>
         <TextInput
           style={[
             styles.noteInput,
@@ -200,7 +202,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           ]}
           value={note}
           onChangeText={setNote}
-          placeholder="What was this session for?"
+          placeholder={t("notePlaceholder")}
           placeholderTextColor={theme.muted}
           multiline
         />
@@ -211,11 +213,11 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
           disabled={busy}
           onPress={save}>
-          <Text style={[styles.saveText, { color: theme.onAccent }]}>Save</Text>
+          <Text style={[styles.saveText, { color: theme.onAccent }]}>{t('save')}</Text>
         </Pressable>
         <View style={styles.deleteRow}>
           <Pressable onPress={confirmDelete}>
-            <Text style={[styles.deleteText, { color: theme.stop }]}>Delete session</Text>
+            <Text style={[styles.deleteText, { color: theme.stop }]}>{t('delete')}</Text>
           </Pressable>
         </View>
       </ScrollView>

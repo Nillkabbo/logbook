@@ -5,8 +5,9 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { WeekdayPicker } from '@/components/settings-entry';
 import { formatTimeOfDay } from '@/engine/time';
 import { validateBlockTimes, type WorkBlock } from '@/engine/schedule';
-import { WEEKDAY_NAMES, type Weekday } from '@/engine/types';
+import type { Weekday } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
+import { useI18n } from '@/ui/i18n';
 
 const minutesOfDay = (date: Date) => date.getHours() * 60 + date.getMinutes();
 const atMinutes = (minutes: number) =>
@@ -23,6 +24,7 @@ export function ScheduleEditor({
   onRemove: (id: number) => Promise<void>;
 }) {
   const theme = useTheme();
+  const { t, weekdayName } = useI18n();
   const [days, setDays] = useState<Weekday[]>([]);
   const [start, setStart] = useState(() => atMinutes(9 * 60));
   const [end, setEnd] = useState(() => atMinutes(17 * 60));
@@ -41,12 +43,12 @@ export function ScheduleEditor({
 
   const add = async () => {
     if (days.length === 0) {
-      Alert.alert('Pick days', 'Choose at least one weekday for the block.');
+      Alert.alert(t('pickDays'), t('pickDaysBody'));
       return;
     }
     const error = validateBlockTimes(minutesOfDay(start), minutesOfDay(end));
     if (error) {
-      Alert.alert('Check the times', error);
+      Alert.alert(t('checkTimes'), error);
       return;
     }
     setBusy(true);
@@ -62,7 +64,7 @@ export function ScheduleEditor({
     <Pressable
       style={[styles.timeField, { borderColor: theme.border, backgroundColor: theme.surface }]}
       onPress={() => setPicker(field)}>
-      <Text style={[styles.timeLabel, { color: theme.muted }]}>{label}</Text>
+      <Text style={[styles.timeLabel, { color: theme.muted }]}>{field === 'start' ? t('from') : t('to')}</Text>
       <Text style={[styles.timeValue, { color: theme.text }]}>{formatTimeOfDay(value)}</Text>
       {picker === field && <DateTimePicker value={value} mode="time" onChange={onPick(field)} />}
     </Pressable>
@@ -75,12 +77,12 @@ export function ScheduleEditor({
           key={block.id}
           style={[styles.row, { borderColor: theme.border, backgroundColor: theme.surface }]}>
           <Text style={[styles.rowText, { color: theme.text }]}>
-            {block.weekdays.map((d) => WEEKDAY_NAMES[d].slice(0, 3)).join(', ')} ·{' '}
+            {block.weekdays.map((d) => weekdayName(d)).join(', ')} ·{' '}
             {formatTimeOfDay(atMinutes(block.startMinute))}–
             {formatTimeOfDay(atMinutes(block.endMinute))}
           </Text>
           <Pressable onPress={() => onRemove(block.id)}>
-            <Text style={[styles.remove, { color: theme.stop }]}>Remove</Text>
+            <Text style={[styles.remove, { color: theme.stop }]}>{t('remove')}</Text>
           </Pressable>
         </View>
       ))}
@@ -94,10 +96,10 @@ export function ScheduleEditor({
         style={[styles.addButton, { backgroundColor: theme.accent }, busy && styles.disabled]}
         disabled={busy}
         onPress={add}>
-        <Text style={[styles.addText, { color: theme.onAccent }]}>Add block</Text>
+        <Text style={[styles.addText, { color: theme.onAccent }]}>{t('addBlock')}</Text>
       </Pressable>
       <Text style={[styles.hint, { color: theme.muted }]}>
-        Blocks nudge you to check in — they never clock you in automatically.
+        {t('blockHint')}
       </Text>
     </View>
   );

@@ -3,6 +3,8 @@ import { Platform } from 'react-native';
 
 import type { ReminderDecision } from '@/engine/reminders';
 import { blockTriggers, type WorkBlock } from '@/engine/schedule';
+import type { LanguageSetting } from '@/engine/types';
+import { effectiveLanguage, stringsFor } from '@/ui/i18n';
 
 type NotificationsModule = typeof import('expo-notifications');
 
@@ -39,13 +41,9 @@ async function loadNotifications(): Promise<NotificationsModule | null> {
   }
 }
 
-const REMINDER_TITLE = 'Still working?';
-const REMINDER_BODY =
-  'Your session is still running. Check out of LogBook if you have finished for now.';
-const BLOCK_START_TITLE = 'Work block starting';
-const BLOCK_START_BODY = 'A scheduled work block is starting — check in when you begin.';
-const BLOCK_END_TITLE = 'Block over';
-const BLOCK_END_BODY = 'Wrap up if you’re still working.';
+function notificationStrings(language: LanguageSetting) {
+  return stringsFor(effectiveLanguage(language));
+}
 
 export async function initNotificationHandling(): Promise<void> {
   await loadNotifications();
@@ -68,6 +66,7 @@ export interface NotificationState {
   /** The Reminder-lifecycle decision for the current session state; null = no reminder. */
   reminder: ReminderDecision | null;
   blocks: WorkBlock[];
+  language: LanguageSetting;
 }
 
 /**
@@ -84,11 +83,12 @@ export async function syncNotifications(state: NotificationState): Promise<void>
   try {
     await mod.cancelAllScheduledNotificationsAsync();
 
+    const strings = notificationStrings(state.language);
     if (state.reminder?.kind === 'schedule') {
       const granted = await ensurePermission(mod);
       if (granted) {
         await mod.scheduleNotificationAsync({
-          content: { title: REMINDER_TITLE, body: REMINDER_BODY },
+          content: { title: strings.notifReminderTitle, body: strings.notifReminderBody },
           trigger: {
             type: mod.SchedulableTriggerInputTypes.DATE,
             date: state.reminder.fireAt,
@@ -102,8 +102,8 @@ export async function syncNotifications(state: NotificationState): Promise<void>
         await mod.scheduleNotificationAsync({
           content:
             trigger.kind === 'start'
-              ? { title: BLOCK_START_TITLE, body: BLOCK_START_BODY }
-              : { title: BLOCK_END_TITLE, body: BLOCK_END_BODY },
+              ? { title: strings.notifBlockStartTitle, body: strings.notifBlockStartBody }
+              : { title: strings.notifBlockEndTitle, body: strings.notifBlockEndBody },
           trigger: {
             type: mod.SchedulableTriggerInputTypes.CALENDAR,
             hour: trigger.hour,

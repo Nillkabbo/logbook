@@ -6,11 +6,11 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 3, grill session 2026-08-28)
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Engine: parse exported CSV back to sessions (inverse of sessionsToCsv; comma/quote-escaping handled) — TDD incl. malformed rows
-- [ ] Engine: duplicate rule = exact check-in+check-out pair already present — TDD
-- [ ] Settings: Import button → document picker → merge via the store → confirmation alert with counts
-- [ ] Blank-checkout rows skipped and counted; import never breaks a running session
-- [ ] Round-trip test: export → import → zero duplicates imported — TDD
-- [ ] Engine tests green; typecheck clean; bundles export; verified on both phones
+- [x] Engine: parse exported CSV back to sessions (inverse of sessionsToCsv; comma/quote-escaping handled) — TDD incl. malformed rows
+- [x] Engine: duplicate rule = exact check-in+check-out pair already present — TDD
+- [x] Settings: Import button → document picker → merge via the store → confirmation alert with counts
+- [x] Blank-checkout rows skipped and counted; import never breaks a running session
+- [x] Round-trip test: export → import → zero duplicates imported — TDD
+- [x] Engine tests green; typecheck clean; bundles export; verified on both phones

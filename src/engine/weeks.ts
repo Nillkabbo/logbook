@@ -21,8 +21,8 @@ export function weekRange(date: Date, weekStartDay: Weekday): WeekRange {
   return { start, end };
 }
 
-function shortDate(date: Date): string {
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+function shortDate(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 /** Local-day identity key `YYYY-MM-DD` — the Week's storage identity for Off weeks. */
@@ -32,16 +32,21 @@ export function weekKey(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-/** Labels a single day, e.g. "Wed, Aug 26". */
-export function formatDayLabel(date: Date): string {
-  return shortDate(date);
+/** Labels a single day, e.g. "Wed, Aug 26" (or the given locale's equivalent). */
+export function formatDayLabel(date: Date, locale = 'en-US'): string {
+  return shortDate(date, locale);
 }
 
 /** Labels a week by its date range, e.g. "Thu, Aug 21 – Wed, Aug 27" — never a week number. */
-export function weekRangeLabel(range: WeekRange): string {
+export function weekRangeLabel(range: WeekRange, locale = 'en-US'): string {
   const lastDay = new Date(range.end);
   lastDay.setDate(lastDay.getDate() - 1);
-  return `${shortDate(range.start)} – ${shortDate(lastDay)}`;
+  return `${shortDate(range.start, locale)} – ${shortDate(lastDay, locale)}`;
+}
+
+/** Date locale for a language setting; Bangla keeps Latin digits. */
+export function dateLocale(language: string): string {
+  return language === 'bn' ? 'bn-BD-u-nu-latn' : 'en-US';
 }
 
 export interface WeekProgressModel {

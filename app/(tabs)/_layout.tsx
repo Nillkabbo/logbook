@@ -2,9 +2,11 @@ import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
 
 import { useTheme } from '@/theme';
+import { useI18n } from '@/ui/i18n';
 
 export default function TabLayout() {
   const theme = useTheme();
+  const { t } = useI18n();
   return (
     <Tabs
       screenOptions={{
@@ -13,7 +15,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('tabHome'),
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{ ios: 'house', android: 'home', web: 'home' }}
@@ -26,7 +28,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="logs"
         options={{
-          title: 'Logs',
+          title: t('tabLogs'),
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{ ios: 'clock', android: 'schedule', web: 'history' }}
@@ -39,7 +41,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('tabSettings'),
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}

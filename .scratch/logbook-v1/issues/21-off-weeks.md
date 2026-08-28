@@ -6,10 +6,10 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 4, grill session 2026-08-28)
 
 **Blocked by:** None (engine: week models gain an off flag; store/db persist the marked weeks).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Storage for marked weeks (week-start key list); mark/unmark from the Logs week header
-- [ ] Engine: off weeks carry no progress/over-target (TDD: off week models, earnings/totals unaffected)
-- [ ] Home: current off week shows "Off week" instead of the bar
-- [ ] Unmarking restores judgment immediately
-- [ ] Engine tests green; typecheck clean; bundles export; verified on both phones
+- [x] Storage for marked weeks (week-start key list); mark/unmark from the Logs week header
+- [x] Engine: off weeks carry no progress/over-target (TDD: off week models, earnings/totals unaffected)
+- [x] Home: current off week shows "Off week" instead of the bar
+- [x] Unmarking restores judgment immediately
+- [x] Engine tests green; typecheck clean; bundles export; verified on both phones

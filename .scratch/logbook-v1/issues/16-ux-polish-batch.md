@@ -6,11 +6,11 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 3, grill session 2026-08-28)
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Home rows open the session detail sheet (same component and behavior as Logs)
-- [ ] Sheet shows a live duration label while either timestamp picker changes
-- [ ] Delete visually separated from Save; no accidental destructive taps
-- [ ] Friendly first-run empty states on Home and Logs (icon + one guiding line)
-- [ ] Haptics on save, delete, and export success
-- [ ] Engine tests green; typecheck clean; bundles export; verified on both phones
+- [x] Home rows open the session detail sheet (same component and behavior as Logs)
+- [x] Sheet shows a live duration label while either timestamp picker changes
+- [x] Delete visually separated from Save; no accidental destructive taps
+- [x] Friendly first-run empty states on Home and Logs (icon + one guiding line)
+- [x] Haptics on save, delete, and export success
+- [x] Engine tests green; typecheck clean; bundles export; verified on both phones

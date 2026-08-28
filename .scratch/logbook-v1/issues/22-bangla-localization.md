@@ -6,11 +6,11 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 4, grill session 2026-08-28)
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Dictionary module (en + bn) covering every UI string; no stray hardcoded English in components
-- [ ] Dates and weekday names localized via Intl (bn-BD keeps Latin digits for numbers)
-- [ ] Settings language option: System / English / বাংলা, persisted; System follows expo-localization
-- [ ] Notification titles/bodies localized (reminder, block start/end, backup copy if any)
-- [ ] Week/date-range labels remain glossary-accurate in both languages
-- [ ] Engine tests green; typecheck clean; bundles export; verified on both phones
+- [x] Dictionary module (en + bn) covering every UI string; no stray hardcoded English in components
+- [x] Dates and weekday names localized via Intl (bn-BD keeps Latin digits for numbers)
+- [x] Settings language option: System / English / বাংলা, persisted; System follows expo-localization
+- [x] Notification titles/bodies localized (reminder, block start/end, backup copy if any)
+- [x] Week/date-range labels remain glossary-accurate in both languages
+- [x] Engine tests green; typecheck clean; bundles export; verified on both phones

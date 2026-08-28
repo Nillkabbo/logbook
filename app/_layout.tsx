@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { FirstLaunchSetup } from '@/components/FirstLaunchSetup';
-import { LogbookProvider } from '@/hooks/useLogbook';
+import { LogbookProvider, useLogbook } from '@/hooks/useLogbook';
+import { I18nProvider } from '@/ui/i18n';
 import { initNotificationHandling } from '@/notifications/reminders';
 
 export {
@@ -32,11 +33,18 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <LogbookProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
-        <FirstLaunchSetup />
+        <LocalizedApp>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+          <FirstLaunchSetup />
+        </LocalizedApp>
       </LogbookProvider>
     </ThemeProvider>
   );
+}
+
+function LocalizedApp({ children }: { children: React.ReactNode }) {
+  const { settings } = useLogbook();
+  return <I18nProvider languageSetting={settings.language}>{children}</I18nProvider>;
 }

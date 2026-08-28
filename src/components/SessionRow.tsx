@@ -5,17 +5,19 @@ import { sessionDurationSeconds } from '@/engine/sessions';
 import type { Session } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
+import { useI18n } from '@/ui/i18n';
 
 /** One session row as rendered on Home and Logs: time range, duration, optional note. */
 export function SessionRow({ session, now }: { session: Session; now: Date }) {
   const theme = useTheme();
   const hour12 = useHour12();
+  const { t } = useI18n();
   return (
     <View style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <View style={styles.rowMain}>
         <Text style={[styles.rowTimes, { color: theme.text }]}>
           {formatTimeOfDay(session.checkIn, hour12)} –{' '}
-          {session.checkOut ? formatTimeOfDay(session.checkOut, hour12) : 'now'}
+          {session.checkOut ? formatTimeOfDay(session.checkOut, hour12) : t('now')}
         </Text>
         <Text style={[styles.rowDuration, { color: theme.text }]}>
           {formatDuration(sessionDurationSeconds(session, session.checkOut ?? now))}

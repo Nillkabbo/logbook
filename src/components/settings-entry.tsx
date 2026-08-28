@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { WEEKDAY_NAMES, type Weekday } from '@/engine/types';
 import { parseHoursInput } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
+import { useI18n } from '@/ui/i18n';
 
 type HoursValidator = (hours: number) => string | null;
 
@@ -19,6 +20,7 @@ export function WeekdayPicker({
   onChange: (day: Weekday | Weekday[]) => void;
 }) {
   const theme = useTheme();
+  const { weekdayName } = useI18n();
   const isActive = (index: number) =>
     Array.isArray(value) ? value.includes(index as Weekday) : value === index;
   const press = (index: number) => {
@@ -48,7 +50,7 @@ export function WeekdayPicker({
                 { color: active ? theme.onAccent : theme.text },
                 active && styles.pillTextActive,
               ]}>
-              {name}
+              {weekdayName(index)}
             </Text>
           </Pressable>
         );

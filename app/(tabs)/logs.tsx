@@ -7,12 +7,14 @@ import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { weekKey } from '@/engine/weeks';
+import { useI18n } from '@/ui/i18n';
 import { logsModel } from '@/engine/logs';
 import type { Session } from '@/engine/types';
 import { useTheme } from '@/theme';
 
 export default function LogsScreen() {
   const theme = useTheme();
+  const { t } = useI18n();
   const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings } =
     useLogbook();
 
@@ -46,7 +48,7 @@ export default function LogsScreen() {
           <Pressable
             style={[styles.filterChip, categoryFilter === null && { backgroundColor: theme.accent, borderColor: theme.accent }]}
             onPress={() => setCategoryFilter(null)}>
-            <Text style={[styles.filterText, { color: categoryFilter === null ? theme.onAccent : theme.text }]}>All</Text>
+            <Text style={[styles.filterText, { color: categoryFilter === null ? theme.onAccent : theme.text }]}>{t('all')}</Text>
           </Pressable>
           {categorySuggestions.map((chip) => {
             const active = categoryFilter === chip;
@@ -62,7 +64,7 @@ export default function LogsScreen() {
         </View>
       )}
       {weeks.length === 0 && (
-        <Text style={[styles.empty, { color: theme.muted }]}>No sessions yet — your history builds here.</Text>
+        <Text style={[styles.empty, { color: theme.muted }]}>{t('emptyLogs')}</Text>
       )}
       {weeks.map((week) => (
         <View key={week.key} style={styles.week}>
@@ -71,7 +73,7 @@ export default function LogsScreen() {
               <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
               <Pressable onPress={() => toggleOff(week.key)}>
                 <Text style={[styles.offToggle, { color: theme.muted }]}>
-                  {week.off ? 'Mark on' : 'Mark off'}
+                  {week.off ? t('markOn') : t('markOff')}
                 </Text>
               </Pressable>
             </View>
@@ -79,7 +81,7 @@ export default function LogsScreen() {
               <View style={styles.offRow}>
                 <Text style={[styles.offTotal, { color: theme.text }]}>{week.totalLabel}</Text>
                 <View style={[styles.offBadge, { borderColor: theme.accent }]}>
-                  <Text style={[styles.offBadgeText, { color: theme.accent }]}>Off week</Text>
+                  <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
                 </View>
               </View>
             ) : (
@@ -113,7 +115,7 @@ export default function LogsScreen() {
                 {week.categoryBreakdown.map((entry) => (
                   <View key={entry.label || '__none__'} style={styles.breakdownRow}>
                     <Text style={[styles.breakdownLabel, { color: theme.muted }]}>
-                      {entry.label || 'Uncategorised'}
+                      {entry.label || t('uncategorised')}
                     </Text>
                     <Text style={[styles.breakdownTotal, { color: theme.text }]}>
                       {entry.totalLabel}

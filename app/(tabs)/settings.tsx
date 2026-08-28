@@ -1,6 +1,6 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
@@ -14,10 +14,12 @@ import {
   validateWeeklyTarget,
 } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
+import { useI18n, type LanguageSetting } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
   const theme = useTheme();
+  const { t } = useI18n();
   const { refresh, settings, saveSettings, exportBackup, importCsv, blocks, addBlock, removeBlock } =
     useLogbook();
   const [exporting, setExporting] = useState(false);
@@ -68,14 +70,14 @@ export default function SettingsScreen() {
       const result = await importCsv(csv);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       Alert.alert(
-        'Import complete',
+        t('importComplete'),
         `Imported ${result.toImport.length} session${result.toImport.length === 1 ? '' : 's'}.` +
           ` Skipped ${result.duplicates} duplicate${result.duplicates === 1 ? '' : 's'}` +
           `, ${result.skippedRunning} running` +
           `, ${result.malformed} malformed.`,
       );
     } catch (error) {
-      Alert.alert('Import failed', String(error));
+      Alert.alert(t('importFailed'), String(error));
     } finally {
       setImporting(false);
     }
@@ -90,10 +92,10 @@ export default function SettingsScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       }
       if (!shared) {
-        Alert.alert('Export unavailable', 'Sharing is not available on this device.');
+        Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
       }
     } catch (error) {
-      Alert.alert('Export failed', String(error));
+      Alert.alert(t('exportFailed'), String(error));
     } finally {
       setExporting(false);
     }
@@ -103,13 +105,13 @@ export default function SettingsScreen() {
     <ScrollView
       style={{ backgroundColor: theme.subtle }}
       contentContainerStyle={styles.container}>
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Week starts on</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('weekStartsOn')}</Text>
       <WeekdayPicker
         value={settings.weekStartDay}
         onChange={useCallback((day: Weekday | Weekday[]) => saveSettings({ weekStartDay: day as Weekday }), [saveSettings])}
       />
 
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Weekly target (hours)</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('weeklyTarget')}</Text>
       <TextInput
         style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
         value={target.value}
@@ -120,7 +122,7 @@ export default function SettingsScreen() {
       />
       {target.error && <Text style={[styles.error, { color: theme.stop }]}>{target.error}</Text>}
 
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Reminder threshold (hours, 1–16)</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('reminderThreshold')}</Text>
       <TextInput
         style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
         value={threshold.value}
@@ -130,9 +132,9 @@ export default function SettingsScreen() {
         placeholderTextColor={theme.muted}
       />
       {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{threshold.error}</Text>}
-      <Text style={[styles.hint, { color: theme.muted }]}>Applies to your next check-in.</Text>
+      <Text style={[styles.hint, { color: theme.muted }]}>{t('reminderHint')}</Text>
 
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Hourly rate ($, optional)</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('hourlyRate')}</Text>
       <TextInput
         style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
         value={rate.value}
@@ -144,28 +146,51 @@ export default function SettingsScreen() {
       />
       {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{rate.error}</Text>}
       <Text style={[styles.hint, { color: theme.muted }]}>
-        When set, weeks show their earnings. Empty hides them.
+        {t('rateHint')}
       </Text>
 
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Schedule</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('schedule')}</Text>
       <ScheduleEditor blocks={blocks} onAdd={addBlock} onRemove={removeBlock} />
 
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Export</Text>
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('language')}</Text>
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        {(['system', 'en', 'bn'] as LanguageSetting[]).map((option) => {
+          const active = settings.language === option;
+          const label = option === 'system' ? t('system') : option === 'en' ? 'English' : 'বাংলা';
+          return (
+            <Pressable
+              key={option}
+              onPress={() => saveSettings({ language: option })}
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+                borderRadius: 18,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: active ? theme.accent : theme.border,
+                backgroundColor: active ? theme.accent : 'transparent',
+              }}>
+              <Text style={{ fontSize: 14, color: active ? theme.onAccent : theme.text }}>{label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('exportSection')}</Text>
       <Pressable
         style={[styles.exportButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
         disabled={exporting}
         onPress={exportCsv}>
-        <Text style={[styles.exportText, { color: theme.onAccent }]}>Export all sessions (CSV)</Text>
+        <Text style={[styles.exportText, { color: theme.onAccent }]}>{t('exportAll')}</Text>
       </Pressable>
-      <Text style={[styles.hint, { color: theme.muted }]}>One row per session via the share sheet.</Text>
+      <Text style={[styles.hint, { color: theme.muted }]}>{t('exportHint')}</Text>
       <Pressable
         style={[styles.exportButton, { borderColor: theme.accent, borderWidth: 1 }, importing && styles.buttonDisabled]}
         disabled={importing}
         onPress={importFromCsv}>
-        <Text style={[styles.exportText, { color: theme.accent }]}>Import backup (CSV)</Text>
+        <Text style={[styles.exportText, { color: theme.accent }]}>{t('importBackup')}</Text>
       </Pressable>
       <Text style={[styles.hint, { color: theme.muted }]}>
-        Merges a previous export — duplicates and running rows are skipped.
+        {t('importHint')}
       </Text>
     </ScrollView>
   );

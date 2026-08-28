@@ -6,9 +6,9 @@ Parent spec: `.scratch/logbook-v1/spec.md` (phase 3, grill session 2026-08-28)
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] formatTimeOfDay(date, hour12?) — TDD: 24h as today, 12h with AM/PM, zero-padding rules
-- [ ] expo-localization provides the device preference; screens, sheet, and next-block line use it
-- [ ] CSV output unchanged (24h) — regression-tested
-- [ ] Engine tests green; typecheck clean; bundles export; verified on both phones
+- [x] formatTimeOfDay(date, hour12?) — TDD: 24h as today, 12h with AM/PM, zero-padding rules
+- [x] expo-localization provides the device preference; screens, sheet, and next-block line use it
+- [x] CSV output unchanged (24h) — regression-tested
+- [x] Engine tests green; typecheck clean; bundles export; verified on both phones

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { weekProgress, weekRange, weekRangeLabel } from './weeks';
+import { dateLocale, formatDayLabel, weekProgress, weekRange, weekRangeLabel } from './weeks';
 
 const at = (y: number, mo: number, d: number, h = 0, mi = 0, s = 0) => new Date(y, mo, d, h, mi, s);
 
@@ -91,5 +91,11 @@ describe('weekProgress', () => {
 
   it('exactly at target is not over-target', () => {
     expect(weekProgress(7200, 7200).overTarget).toBe(false);
+  });
+
+  it('date labels honor a passed locale; dateLocale maps languages', () => {
+    expect(formatDayLabel(at(2026, 7, 27), 'fr-FR')).toBe('jeu. 27 août');
+    expect(dateLocale('bn')).toBe('bn-BD-u-nu-latn');
+    expect(dateLocale('system')).toBe('en-US');
   });
 });

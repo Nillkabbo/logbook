@@ -6,6 +6,7 @@ import { useLogbook } from '@/hooks/useLogbook';
 import { validateWeeklyTarget } from '@/engine/validation';
 import type { Weekday } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
+import { useI18n } from '@/ui/i18n';
 
 /**
  * One-time setup shown on first launch: week-start day + weekly target.
@@ -13,6 +14,7 @@ import { RADIUS, useTheme } from '@/theme';
  */
 export function FirstLaunchSetup() {
   const theme = useTheme();
+  const { t } = useI18n();
   const { ready, settings, saveSettings } = useLogbook();
   const [weekStartDay, setWeekStartDay] = useState<Weekday>(0);
   const target = useValidatedHours('40', validateWeeklyTarget);
@@ -41,15 +43,15 @@ export function FirstLaunchSetup() {
       <ScrollView
         style={{ backgroundColor: theme.subtle }}
         contentContainerStyle={styles.container}>
-        <Text style={[styles.title, { color: theme.text }]}>Welcome to LogBook</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('welcome')}</Text>
         <Text style={[styles.intro, { color: theme.muted }]}>
-          Two quick choices — you can change both later in Settings, or skip for now.
+          {t('welcomeIntro')}
         </Text>
 
-        <Text style={[styles.label, { color: theme.muted }]}>When does your week start?</Text>
+        <Text style={[styles.label, { color: theme.muted }]}>{t('weekStartQ')}</Text>
         <WeekdayPicker value={weekStartDay} onChange={(day) => setWeekStartDay(day as Weekday)} />
 
-        <Text style={[styles.label, { color: theme.muted }]}>Weekly target (hours)</Text>
+        <Text style={[styles.label, { color: theme.muted }]}>{t('weeklyTarget')}</Text>
         <TextInput
           style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
           value={target.value}
@@ -68,7 +70,7 @@ export function FirstLaunchSetup() {
         </Pressable>
         <Pressable disabled={busy} onPress={() => finish({})}>
           <Text style={[styles.skipText, { color: theme.accent }]}>
-            Skip — use defaults (Sunday, 40h)
+            {t('skipSetup')}
           </Text>
         </Pressable>
       </ScrollView>

@@ -100,7 +100,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     const reminder = running
       ? reminderDecision({ type: 'checked-in', checkIn: running.checkIn }, settings, new Date())
       : null;
-    syncNotifications({ reminder, blocks });
+    syncNotifications({ reminder, blocks, language: settings.language });
   }, [ready, running, settings, blocks]);
 
   const checkIn = useCallback(async () => {
@@ -110,7 +110,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     // Sync after refresh: the OS permission prompt must never delay the
     // button/timer flipping to the running state.
     const reminder = reminderDecision({ type: 'checked-in', checkIn: checkInAt }, settings, new Date());
-    await syncNotifications({ reminder, blocks });
+    await syncNotifications({ reminder, blocks, language: settings.language });
   }, [refresh, settings, blocks]);
 
   const checkOut = useCallback(async () => {
@@ -118,7 +118,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     await completeSession(running.id, new Date());
     await refresh();
     const reminder = reminderDecision({ type: 'checked-out' }, settings, new Date());
-    await syncNotifications({ reminder, blocks });
+    await syncNotifications({ reminder, blocks, language: settings.language });
   }, [running, refresh, settings, blocks]);
 
   const saveSession = useCallback(
@@ -128,7 +128,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       await updateSessionInDb(id, patch);
       await refresh();
       const reminder = reminderDecision(editEvent(target, patch), settings, new Date());
-      await syncNotifications({ reminder, blocks });
+      await syncNotifications({ reminder, blocks, language: settings.language });
     },
     [sessions, refresh, settings, blocks],
   );
@@ -140,7 +140,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       await deleteSessionInDb(id);
       await refresh();
       const reminder = reminderDecision(deleteEvent(target), settings, new Date());
-      await syncNotifications({ reminder, blocks });
+      await syncNotifications({ reminder, blocks, language: settings.language });
     },
     [sessions, refresh, settings, blocks],
   );
@@ -173,7 +173,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     async (weekdays: Weekday[], startMinute: number, endMinute: number) => {
       await insertBlock(weekdays, startMinute, endMinute);
       await refresh();
-      await syncNotifications({ reminder: currentReminder(), blocks: await listBlocks() });
+      await syncNotifications({ reminder: currentReminder(), blocks: await listBlocks(), language: settings.language });
     },
     [refresh, currentReminder],
   );
@@ -194,7 +194,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     async (id: number) => {
       await deleteBlockInDb(id);
       await refresh();
-      await syncNotifications({ reminder: currentReminder(), blocks: await listBlocks() });
+      await syncNotifications({ reminder: currentReminder(), blocks: await listBlocks(), language: settings.language });
     },
     [refresh, currentReminder],
   );

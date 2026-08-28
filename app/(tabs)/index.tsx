@@ -14,6 +14,7 @@ import { formatTimeOfDay } from '@/engine/time';
 import { formatDayLabel } from '@/engine/weeks';
 import { isBackupDue } from '@/engine/backup';
 import { useHour12 } from '@/ui/clock';
+import { useI18n } from '@/ui/i18n';
 import type { Session } from '@/engine/types';
 import { blockOccurring, nextBlockOccurrence } from '@/engine/schedule';
 import { RADIUS, TYPE, useTheme } from '@/theme';
@@ -21,6 +22,7 @@ import { RADIUS, TYPE, useTheme } from '@/theme';
 export default function HomeScreen() {
   const theme = useTheme();
   const hour12 = useHour12();
+  const { t, locale } = useI18n();
   const { refresh, checkIn, checkOut, sessions, settings, now, exportBackup, blocks,
     saveSession, removeSession } = useLogbook();
   const [selected, setSelected] = useState<Session | null>(null);
@@ -114,14 +116,14 @@ export default function HomeScreen() {
 
       <View style={styles.totals}>
         <View style={styles.totalItem}>
-          <Text style={[styles.totalLabel, { color: theme.muted }]}>Today</Text>
+          <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('today')}</Text>
           <Text style={[styles.totalValue, { color: theme.text }]}>{model.todayTotalLabel}</Text>
         </View>
         <View style={[styles.totalItem, styles.weekItem]}>
-          <Text style={[styles.totalLabel, { color: theme.muted }]}>This week</Text>
+          <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('thisWeek')}</Text>
           {model.off ? (
             <View style={[styles.offBadge, { borderColor: theme.accent }]}>
-              <Text style={[styles.offBadgeText, { color: theme.accent }]}>Off week</Text>
+              <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
             </View>
           ) : (
             <WeekProgress
@@ -146,17 +148,17 @@ export default function HomeScreen() {
             { backgroundColor: theme.surface, borderColor: theme.accent },
           ]}>
           <Text style={[styles.backupText, { color: theme.text }]}>
-            Back up your log — the last export was over a month ago (or never).
+            {t('backupTitle')}
           </Text>
           <View style={styles.backupActions}>
             <Pressable
               style={[styles.backupButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
               disabled={exporting}
               onPress={runBackup}>
-              <Text style={[styles.backupButtonText, { color: theme.onAccent }]}>Export now</Text>
+              <Text style={[styles.backupButtonText, { color: theme.onAccent }]}>{t('exportNow')}</Text>
             </Pressable>
             <Pressable onPress={() => setBackupDismissed(true)}>
-              <Text style={[styles.backupDismiss, { color: theme.muted }]}>Dismiss</Text>
+              <Text style={[styles.backupDismiss, { color: theme.muted }]}>{t('dismiss')}</Text>
             </Pressable>
           </View>
         </View>
@@ -166,19 +168,19 @@ export default function HomeScreen() {
         <View
           style={[styles.blockBanner, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
           <Text style={[styles.backupText, { color: theme.text }]}>
-            Work block in progress — checked in yet?
+            {t('blockInProgress')}
           </Text>
           <Pressable
             style={[styles.backupButton, { backgroundColor: theme.accent }]}
             disabled={busy}
             onPress={onToggle}>
-            <Text style={[styles.backupButtonText, { color: theme.onAccent }]}>Check in</Text>
+            <Text style={[styles.backupButtonText, { color: theme.onAccent }]}>{t('checkIn')}</Text>
           </Pressable>
         </View>
       )}
       {nextBlock && (
         <Text style={[styles.nextBlock, { color: theme.muted }]}>
-          Next block: {formatDayLabel(nextBlock.startsAt)}, {formatTimeOfDay(nextBlock.startsAt, hour12)}
+          {t('nextBlock')}: {formatDayLabel(nextBlock.startsAt, locale)}, {formatTimeOfDay(nextBlock.startsAt, hour12)}
         </Text>
       )}
 
@@ -194,7 +196,7 @@ export default function HomeScreen() {
         ))}
         {model.todaySessions.length === 0 && (
           <Text style={[styles.empty, { color: theme.muted }]}>
-            Nothing logged yet today.{'\n'}Tap Check in when you start working.
+{t('emptyHome')}
           </Text>
         )}
       </ScrollView>

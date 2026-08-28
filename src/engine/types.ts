@@ -13,6 +13,9 @@ export interface Session {
 /** 0 = Sunday … 6 = Saturday, matching `Date.prototype.getDay()`. */
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+/** UI language: follow the device, or fixed English/Bangla. */
+export type LanguageSetting = 'system' | 'en' | 'bn';
+
 export const WEEKDAY_NAMES = [
   'Sunday',
   'Monday',
@@ -33,6 +36,8 @@ export interface Settings {
   lastExportAt: number | null;
   /** Week-start keys (YYYY-MM-DD) marked as Off weeks — target judgment suspended. */
   offWeeks: string[];
+  /** UI language; 'system' follows the device. */
+  language: LanguageSetting;
   setupCompleted: boolean;
 }
 
@@ -43,6 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   hourlyRate: 0,
   lastExportAt: null,
   offWeeks: [],
+  language: 'system',
   setupCompleted: false,
 };
 

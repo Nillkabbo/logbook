@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '@/theme';
+import { useI18n } from '@/ui/i18n';
 
 /**
  * The app's signature control: emerald→teal gradient when idle, solid red while
@@ -20,6 +21,7 @@ export function CheckInToggle({
   onPress: () => void;
 }) {
   const theme = useTheme();
+  const { t } = useI18n();
   const scale = useRef(new Animated.Value(1)).current;
   const breath = useRef(new Animated.Value(0)).current;
 
@@ -84,13 +86,13 @@ export function CheckInToggle({
           disabled={disabled}>
           {running ? (
             <View style={[styles.circle, { backgroundColor: theme.stop }]}>
-              <Text style={[styles.label, { color: theme.onAccent }]}>Check out</Text>
+              <Text style={[styles.label, { color: theme.onAccent }]}>{t('checkOut')}</Text>
             </View>
           ) : (
             <LinearGradient
               colors={[theme.accent, theme.accentAlt]}
               style={styles.circle}>
-              <Text style={[styles.label, { color: theme.onAccent }]}>Check in</Text>
+              <Text style={[styles.label, { color: theme.onAccent }]}>{t('checkIn')}</Text>
             </LinearGradient>
           )}
         </Pressable>

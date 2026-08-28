@@ -2,7 +2,7 @@ import { formatDuration } from './time';
 import { formatMoney } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
-import { formatDayLabel, weekKey, weekProgress, weekRange, weekRangeLabel, type WeekRange } from './weeks';
+import { dateLocale, formatDayLabel, weekKey, weekProgress, weekRange, weekRangeLabel, type WeekRange } from './weeks';
 
 export interface LogDay {
   /** Local-day identity for list keys: `YYYY-MM-DD`. */
@@ -69,6 +69,7 @@ export function logsModel(
   category?: string,
 ): LogWeek[] {
   const effective = category === undefined ? sessions : sessions.filter((s) => s.category === category);
+  const locale = dateLocale(settings.language);
   const byWeek = new Map<number, { range: WeekRange; sessions: Session[] }>();
   for (const session of effective) {
     const range = weekRange(session.checkIn, settings.weekStartDay);
@@ -123,7 +124,7 @@ export function logsModel(
         const dayTotal = sumCompletedSessions(daySessions);
         return {
           key: localDayKey(date),
-          label: formatDayLabel(date),
+          label: formatDayLabel(date, locale),
           sessions: daySessions,
           totalLabel: formatDuration(dayTotal),
         };
@@ -151,7 +152,7 @@ export function logsModel(
 
     return {
       key: localDayKey(range.start),
-      label: weekRangeLabel(range),
+      label: weekRangeLabel(range, locale),
       range,
       days,
       dayBars,
