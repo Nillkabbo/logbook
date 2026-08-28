@@ -1,7 +1,7 @@
 import { formatDuration, formatElapsed } from './time';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
-import { weekRange } from './weeks';
+import { weekProgress, weekRange } from './weeks';
 
 export interface HomeModel {
   running: Session | null;
@@ -9,12 +9,9 @@ export interface HomeModel {
   elapsedLabel: string | null;
   /** Sessions owned by today (check-in day), oldest first — a running session is included. */
   todaySessions: Session[];
-  todayTotalSeconds: number;
   todayTotalLabel: string;
   /** Completed sessions owned by the current week (check-in day ownership), running excluded. */
-  weekToDateSeconds: number;
   weekToDateLabel: string;
-  weeklyTargetSeconds: number;
   weeklyTargetLabel: string;
   /** Fraction of target reached; exceeds 1 in an over-target week. */
   weekProgress: number;
@@ -50,19 +47,17 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
     ),
   );
   const weeklyTargetSeconds = Math.round(settings.weeklyTargetHours * 3600);
+  const progress = weekProgress(weekToDateSeconds, weeklyTargetSeconds);
 
   return {
     running,
     elapsedSeconds,
     elapsedLabel: elapsedSeconds === null ? null : formatElapsed(elapsedSeconds),
     todaySessions,
-    todayTotalSeconds,
     todayTotalLabel: formatDuration(todayTotalSeconds),
-    weekToDateSeconds,
     weekToDateLabel: formatDuration(weekToDateSeconds),
-    weeklyTargetSeconds,
     weeklyTargetLabel: formatDuration(weeklyTargetSeconds),
-    weekProgress: weeklyTargetSeconds === 0 ? 0 : weekToDateSeconds / weeklyTargetSeconds,
-    overTarget: weekToDateSeconds > weeklyTargetSeconds,
+    weekProgress: progress.progress,
+    overTarget: progress.overTarget,
   };
 }

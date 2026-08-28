@@ -36,3 +36,17 @@ export function weekRangeLabel(range: WeekRange): string {
   lastDay.setDate(lastDay.getDate() - 1);
   return `${shortDate(range.start)} – ${shortDate(lastDay)}`;
 }
+
+export interface WeekProgressModel {
+  /** Fraction of target reached; exceeds 1 in an over-target week. Zero target → 0. */
+  progress: number;
+  overTarget: boolean;
+}
+
+/** The Over-target rule, computed in one place for every week display. */
+export function weekProgress(totalSeconds: number, targetSeconds: number): WeekProgressModel {
+  return {
+    progress: targetSeconds === 0 ? 0 : totalSeconds / targetSeconds,
+    overTarget: totalSeconds > targetSeconds,
+  };
+}

@@ -1,7 +1,7 @@
 import { formatDuration } from './time';
 import { sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
-import { formatDayLabel, weekRange, weekRangeLabel, type WeekRange } from './weeks';
+import { formatDayLabel, weekProgress, weekRange, weekRangeLabel, type WeekRange } from './weeks';
 
 export interface LogDay {
   /** Local-day identity for list keys: `YYYY-MM-DD`. */
@@ -9,7 +9,6 @@ export interface LogDay {
   label: string;
   /** Sessions owned by this day (check-in day), oldest first. A running session is included. */
   sessions: Session[];
-  totalSeconds: number;
   totalLabel: string;
 }
 
@@ -19,9 +18,7 @@ export interface LogWeek {
   label: string;
   range: WeekRange;
   days: LogDay[];
-  totalSeconds: number;
   totalLabel: string;
-  targetSeconds: number;
   targetLabel: string;
   progress: number;
   overTarget: boolean;
@@ -59,6 +56,7 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
 
   return weeks.map(({ range, sessions }) => {
     const totalSeconds = sumCompletedSessions(sessions);
+    const progress = weekProgress(totalSeconds, targetSeconds);
 
     const byDay = new Map<number, { date: Date; sessions: Session[] }>();
     for (const session of sessions) {
@@ -77,7 +75,6 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
           key: localDayKey(date),
           label: formatDayLabel(date),
           sessions: daySessions,
-          totalSeconds: dayTotal,
           totalLabel: formatDuration(dayTotal),
         };
       });
@@ -87,12 +84,10 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
       label: weekRangeLabel(range),
       range,
       days,
-      totalSeconds,
       totalLabel: formatDuration(totalSeconds),
-      targetSeconds,
       targetLabel: formatDuration(targetSeconds),
-      progress: targetSeconds === 0 ? 0 : totalSeconds / targetSeconds,
-      overTarget: totalSeconds > targetSeconds,
+      progress: progress.progress,
+      overTarget: progress.overTarget,
     };
   });
 }

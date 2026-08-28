@@ -35,10 +35,8 @@ describe('logsModel', () => {
 
   it('week totals count completed sessions only, against the target with progress', () => {
     const weeks = logsModel([tue, wed, overnight, early, late, running], THURSDAY);
-    expect(weeks[0].totalSeconds).toBe(2700 + 5400); // running excluded
-    expect(weeks[0].totalLabel).toBe('2:15');
-    expect(weeks[1].totalSeconds).toBe(7200 + 7200 + 7200); // midnight-crossing owned by week B
-    expect(weeks[1].totalLabel).toBe('6:00');
+    expect(weeks[0].totalLabel).toBe('2:15'); // running excluded
+    expect(weeks[1].totalLabel).toBe('6:00'); // midnight-crossing owned by week B
     expect(weeks[0].targetLabel).toBe('40:00');
     expect(weeks[0].progress).toBeCloseTo(8100 / 144000, 5);
     expect(weeks[0].overTarget).toBe(false);

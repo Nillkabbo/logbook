@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { weekRange, weekRangeLabel } from './weeks';
+import { weekProgress, weekRange, weekRangeLabel } from './weeks';
 
 const at = (y: number, mo: number, d: number, h = 0, mi = 0, s = 0) => new Date(y, mo, d, h, mi, s);
 
@@ -68,5 +68,28 @@ describe('weekRangeLabel', () => {
   it('labels roll over month and year boundaries correctly', () => {
     // Dec 29 2026 is a Tuesday; Sunday-start week Dec 27 – Jan 2 2027
     expect(weekRangeLabel(weekRange(at(2026, 11, 29), 0))).toBe('Sun, Dec 27 – Sat, Jan 2');
+  });
+});
+
+describe('weekProgress', () => {
+  it('returns the fraction of target reached, under target', () => {
+    // 2:15 of 40h = 8100 / 144000
+    expect(weekProgress(8100, 144000)).toEqual({ progress: 8100 / 144000, overTarget: false });
+  });
+
+  it('flags over-target and lets progress exceed 1', () => {
+    const { progress, overTarget } = weekProgress(9000, 7200);
+    expect(overTarget).toBe(true);
+    expect(progress).toBeGreaterThan(1);
+  });
+
+  it('zero target is defined: progress 0 (no NaN), any total counts as over-target', () => {
+    // Unreachable through validation (target must be positive) — pinned so the
+    // helper's contract stays total > target, preserving prior behavior.
+    expect(weekProgress(8100, 0)).toEqual({ progress: 0, overTarget: true });
+  });
+
+  it('exactly at target is not over-target', () => {
+    expect(weekProgress(7200, 7200).overTarget).toBe(false);
   });
 });
