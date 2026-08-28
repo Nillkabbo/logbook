@@ -33,3 +33,10 @@ export function formatTimeOfDay(date: Date, hour12 = false): string {
   const twelve = twentyFour % 12 === 0 ? 12 : twentyFour % 12;
   return `${twelve}:${minutes} ${meridiem}`;
 }
+
+/** A field-style stamp: `Wed, Aug 27, 2:47 PM`. */
+export function formatDateTime(date: Date, locale: string, hour12 = false): string {
+  const weekday = date.toLocaleDateString(locale, { weekday: 'short' });
+  const day = date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+  return `${weekday}, ${day}, ${formatTimeOfDay(date, hour12)}`;
+}

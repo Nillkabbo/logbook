@@ -1,4 +1,3 @@
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import {
@@ -16,8 +15,8 @@ import {
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { formatDayLabel } from '@/engine/weeks';
-import { formatDuration, formatTimeOfDay } from '@/engine/time';
+import { DateTimeField } from '@/components/DateTimeField';
+import { formatDuration } from '@/engine/time';
 import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
@@ -33,9 +32,6 @@ interface Props {
   onClose: () => void;
 }
 
-const formatDateTime = (date: Date, hour12: boolean) =>
-  `${formatDayLabel(date)}, ${formatTimeOfDay(date, hour12)}`;
-
 export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
@@ -45,7 +41,6 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   const [checkOut, setCheckOut] = useState(session.checkOut);
   const [note, setNote] = useState(session.note);
   const [category, setCategory] = useState(session.category);
-  const [picker, setPicker] = useState<'in' | 'out' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -55,18 +50,9 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
     setNote(session.note);
     setCategory(session.category);
     setError(null);
-    setPicker(null);
   }, [session]);
 
   const running = checkOut === null;
-
-  const applyPicker = (field: 'in' | 'out', selected?: Date) => {
-    if (selected) {
-      if (field === 'in') setCheckIn(selected);
-      else setCheckOut(selected);
-    }
-    if (Platform.OS === 'android') setPicker(null);
-  };
 
   const save = async () => {
     const validationError = validateSessionTimes(checkIn, checkOut, new Date());
@@ -99,57 +85,19 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
     ]);
   };
 
-  const renderField = (field: 'in' | 'out') => {
-    const value = field === 'in' ? checkIn : checkOut;
-    const disabled = field === 'out' && running;
-    const label = field === 'in' ? t('checkInLabel') : t('checkOutLabel');
-
-    const labelRow = (
-      <Text style={[styles.fieldLabel, { color: theme.muted }, disabled && styles.fieldDisabled]}>
-        {label}
+  const renderField = (field: 'in' | 'out') => (
+    <View style={styles.fieldGroup}>
+      <Text style={[styles.fieldLabel, { color: theme.muted }, field === 'out' && running && styles.fieldDisabled]}>
+        {field === 'in' ? t('checkInLabel') : t('checkOutLabel')}
       </Text>
-    );
-    const onPick =
-      (_event: DateTimePickerEvent, selected?: Date): void => applyPicker(field, selected);
-
-    if (Platform.OS === 'ios') {
-      // iOS: the compact picker is the control itself; a running session has no checkout to edit.
-      return disabled ? (
-        <View style={styles.fieldGroup}>
-          {labelRow}
-          <Text style={[styles.fieldValue, { color: theme.text }]}>—</Text>
-        </View>
-      ) : (
-        <View style={styles.fieldGroup}>
-          {labelRow}
-          <DateTimePicker value={value ?? checkIn} mode="datetime" onChange={onPick} />
-        </View>
-      );
-    }
-
-    // Android: the picker is a dialog opened from a tappable field.
-    return (
-      <View style={styles.fieldGroup}>
-        {labelRow}
-        <Pressable
-          style={[
-            styles.field,
-            { backgroundColor: theme.surface },
-            theme.cardShadow,
-            disabled && styles.fieldDisabled,
-          ]}
-          disabled={disabled}
-          onPress={() => setPicker(picker === field ? null : field)}>
-          <Text style={[styles.fieldValue, { color: theme.text }]}>
-            {value ? formatDateTime(value, hour12) : '—'}
-          </Text>
-        </Pressable>
-        {picker === field && value && (
-          <DateTimePicker value={value} mode="datetime" onChange={onPick} />
-        )}
-      </View>
-    );
-  };
+      <DateTimeField
+        label={field === 'in' ? t('checkInLabel') : t('checkOutLabel')}
+        value={field === 'in' ? checkIn : checkOut}
+        onChange={(date) => (field === 'in' ? setCheckIn(date) : setCheckOut(date))}
+        disabled={field === 'out' && running}
+      />
+    </View>
+  );
 
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>

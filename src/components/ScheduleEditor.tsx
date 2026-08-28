@@ -1,14 +1,13 @@
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { DateTimeField } from '@/components/DateTimeField';
 import { WeekdayPicker } from '@/components/settings-entry';
-import { formatTimeOfDay } from '@/engine/time';
+import { useHour12 } from '@/ui/clock';
 import { blockRangeLabel, validateBlockTimes, type WorkBlock } from '@/engine/schedule';
 import type { Weekday } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
 import { useI18n, type StringKey } from '@/ui/i18n';
-import { useHour12 } from '@/ui/clock';
 
 const minutesOfDay = (date: Date) => date.getHours() * 60 + date.getMinutes();
 const atMinutes = (minutes: number) =>
@@ -30,18 +29,7 @@ export function ScheduleEditor({
   const [days, setDays] = useState<Weekday[]>([]);
   const [start, setStart] = useState(() => atMinutes(9 * 60));
   const [end, setEnd] = useState(() => atMinutes(17 * 60));
-  const [picker, setPicker] = useState<'start' | 'end' | null>(null);
   const [busy, setBusy] = useState(false);
-
-  const onPick =
-    (field: 'start' | 'end') =>
-    (_event: DateTimePickerEvent, selected?: Date): void => {
-      if (selected) {
-        if (field === 'start') setStart(selected);
-        else setEnd(selected);
-      }
-      setPicker(null);
-    };
 
   const add = async () => {
     if (days.length === 0) {
@@ -62,14 +50,14 @@ export function ScheduleEditor({
     }
   };
 
-  const timeField = (field: 'start' | 'end', label: string, value: Date) => (
-    <Pressable
-      style={[styles.timeField, { backgroundColor: theme.inset }]}
-      onPress={() => setPicker(field)}>
-      <Text style={[styles.timeLabel, { color: theme.muted }]}>{field === 'start' ? t('from') : t('to')}</Text>
-      <Text style={[styles.timeValue, { color: theme.text }]}>{formatTimeOfDay(value, hour12)}</Text>
-      {picker === field && <DateTimePicker value={value} mode="time" onChange={onPick(field)} />}
-    </Pressable>
+  const timeField = (field: 'start' | 'end', value: Date, setValue: (d: Date) => void) => (
+    <DateTimeField
+      label={field === 'start' ? t('from') : t('to')}
+      value={value}
+      onChange={setValue}
+      mode="time"
+      variant="inset"
+    />
   );
 
   return (
@@ -90,8 +78,8 @@ export function ScheduleEditor({
       <View style={[styles.formCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
         <WeekdayPicker variant="segmented" value={days} onChange={(next) => setDays(next as Weekday[])} />
         <View style={styles.timeRow}>
-          {timeField('start', 'From', start)}
-          {timeField('end', 'To', end)}
+          {timeField('start', start, setStart)}
+          {timeField('end', end, setEnd)}
         </View>
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
@@ -136,21 +124,6 @@ const styles = StyleSheet.create({
   timeRow: {
     flexDirection: 'row',
     gap: 16,
-  },
-  timeField: {
-    flex: 1,
-    borderRadius: RADIUS.control,
-    padding: 12,
-    gap: 4,
-  },
-  timeLabel: {
-    fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  timeValue: {
-    fontSize: 16,
-    fontVariant: ['tabular-nums'],
   },
   addButton: {
     borderRadius: 16,

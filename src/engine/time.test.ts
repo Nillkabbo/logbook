@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDuration, formatElapsed, formatTimeOfDay } from './time';
+import { formatDateTime, formatDuration, formatElapsed, formatTimeOfDay,
+} from './time';
 
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
   new Date(y, mo, d, h, mi, s);
@@ -48,5 +49,13 @@ describe('formatTimeOfDay', () => {
     expect(formatTimeOfDay(at(2026, 7, 27, 14, 30))).toBe('14:30');
     expect(formatTimeOfDay(at(2026, 7, 27, 0, 0))).toBe('00:00');
     expect(formatTimeOfDay(at(2026, 7, 27, 23, 59, 59))).toBe('23:59');
+  });
+});
+
+describe('formatDateTime', () => {
+  it('renders weekday, day, and time of day', () => {
+    const d = new Date(2026, 7, 27, 14, 47);
+    expect(formatDateTime(d, 'en-US')).toBe('Thu, Aug 27, 14:47');
+    expect(formatDateTime(d, 'en-US', true)).toBe('Thu, Aug 27, 2:47 PM');
   });
 });
