@@ -67,6 +67,46 @@ describe('homeModel', () => {
   });
 });
 
+describe('homeModel week-to-date', () => {
+  // NOW = Thursday Aug 27 2026, 12:00. s1 = Wednesday Aug 26 (belongs to the
+  // previous week under a Thursday start, but to the current week under Sunday).
+  // s2/s3 = completed today (2700s + 5400s). s4 = running since 11:45 (never counted).
+  const NOW = at(2026, 7, 27, 12, 0);
+  const s1 = session(1, at(2026, 7, 26, 9, 0), at(2026, 7, 26, 11, 0));
+  const s2 = session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 9, 45));
+  const s3 = session(3, at(2026, 7, 27, 10, 0), at(2026, 7, 27, 11, 30));
+  const s4 = session(4, at(2026, 7, 27, 11, 45), null);
+  const SESSIONS = [s1, s2, s3, s4];
+
+  it('Thursday-start week: Wednesday session belongs to the previous week; running excluded', () => {
+    const model = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
+    expect(model.weekTotalSeconds).toBe(2700 + 5400);
+    expect(model.weekTotalLabel).toBe('2:15');
+    expect(model.overTarget).toBe(false);
+    expect(model.weekProgress).toBeCloseTo(8100 / 144000, 5); // vs 40h target
+  });
+
+  it('Sunday-start week: the same Wednesday session joins this week', () => {
+    const model = homeModel(SESSIONS, DEFAULT_SETTINGS, NOW);
+    expect(model.weekTotalSeconds).toBe(7200 + 2700 + 5400);
+    expect(model.weekTotalLabel).toBe('4:15');
+  });
+
+  it('a midnight-crossing session counts toward its check-in week (ADR-0001)', () => {
+    // Wed Aug 26 23:00 → Thu Aug 27 01:00, Thursday-start weeks: owned by the Aug 20 week.
+    const overnight = session(7, at(2026, 7, 26, 23, 0), at(2026, 7, 27, 1, 0));
+    const model = homeModel([overnight], { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
+    expect(model.weekTotalSeconds).toBe(0); // the Aug 20–26 week is not the current week
+  });
+
+  it('flags over-target weeks and lets progress exceed 1', () => {
+    const model = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4, weeklyTargetHours: 2 }, NOW);
+    expect(model.overTarget).toBe(true);
+    expect(model.weekProgress).toBeGreaterThan(1);
+    expect(model.weeklyTargetLabel).toBe('2:00');
+  });
+});
+
 describe('formatTimeOfDay', () => {
   it('formats 24-hour HH:MM in the local timezone', () => {
     expect(formatTimeOfDay(at(2026, 7, 27, 9, 5))).toBe('09:05');

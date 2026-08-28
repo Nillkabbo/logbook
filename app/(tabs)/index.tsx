@@ -58,6 +58,21 @@ export default function HomeScreen() {
           <Text style={styles.totalLabel}>Today</Text>
           <Text style={styles.totalValue}>{model.todayTotalLabel}</Text>
         </View>
+        <View style={[styles.totalItem, styles.weekItem]}>
+          <Text style={styles.totalLabel}>This week</Text>
+          <Text style={[styles.totalValue, model.overTarget && styles.overTargetText]}>
+            {model.weekTotalLabel} / {model.weeklyTargetLabel}
+          </Text>
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                model.overTarget && styles.progressFillOver,
+                { width: `${Math.min(1, model.weekProgress) * 100}%` },
+              ]}
+            />
+          </View>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
@@ -126,10 +141,32 @@ const styles = StyleSheet.create({
   totals: {
     flexDirection: 'row',
     justifyContent: 'center',
+    gap: 32,
   },
   totalItem: {
     alignItems: 'center',
     gap: 2,
+  },
+  weekItem: {
+    minWidth: 150,
+  },
+  overTargetText: {
+    color: '#c0392b',
+  },
+  progressTrack: {
+    alignSelf: 'stretch',
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(128,128,128,0.25)',
+    marginTop: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 6,
+    backgroundColor: '#0a7ea4',
+  },
+  progressFillOver: {
+    backgroundColor: '#c0392b',
   },
   totalLabel: {
     fontSize: 13,

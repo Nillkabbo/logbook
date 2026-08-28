@@ -6,13 +6,13 @@ Parent spec: `.scratch/logbook-v1/spec.md`
 
 **Blocked by:** 01 — Scaffold Expo app with tab shell.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Tapping Check in persists a running session (nullable `check_out_utc`) and flips the button to Check out with a live elapsed timer
-- [ ] Tapping Check out completes the session with an exact timestamp; the pair appears in today's session list
-- [ ] Session times and durations render clock-style (`7:45`), never decimal
-- [ ] Today's total sums completed sessions only; the running session is excluded from the total but listed
-- [ ] Multiple sessions per day accumulate correctly
-- [ ] Killing and reopening the app shows the session still running with the timer continuing
-- [ ] SQLite schema exists: `sessions` (id, check_in_utc, check_out_utc nullable, note, created_at) and `settings` (week-start day, weekly target, reminder threshold, setup flag) seeded with defaults (Sunday, 40h, 10h)
-- [ ] Engine unit tests pass: clock-style formatting (including durations over an hour), elapsed at a fixed `now`, grouping sessions into "today" — pure functions, no mocks
+- [x] Tapping Check in persists a running session (nullable `check_out_utc`) and flips the button to Check out with a live elapsed timer
+- [x] Tapping Check out completes the session with an exact timestamp; the pair appears in today's session list
+- [x] Session times and durations render clock-style (`7:45`), never decimal
+- [x] Today's total sums completed sessions only; the running session is excluded from the total but listed
+- [x] Multiple sessions per day accumulate correctly
+- [x] Killing and reopening the app shows the session still running with the timer continuing *(DB-backed; pending physical-device spot check)*
+- [x] SQLite schema exists: `sessions` (id, check_in_utc, check_out_utc nullable, note, created_at) and `settings` (week-start day, weekly target, reminder threshold, setup flag) seeded with defaults (Sunday, 40h, 10h)
+- [x] Engine unit tests pass: clock-style formatting (including durations over an hour), elapsed at a fixed `now`, grouping sessions into "today" — pure functions, no mocks

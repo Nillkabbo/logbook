@@ -1,6 +1,7 @@
 import { formatDuration, formatElapsed } from './durations';
 import { sessionDurationSeconds } from './sessions';
 import type { Session, Settings } from './types';
+import { weekRange } from './weeks';
 
 export interface HomeModel {
   running: Session | null;
@@ -10,6 +11,14 @@ export interface HomeModel {
   todaySessions: Session[];
   todayTotalSeconds: number;
   todayTotalLabel: string;
+  /** Completed sessions owned by the current week (check-in day ownership), running excluded. */
+  weekTotalSeconds: number;
+  weekTotalLabel: string;
+  weeklyTargetSeconds: number;
+  weeklyTargetLabel: string;
+  /** Fraction of target reached; exceeds 1 in an over-target week. */
+  weekProgress: number;
+  overTarget: boolean;
 }
 
 function isSameLocalDay(a: Date, b: Date): boolean {
@@ -21,11 +30,11 @@ function isSameLocalDay(a: Date, b: Date): boolean {
 }
 
 /**
- * Everything the Home screen renders, computed from the session list at `now`.
- * `settings` is part of the agreed engine seam; the week-to-date fields arrive in ticket 03.
+ * Everything the Home screen renders, computed from the session list at `now`:
+ * running-session state, today grouping, and week-to-date against the target,
+ * with weeks bounded by the configured week-start day.
  */
 export function homeModel(sessions: Session[], settings: Settings, now: Date): HomeModel {
-  void settings;
   const running = sessions.find((s) => s.checkOut === null) ?? null;
   const elapsedSeconds = running ? sessionDurationSeconds(running, now) : null;
   const todaySessions = sessions
@@ -34,6 +43,18 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
   const todayTotalSeconds = todaySessions
     .filter((s) => s.checkOut !== null)
     .reduce((sum, s) => sum + sessionDurationSeconds(s), 0);
+
+  const week = weekRange(now, settings.weekStartDay);
+  const weekTotalSeconds = sessions
+    .filter(
+      (s) =>
+        s.checkOut !== null &&
+        s.checkIn.getTime() >= week.start.getTime() &&
+        s.checkIn.getTime() < week.end.getTime(),
+    )
+    .reduce((sum, s) => sum + sessionDurationSeconds(s), 0);
+  const weeklyTargetSeconds = Math.round(settings.weeklyTargetHours * 3600);
+
   return {
     running,
     elapsedSeconds,
@@ -41,6 +62,12 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
     todaySessions,
     todayTotalSeconds,
     todayTotalLabel: formatDuration(todayTotalSeconds),
+    weekTotalSeconds,
+    weekTotalLabel: formatDuration(weekTotalSeconds),
+    weeklyTargetSeconds,
+    weeklyTargetLabel: formatDuration(weeklyTargetSeconds),
+    weekProgress: weeklyTargetSeconds === 0 ? 0 : weekTotalSeconds / weeklyTargetSeconds,
+    overTarget: weekTotalSeconds > weeklyTargetSeconds,
   };
 }
 
