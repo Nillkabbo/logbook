@@ -42,6 +42,10 @@ export interface Theme {
   stop: string;
   /** ~10% stop tint — the over-target chip fill. */
   stopSoft: string;
+  /** Translucent fill for the one glass element: the running session's card. */
+  glass: string;
+  /** Hairline edge for the glass card. */
+  glassEdge: string;
 }
 
 const light: Theme = {
@@ -64,6 +68,8 @@ const light: Theme = {
   accentAlt: '#0D9488',
   stop: '#DC2626',
   stopSoft: 'rgba(220,38,38,0.1)',
+  glass: 'rgba(255,255,255,0.72)',
+  glassEdge: 'rgba(255,255,255,0.4)',
 };
 
 const dark: Theme = {
@@ -86,6 +92,8 @@ const dark: Theme = {
   accentAlt: '#2DD4BF',
   stop: '#F87171',
   stopSoft: 'rgba(248,113,113,0.15)',
+  glass: 'rgba(39,39,42,0.7)',
+  glassEdge: 'rgba(250,250,250,0.1)',
 };
 
 export function useTheme(): Theme {

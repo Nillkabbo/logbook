@@ -12,16 +12,25 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
   const theme = useTheme();
   const hour12 = useHour12();
   const { t } = useI18n();
+  // The running session's card is the app's one glass element — translucent,
+  // hairline-edged, never counted in totals.
+  const running = session.checkOut === null;
+  const card = running
+    ? [styles.row, { backgroundColor: theme.glass, borderColor: theme.glassEdge }]
+    : [styles.row, { backgroundColor: theme.surface }, theme.cardShadow];
   return (
-    <View style={[styles.row, { backgroundColor: theme.surface }, theme.cardShadow]}>
+    <View style={card}>
       <View style={styles.rowMain}>
         <Text style={[styles.rowTimes, { color: theme.text }]}>
           {formatTimeOfDay(session.checkIn, hour12)} –{' '}
           {session.checkOut ? formatTimeOfDay(session.checkOut, hour12) : t('now')}
         </Text>
-        <Text style={[styles.rowDuration, { color: theme.text }]}>
-          {formatDuration(sessionDurationSeconds(session, session.checkOut ?? now))}
-        </Text>
+        <View style={styles.durationWrap}>
+          {running && <View style={[styles.liveDot, { backgroundColor: theme.accent }]} />}
+          <Text style={[styles.rowDuration, { color: theme.text }]}>
+            {formatDuration(sessionDurationSeconds(session, session.checkOut ?? now))}
+          </Text>
+        </View>
       </View>
       {session.category.length > 0 && (
         <View style={[styles.chip, { backgroundColor: theme.accentSoft }]}>
@@ -37,7 +46,19 @@ const styles = StyleSheet.create({
   row: {
     padding: 16,
     borderRadius: RADIUS.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
     gap: 4,
+  },
+  durationWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 999,
   },
   chip: {
     alignSelf: 'flex-start',
