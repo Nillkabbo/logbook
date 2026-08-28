@@ -125,7 +125,7 @@ export function logsModel(
     const days: LogDay[] = [...byDay.values()]
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .map(({ date, sessions: daySessions }) => {
-        daySessions.sort((a, b) => a.checkIn.getTime() - b.checkIn.getTime());
+        daySessions.sort((a, b) => b.checkIn.getTime() - a.checkIn.getTime());
         const dayTotal = sumCompletedSessions(daySessions);
         return {
           key: localDayKey(date),

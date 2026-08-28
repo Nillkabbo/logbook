@@ -53,14 +53,15 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
   const running = sessions.find((s) => s.checkOut === null) ?? null;
   const elapsedSeconds = running ? sessionDurationSeconds(running, now) : null;
   // The running session always sits first — it's the live activity the user
-  // is most likely to act on; completed sessions follow chronologically.
+  // is most likely to act on; completed sessions follow newest-first so the
+  // latest log reads at the top.
   const todaySessions = sessions
     .filter((s) => isSameLocalDay(s.checkIn, now))
     .sort((a, b) => {
       const aRunning = a.checkOut === null ? 1 : 0;
       const bRunning = b.checkOut === null ? 1 : 0;
       if (aRunning !== bRunning) return bRunning - aRunning;
-      return a.checkIn.getTime() - b.checkIn.getTime();
+      return b.checkIn.getTime() - a.checkIn.getTime();
     });
   const todayTotalSeconds = sumCompletedSessions(todaySessions);
 

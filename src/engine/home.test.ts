@@ -40,7 +40,7 @@ describe('homeModel', () => {
 
   it('lists sessions owned by today, running first then oldest — and totals completed only', () => {
     const model = homeModel([s1, s2, s3, s4], DEFAULT_SETTINGS, NOW);
-    expect(model.todaySessions.map((s) => s.id)).toEqual([4, 2, 3]);
+    expect(model.todaySessions.map((s) => s.id)).toEqual([4, 3, 2]);
     expect(model.todayTotalLabel).toBe('2:15');
   });
 
@@ -183,6 +183,6 @@ describe('homeModel running-first sort', () => {
   it('the running session sorts first regardless of check-in time', () => {
     const m = homeModel([morning, running, afternoon], THURSDAY, now);
     expect(m.todaySessions[0].id).toBe(2); // running
-    expect(m.todaySessions.map((s) => s.id)).toEqual([2, 3, 1]); // then chronological
+    expect(m.todaySessions.map((s) => s.id)).toEqual([2, 1, 3]); // then newest-first
   });
 });

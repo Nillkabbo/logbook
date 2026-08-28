@@ -57,19 +57,19 @@ describe('logsModel', () => {
     expect(weeks[0].overByLabel).toBe('2:00'); // 6:00 total − 4:00 target
   });
 
-  it('groups days within a week newest first, sessions within a day oldest first', () => {
+  it('groups days within a week newest first, sessions within a day newest first', () => {
     const weeks = logsModel([tue, wed, overnight, early, late, running], THURSDAY);
     const weekB = weeks[1];
     expect(weekB.days.map((d) => d.label)).toEqual(['Wednesday', 'Tuesday']);
-    expect(weekB.days[0].sessions.map((s) => s.id)).toEqual([2, 3]);
+    expect(weekB.days[0].sessions.map((s) => s.id)).toEqual([3, 2]);
     const weekA = weeks[0];
-    expect(weekA.days[0].sessions.map((s) => s.id)).toEqual([4, 5, 6]);
+    expect(weekA.days[0].sessions.map((s) => s.id)).toEqual([6, 5, 4]);
   });
 
   it('day totals count completed sessions only; the running session is listed but not summed', () => {
     const weeks = logsModel([early, late, running], THURSDAY);
     expect(weeks[0].days[0].totalLabel).toBe('2:15');
-    expect(weeks[0].days[0].sessions.map((s) => s.id)).toEqual([4, 5, 6]);
+    expect(weeks[0].days[0].sessions.map((s) => s.id)).toEqual([6, 5, 4]);
   });
 
   it('the midnight-crossing session appears under its check-in day', () => {
