@@ -142,3 +142,43 @@ describe('logsModel', () => {
     ]);
   });
 });
+
+describe('logsModel expansion defaults', () => {
+  // Week A (current) starts Thu Aug 27 2026; week B (previous) starts Thu Aug 20.
+  const THURSDAY = { ...DEFAULT_SETTINGS, weekStartDay: 4 as const };
+  const now = at(2026, 7, 28, 12, 0); // Friday, inside week A
+  const weekASessions = [
+    session(4, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 9, 45)),
+    session(5, at(2026, 7, 27, 10, 0), at(2026, 7, 27, 11, 30)),
+  ];
+  const weekBSessions = [
+    session(1, at(2026, 7, 25, 8, 0), at(2026, 7, 25, 10, 0)),
+    session(2, at(2026, 7, 26, 9, 0), at(2026, 7, 26, 11, 0)),
+  ];
+
+  it('the current week defaults expanded; past weeks default collapsed', () => {
+    const weeks = logsModel([...weekASessions, ...weekBSessions], THURSDAY, now);
+    expect(weeks[0].label).toBe('Thu, Aug 27 – Wed, Sep 2');
+    expect(weeks[0].defaultExpanded).toBe(true);
+    expect(weeks[1].defaultExpanded).toBe(false);
+  });
+
+  it('an over-target week defaults expanded', () => {
+    const weeks = logsModel([...weekASessions, ...weekBSessions], { ...THURSDAY, weeklyTargetHours: 3 }, now);
+    expect(weeks[1].overTarget).toBe(true);
+    expect(weeks[1].defaultExpanded).toBe(true);
+  });
+
+  it('an off week defaults collapsed even with logged time', () => {
+    const weeks = logsModel([...weekASessions, ...weekBSessions], { ...THURSDAY, offWeeks: ['2026-08-20'] }, now);
+    expect(weeks[1].off).toBe(true);
+    expect(weeks[1].defaultExpanded).toBe(false);
+  });
+
+  it('a week that is both current and over-target defaults expanded once', () => {
+    const weeks = logsModel(weekASessions, { ...THURSDAY, weeklyTargetHours: 1 }, now);
+    expect(weeks).toHaveLength(1);
+    expect(weeks[0].overTarget).toBe(true);
+    expect(weeks[0].defaultExpanded).toBe(true);
+  });
+});
