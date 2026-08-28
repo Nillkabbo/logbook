@@ -6,7 +6,7 @@ import { useLogbook } from '@/hooks/useLogbook';
 import { validateWeeklyTarget } from '@/engine/validation';
 import type { Weekday } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
-import { useI18n } from '@/ui/i18n';
+import { useI18n, type StringKey } from '@/ui/i18n';
 
 /**
  * One-time setup shown on first launch: week-start day + weekly target.
@@ -60,7 +60,7 @@ export function FirstLaunchSetup() {
           keyboardType="decimal-pad"
           placeholderTextColor={theme.muted}
         />
-        {target.error && <Text style={[styles.error, { color: theme.stop }]}>{target.error}</Text>}
+        {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
 
         <Pressable
           style={[styles.primaryButton, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}

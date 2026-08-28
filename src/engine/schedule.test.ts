@@ -76,7 +76,7 @@ describe('validateBlockTimes', () => {
   it('accepts any range except an empty one', () => {
     expect(validateBlockTimes(9 * 60, 17 * 60)).toBeNull();
     expect(validateBlockTimes(22 * 60, 2 * 60)).toBeNull(); // overnight is fine
-    expect(validateBlockTimes(9 * 60, 9 * 60)).toMatch(/range/i);
+    expect(validateBlockTimes(9 * 60, 9 * 60)).toBe('errBlockRange');
   });
 });
 

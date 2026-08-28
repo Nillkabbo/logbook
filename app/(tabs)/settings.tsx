@@ -71,10 +71,12 @@ export default function SettingsScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       Alert.alert(
         t('importComplete'),
-        `Imported ${result.toImport.length} session${result.toImport.length === 1 ? '' : 's'}.` +
-          ` Skipped ${result.duplicates} duplicate${result.duplicates === 1 ? '' : 's'}` +
-          `, ${result.skippedRunning} running` +
-          `, ${result.malformed} malformed.`,
+        t('importedNSessions').replace('{n}', String(result.toImport.length)) +
+          '\n' +
+          t('skippedCounts')
+            .replace('{duplicates}', String(result.duplicates))
+            .replace('{running}', String(result.skippedRunning))
+            .replace('{malformed}', String(result.malformed)),
       );
     } catch (error) {
       Alert.alert(t('importFailed'), String(error));

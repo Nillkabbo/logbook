@@ -74,7 +74,7 @@ export function blockOccurring(blocks: WorkBlock[], now: Date): WorkBlock | null
 /** Block times are valid unless the range is empty; overnight ranges are fine. */
 export function validateBlockTimes(startMinute: number, endMinute: number): string | null {
   if (startMinute === endMinute) {
-    return 'The block needs a time range — start and end are the same.';
+    return 'errBlockRange';
   }
   return null;
 }

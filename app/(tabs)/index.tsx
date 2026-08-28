@@ -83,7 +83,7 @@ export default function HomeScreen() {
         await checkIn();
       }
     } catch (error) {
-      Alert.alert('Something went wrong', String(error));
+      Alert.alert(t('somethingWrong'), String(error));
     } finally {
       setBusy(false);
     }
