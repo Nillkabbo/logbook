@@ -1,13 +1,54 @@
 import { describe, expect, it } from 'vitest';
 
-import { reminderDecision } from './reminders';
-import { DEFAULT_SETTINGS } from './types';
+import { deleteEvent, editEvent, reminderDecision } from './reminders';
+import { DEFAULT_SETTINGS, type Session } from './types';
 
 const at = (y: number, mo: number, d: number, h: number, mi: number) =>
   new Date(y, mo, d, h, mi);
 
 // NOW = Thursday Aug 27 2026, 12:00 local. Threshold default 10h.
 const NOW = at(2026, 7, 27, 12, 0);
+
+describe('editEvent / deleteEvent — deriving lifecycle events', () => {
+  const running: Session = {
+    id: 1,
+    checkIn: at(2026, 7, 27, 9, 0),
+    checkOut: null,
+    note: '',
+    category: '',
+  };
+
+  it('an edit derives wasRunning/nowRunning from the before-session and patch', () => {
+    const completing = { ...running, checkOut: at(2026, 7, 27, 11, 0) };
+    expect(editEvent(running, completing)).toEqual({
+      type: 'edited',
+      wasRunning: true,
+      nowRunning: false,
+      checkIn: running.checkIn,
+    });
+    const completingOther = { ...running, checkOut: at(2026, 7, 27, 11, 0) };
+    void completingOther;
+  });
+
+  it('an edit that toggles a completed session back to running derives the schedule case', () => {
+    const before: Session = { ...running, checkOut: at(2026, 7, 27, 10, 0) };
+    const reopened = { ...before, checkOut: null };
+    expect(editEvent(before, reopened)).toEqual({
+      type: 'edited',
+      wasRunning: false,
+      nowRunning: true,
+      checkIn: before.checkIn,
+    });
+  });
+
+  it('a delete derives wasRunning from the before-session', () => {
+    expect(deleteEvent(running)).toEqual({ type: 'deleted', wasRunning: true });
+    expect(deleteEvent({ ...running, checkOut: at(2026, 7, 27, 10, 0) })).toEqual({
+      type: 'deleted',
+      wasRunning: false,
+    });
+  });
+});
 
 describe('reminderDecision — the Reminder lifecycle', () => {
   it('check-in schedules at check-in + threshold', () => {

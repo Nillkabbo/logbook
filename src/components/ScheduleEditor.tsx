@@ -1,7 +1,8 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { WeekdayPicker } from '@/components/settings-entry';
 import { formatTimeOfDay } from '@/engine/time';
 import { validateBlockTimes, type WorkBlock } from '@/engine/schedule';
 import { WEEKDAY_NAMES, type Weekday } from '@/engine/types';
@@ -27,9 +28,6 @@ export function ScheduleEditor({
   const [end, setEnd] = useState(() => atMinutes(17 * 60));
   const [picker, setPicker] = useState<'start' | 'end' | null>(null);
   const [busy, setBusy] = useState(false);
-
-  const toggleDay = (day: Weekday) =>
-    setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
 
   const onPick =
     (field: 'start' | 'end') =>
@@ -87,31 +85,7 @@ export function ScheduleEditor({
         </View>
       ))}
 
-      <View style={styles.pillRow}>
-        {WEEKDAY_NAMES.map((name, index) => {
-          const day = index as Weekday;
-          const active = days.includes(day);
-          return (
-            <Pressable
-              key={name}
-              style={[
-                styles.pill,
-                { borderColor: active ? theme.accent : theme.border },
-                active && { backgroundColor: theme.accent },
-              ]}
-              onPress={() => toggleDay(day)}>
-              <Text
-                style={[
-                  styles.pillText,
-                  { color: active ? theme.onAccent : theme.text },
-                  active && styles.pillTextActive,
-                ]}>
-                {name.slice(0, 3)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <WeekdayPicker value={days} onChange={(next) => setDays(next as Weekday[])} />
       <View style={styles.timeRow}>
         {timeField('start', 'From', start)}
         {timeField('end', 'To', end)}
@@ -147,23 +121,6 @@ const styles = StyleSheet.create({
   },
   remove: {
     fontSize: 13,
-    fontWeight: '600',
-  },
-  pillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  pill: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: RADIUS.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  pillText: {
-    fontSize: 13,
-  },
-  pillTextActive: {
     fontWeight: '600',
   },
   timeRow: {

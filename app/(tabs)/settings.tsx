@@ -11,6 +11,7 @@ import {
   validateWeeklyTarget,
 } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
+import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -70,7 +71,7 @@ export default function SettingsScreen() {
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>Week starts on</Text>
       <WeekdayPicker
         value={settings.weekStartDay}
-        onChange={useCallback((day: Parameters<typeof saveSettings>[0]['weekStartDay']) => saveSettings({ weekStartDay: day }), [saveSettings])}
+        onChange={useCallback((day: Weekday | Weekday[]) => saveSettings({ weekStartDay: day as Weekday }), [saveSettings])}
       />
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>Weekly target (hours)</Text>

@@ -47,7 +47,7 @@ export function FirstLaunchSetup() {
         </Text>
 
         <Text style={[styles.label, { color: theme.muted }]}>When does your week start?</Text>
-        <WeekdayPicker value={weekStartDay} onChange={setWeekStartDay} />
+        <WeekdayPicker value={weekStartDay} onChange={(day) => setWeekStartDay(day as Weekday)} />
 
         <Text style={[styles.label, { color: theme.muted }]}>Weekly target (hours)</Text>
         <TextInput

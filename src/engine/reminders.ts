@@ -1,4 +1,4 @@
-import type { Settings } from './types';
+import type { Session, SessionPatch, Settings } from './types';
 
 /**
  * The Reminder lifecycle, as a pure decision: a reminder exists if and only if
@@ -42,4 +42,19 @@ export function reminderDecision(
     case 'deleted':
       return event.wasRunning ? { kind: 'cancel' } : { kind: 'keep' };
   }
+}
+
+/** Derives the edit event from the stored session and the patch — the store never hand-builds it. */
+export function editEvent(before: Session, patch: SessionPatch): ReminderEvent {
+  return {
+    type: 'edited',
+    wasRunning: before.checkOut === null,
+    nowRunning: patch.checkOut === null,
+    checkIn: patch.checkIn,
+  };
+}
+
+/** Derives the delete event from the stored session. */
+export function deleteEvent(before: Session): ReminderEvent {
+  return { type: 'deleted', wasRunning: before.checkOut === null };
 }

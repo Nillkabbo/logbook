@@ -7,19 +7,32 @@ import { RADIUS, useTheme } from '@/theme';
 
 type HoursValidator = (hours: number) => string | null;
 
-/** The week-start-day pill row, shared by first-launch setup and Settings. */
+/**
+ * The weekday pill row. Single-select for the week-start day, set-select for
+ * Work-block days — the value shape picks the mode; styling has one home.
+ */
 export function WeekdayPicker({
   value,
   onChange,
 }: {
-  value: Weekday;
-  onChange: (day: Weekday) => void;
+  value: Weekday | Weekday[];
+  onChange: (day: Weekday | Weekday[]) => void;
 }) {
   const theme = useTheme();
+  const isActive = (index: number) =>
+    Array.isArray(value) ? value.includes(index as Weekday) : value === index;
+  const press = (index: number) => {
+    const day = index as Weekday;
+    if (Array.isArray(value)) {
+      onChange(value.includes(day) ? value.filter((d) => d !== day) : [...value, day]);
+    } else {
+      onChange(day);
+    }
+  };
   return (
     <View style={styles.pillRow}>
       {WEEKDAY_NAMES.map((name, index) => {
-        const active = value === index;
+        const active = isActive(index);
         return (
           <Pressable
             key={name}
@@ -28,7 +41,7 @@ export function WeekdayPicker({
               { borderColor: active ? theme.accent : theme.border },
               active && { backgroundColor: theme.accent },
             ]}
-            onPress={() => onChange(index as Weekday)}>
+            onPress={() => press(index)}>
             <Text
               style={[
                 styles.pillText,

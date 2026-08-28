@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { blockOccurring, nextBlockOccurrence, validateBlockTimes } from './schedule';
+import { blockOccurring, blockTriggers, nextBlockOccurrence, validateBlockTimes } from './schedule';
 import type { WorkBlock } from './schedule';
 import type { Weekday } from './types';
 
@@ -77,5 +77,28 @@ describe('validateBlockTimes', () => {
     expect(validateBlockTimes(9 * 60, 17 * 60)).toBeNull();
     expect(validateBlockTimes(22 * 60, 2 * 60)).toBeNull(); // overnight is fine
     expect(validateBlockTimes(9 * 60, 9 * 60)).toMatch(/range/i);
+  });
+});
+
+describe('blockTriggers — notification specs, overnight owned by start day', () => {
+  it('same-day block: start and end on the same weekday', () => {
+    const thuNineToFive = block(1, [THURSDAY], 9 * 60, 17 * 60);
+    expect(blockTriggers(thuNineToFive)).toEqual([
+      { kind: 'start', weekday: THURSDAY, hour: 9, minute: 0 },
+      { kind: 'end', weekday: THURSDAY, hour: 17, minute: 0 },
+    ]);
+  });
+
+  it('overnight block: the end trigger lands on the next weekday', () => {
+    const thuLate = block(2, [THURSDAY], 22 * 60, 2 * 60);
+    expect(blockTriggers(thuLate)).toEqual([
+      { kind: 'start', weekday: THURSDAY, hour: 22, minute: 0 },
+      { kind: 'end', weekday: 5 as Weekday, hour: 2, minute: 0 }, // Friday
+    ]);
+  });
+
+  it('a Sunday-night block ends on Monday', () => {
+    const sunLate = block(3, [0 as Weekday], 23 * 60, 1 * 60);
+    expect(blockTriggers(sunLate)[1]).toEqual({ kind: 'end', weekday: 1 as Weekday, hour: 1, minute: 0 });
   });
 });

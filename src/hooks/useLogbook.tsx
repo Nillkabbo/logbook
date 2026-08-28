@@ -21,12 +21,8 @@ import {
   updateSession as updateSessionInDb,
   updateSettings as updateSettingsInDb,
 } from '@/db/database';
-import {
-  applyReminderDecision,
-  resyncAllNotifications,
-  syncBlockNotifications,
-} from '@/notifications/reminders';
-import { reminderDecision } from '@/engine/reminders';
+import { syncNotifications } from '@/notifications/reminders';
+import { deleteEvent, editEvent, reminderDecision } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
 import { sessionsToCsv } from '@/engine/csv';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
@@ -94,53 +90,43 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   }, [running]);
 
   // Once, after the first load, rebuild every OS notification from current
-  // truth — in-memory ids died with the previous launch, and stale triggers
-  // (deleted blocks, a checked-out session) would otherwise fire forever.
+  // truth — OS triggers persist across launches but reflect stale states.
   const resynced = useRef(false);
   useEffect(() => {
     if (!ready || resynced.current) return;
     resynced.current = true;
-    resyncAllNotifications(running, settings, blocks);
+    const reminder = running
+      ? reminderDecision({ type: 'checked-in', checkIn: running.checkIn }, settings, new Date())
+      : null;
+    syncNotifications({ reminder, blocks });
   }, [ready, running, settings, blocks]);
 
   const checkIn = useCallback(async () => {
     const checkInAt = new Date();
     await insertSession(checkInAt);
     await refresh();
-    // Apply after refresh: the OS permission prompt must never delay the
+    // Sync after refresh: the OS permission prompt must never delay the
     // button/timer flipping to the running state.
-    await applyReminderDecision(
-      reminderDecision({ type: 'checked-in', checkIn: checkInAt }, settings, new Date()),
-      blocks,
-    );
+    const reminder = reminderDecision({ type: 'checked-in', checkIn: checkInAt }, settings, new Date());
+    await syncNotifications({ reminder, blocks });
   }, [refresh, settings, blocks]);
 
   const checkOut = useCallback(async () => {
     if (!running) return;
     await completeSession(running.id, new Date());
     await refresh();
-    await applyReminderDecision(
-      reminderDecision({ type: 'checked-out' }, settings, new Date()),
-      blocks,
-    );
+    const reminder = reminderDecision({ type: 'checked-out' }, settings, new Date());
+    await syncNotifications({ reminder, blocks });
   }, [running, refresh, settings, blocks]);
 
   const saveSession = useCallback(
     async (id: number, patch: SessionPatch) => {
       const target = sessions.find((s) => s.id === id);
+      if (!target) return;
       await updateSessionInDb(id, patch);
       await refresh();
-      const decision = reminderDecision(
-        {
-          type: 'edited',
-          wasRunning: target?.checkOut === null,
-          nowRunning: patch.checkOut === null,
-          checkIn: patch.checkIn,
-        },
-        settings,
-        new Date(),
-      );
-      await applyReminderDecision(decision, blocks);
+      const reminder = reminderDecision(editEvent(target, patch), settings, new Date());
+      await syncNotifications({ reminder, blocks });
     },
     [sessions, refresh, settings, blocks],
   );
@@ -148,14 +134,11 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   const removeSession = useCallback(
     async (id: number) => {
       const target = sessions.find((s) => s.id === id);
+      if (!target) return;
       await deleteSessionInDb(id);
       await refresh();
-      const decision = reminderDecision(
-        { type: 'deleted', wasRunning: target?.checkOut === null },
-        settings,
-        new Date(),
-      );
-      await applyReminderDecision(decision, blocks);
+      const reminder = reminderDecision(deleteEvent(target), settings, new Date());
+      await syncNotifications({ reminder, blocks });
     },
     [sessions, refresh, settings, blocks],
   );
@@ -177,22 +160,30 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     return shared;
   }, [sessions, refresh]);
 
+  // Block changes must rebuild the reminder too — a null reminder would
+  // silently drop a running session's notification.
+  const currentReminder = useCallback(() => {
+    if (!running) return null;
+    return reminderDecision({ type: 'checked-in', checkIn: running.checkIn }, settings, new Date());
+  }, [running, settings]);
+
   const addBlock = useCallback(
     async (weekdays: Weekday[], startMinute: number, endMinute: number) => {
       await insertBlock(weekdays, startMinute, endMinute);
-      const nextBlocks = await listBlocks();
-      setBlocks(nextBlocks);
-      await syncBlockNotifications(nextBlocks);
+      await refresh();
+      await syncNotifications({ reminder: currentReminder(), blocks: await listBlocks() });
     },
-    [],
+    [refresh, currentReminder],
   );
 
-  const removeBlock = useCallback(async (id: number) => {
-    await deleteBlockInDb(id);
-    const nextBlocks = await listBlocks();
-    setBlocks(nextBlocks);
-    await syncBlockNotifications(nextBlocks);
-  }, []);
+  const removeBlock = useCallback(
+    async (id: number) => {
+      await deleteBlockInDb(id);
+      await refresh();
+      await syncNotifications({ reminder: currentReminder(), blocks: await listBlocks() });
+    },
+    [refresh, currentReminder],
+  );
 
   // Memoised: consumers depend on this identity for effects (focus refresh).
   const value = useMemo<Logbook>(

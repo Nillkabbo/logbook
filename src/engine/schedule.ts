@@ -78,3 +78,36 @@ export function validateBlockTimes(startMinute: number, endMinute: number): stri
   }
   return null;
 }
+
+/** A weekly notification spec: which weekday, what time, start or end of a block. */
+export interface BlockTrigger {
+  kind: 'start' | 'end';
+  weekday: Weekday;
+  hour: number;
+  minute: number;
+}
+
+/**
+ * The notification specs for one block — per weekday a start trigger and an end
+ * trigger, the end rolling to the next weekday when the block crosses midnight.
+ * The overnight rule lives here, once, tested.
+ */
+export function blockTriggers(block: WorkBlock): BlockTrigger[] {
+  const triggers: BlockTrigger[] = [];
+  const overnight = block.endMinute <= block.startMinute;
+  for (const weekday of block.weekdays) {
+    triggers.push({
+      kind: 'start',
+      weekday,
+      hour: Math.floor(block.startMinute / 60),
+      minute: block.startMinute % 60,
+    });
+    triggers.push({
+      kind: 'end',
+      weekday: overnight ? ((weekday + 1) % 7) as Weekday : weekday,
+      hour: Math.floor(block.endMinute / 60),
+      minute: block.endMinute % 60,
+    });
+  }
+  return triggers;
+}
