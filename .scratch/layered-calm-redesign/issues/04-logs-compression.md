@@ -41,3 +41,8 @@ earnings when expanded, with no target judgment.
 ## Blocked by
 
 - 01 — Home idle in Layered Calm
+
+
+## Comments
+
+- Implemented in commit e988a47 (2026-08-28). Typecheck green; full suite 98 passed.

@@ -30,3 +30,8 @@ new ones are added bilingually.
 ## Blocked by
 
 - 01 — Home idle in Layered Calm
+
+
+## Comments
+
+- Implemented in commit fc055cd (2026-08-28). Typecheck green; full suite 98 passed.

@@ -34,3 +34,8 @@ actions.
 ## Blocked by
 
 - 05 — Settings regroup + Schedule sub-screen
+
+
+## Comments
+
+- Implemented in commit 1e2cb72 (2026-08-28). Typecheck green; full suite 98 passed.

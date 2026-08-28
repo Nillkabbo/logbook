@@ -40,3 +40,8 @@ using the app's existing dark palette with its brighter accent.
 ## Blocked by
 
 None - can start immediately
+
+
+## Comments
+
+- Implemented in commit 2741c1b (2026-08-28). Typecheck green; full suite 98 passed.

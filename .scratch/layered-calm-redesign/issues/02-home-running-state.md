@@ -38,3 +38,8 @@ never counted in totals.
 ## Blocked by
 
 - 01 — Home idle in Layered Calm
+
+
+## Comments
+
+- Implemented in commit c12c32d (2026-08-28). Typecheck green; full suite 98 passed.

@@ -38,3 +38,8 @@ prepare, present, and fix; the sign-off itself is the reporter's.
 - 05 — Settings regroup + Schedule sub-screen
 - 06 — Data sub-screen + last-export line
 - 07 — First-launch setup restyle
+
+## Comments
+
+- Mechanical sweep implemented in commit 28cbf25: border token retired, semantic color audit passed, dark muted text measured ~6.5:1 (AA pass, opacity slack unused). Full suite 98 passed.
+- Human visual sign-off: **pending** — awaiting reporter review of the running app vs the Stitch source of truth.

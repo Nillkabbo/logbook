@@ -33,3 +33,8 @@ preserved unchanged.
 ## Blocked by
 
 - 01 — Home idle in Layered Calm
+
+
+## Comments
+
+- Implemented in commit a3071b2 (2026-08-28). Typecheck green; full suite 98 passed.
