@@ -70,12 +70,9 @@ Timed-out edits can spawn corrected copies instead of editing in place; two did:
 - Category-pill order is engine-defined (recency), not the export's literal order.
 - No active-tab pill behind sub-screens on the shared tab bar.
 
-- Dark-mode muted grays sit near the WCAG AA edge — check before implementing.
-- The dark check-in gradient is barely perceptible.
-- Setup weekday pills wrap to two rows.
-- Session sheet scrim is lighter than typical iOS; the "Still running" toggle row has no card container.
-- The running card in the light design carries a small emerald pulse dot (working-state semantics — allowed, not in the app today).
-- Bangla remains mock-pending (all screens English).
+Stale round-2 notes, resolved by the export-exactness pass: the still-running
+row is carded, the running card's live dot shipped, and dark contrast measured
+AA-pass earlier.
 
 ## Working notes for Stitch via MCP
 
