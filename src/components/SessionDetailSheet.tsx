@@ -131,7 +131,8 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         <Pressable
           style={[
             styles.field,
-            { backgroundColor: theme.surface, borderColor: theme.border },
+            { backgroundColor: theme.surface },
+            theme.cardShadow,
             disabled && styles.fieldDisabled,
           ]}
           disabled={disabled}
@@ -175,7 +176,8 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         <TextInput
           style={[
             styles.noteInput,
-            { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
+            { color: theme.text, backgroundColor: theme.surface },
+            theme.cardShadow,
           ]}
           value={category}
           onChangeText={setCategory}
@@ -196,7 +198,9 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         <TextInput
           style={[
             styles.noteInput,
-            { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
+            styles.noteTall,
+            { color: theme.text, backgroundColor: theme.surface },
+            theme.cardShadow,
           ]}
           value={note}
           onChangeText={setNote}
@@ -237,8 +241,7 @@ const styles = StyleSheet.create({
   },
   field: {
     padding: 14,
-    borderRadius: RADIUS.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: RADIUS.control,
   },
   fieldDisabled: {
     opacity: 0.4,
@@ -261,10 +264,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   noteInput: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: RADIUS.card,
+    borderRadius: RADIUS.control,
     padding: 12,
     fontSize: 15,
+  },
+  noteTall: {
     minHeight: 70,
   },
   error: {
