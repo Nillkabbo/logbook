@@ -118,7 +118,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={requestClose}>
 
-      <View style={{ backgroundColor: theme.canvas, borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
+      <View style={{ flex: 1, backgroundColor: theme.canvas, borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
       <View style={styles.grabberRow}>
         <View style={[styles.grabber, { backgroundColor: '#D4D4D8' }]} />
       </View>
