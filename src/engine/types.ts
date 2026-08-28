@@ -29,6 +29,8 @@ export interface Settings {
   reminderThresholdHours: number;
   /** Dollars per worked hour; 0 means unset — earnings hidden. */
   hourlyRate: number;
+  /** Epoch ms of the last CSV export; null when none has happened. */
+  lastExportAt: number | null;
   setupCompleted: boolean;
 }
 
@@ -37,6 +39,7 @@ export const DEFAULT_SETTINGS: Settings = {
   weeklyTargetHours: 40,
   reminderThresholdHours: 10,
   hourlyRate: 0,
+  lastExportAt: null,
   setupCompleted: false,
 };
 

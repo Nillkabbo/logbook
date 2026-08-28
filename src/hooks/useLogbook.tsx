@@ -19,6 +19,8 @@ import {
 } from '@/db/database';
 import { applyReminderDecision } from '@/notifications/reminders';
 import { reminderDecision } from '@/engine/reminders';
+import { sessionsToCsv } from '@/engine/csv';
+import { exportCsvViaShareSheet } from '@/export/csvExport';
 import type { Session, SessionPatch, Settings } from '@/engine/types';
 import { DEFAULT_SETTINGS } from '@/engine/types';
 
@@ -40,6 +42,8 @@ interface Logbook {
   saveSession: (id: number, patch: SessionPatch) => Promise<void>;
   removeSession: (id: number) => Promise<void>;
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
+  /** Runs the CSV export and records the timestamp; false when sharing is unavailable. */
+  exportBackup: () => Promise<boolean>;
 }
 
 const LogbookContext = createContext<Logbook | null>(null);
@@ -132,6 +136,15 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     [refresh],
   );
 
+  const exportBackup = useCallback(async (): Promise<boolean> => {
+    const shared = await exportCsvViaShareSheet(sessionsToCsv(sessions));
+    if (shared) {
+      await updateSettingsInDb({ lastExportAt: Date.now() });
+      await refresh();
+    }
+    return shared;
+  }, [sessions, refresh]);
+
   // Memoised: consumers depend on this identity for effects (focus refresh).
   const value = useMemo<Logbook>(
     () => ({
@@ -146,6 +159,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       saveSession,
       removeSession,
       saveSettings,
+      exportBackup,
     }),
     [
       sessions,
@@ -159,6 +173,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       saveSession,
       removeSession,
       saveSettings,
+      exportBackup,
     ],
   );
 

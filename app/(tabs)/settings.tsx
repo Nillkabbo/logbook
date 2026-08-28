@@ -4,18 +4,16 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react
 
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
-import { sessionsToCsv } from '@/engine/csv';
 import {
   validateHourlyRate,
   validateReminderThreshold,
   validateWeeklyTarget,
 } from '@/engine/validation';
-import { exportCsvViaShareSheet } from '@/export/csvExport';
 import { RADIUS, useTheme } from '@/theme';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { refresh, sessions, settings, saveSettings } = useLogbook();
+  const { refresh, settings, saveSettings, exportBackup } = useLogbook();
   const [exporting, setExporting] = useState(false);
 
   const target = useValidatedHours(
@@ -52,7 +50,7 @@ export default function SettingsScreen() {
     if (exporting) return;
     setExporting(true);
     try {
-      const shared = await exportCsvViaShareSheet(sessionsToCsv(sessions));
+      const shared = await exportBackup();
       if (!shared) {
         Alert.alert('Export unavailable', 'Sharing is not available on this device.');
       }

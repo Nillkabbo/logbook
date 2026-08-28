@@ -1,18 +1,33 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { CheckInToggle } from '@/components/CheckInToggle';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { homeModel } from '@/engine/home';
-import { TYPE, useTheme } from '@/theme';
+import { isBackupDue } from '@/engine/backup';
+import { RADIUS, TYPE, useTheme } from '@/theme';
 
 export default function HomeScreen() {
   const theme = useTheme();
-  const { refresh, checkIn, checkOut, sessions, settings, now } = useLogbook();
+  const { refresh, checkIn, checkOut, sessions, settings, now, exportBackup } = useLogbook();
   const [busy, setBusy] = useState(false);
+  const [backupDismissed, setBackupDismissed] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const backupDue = sessions.length > 0 && isBackupDue(settings.lastExportAt, now);
+
+  const runBackup = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await exportBackup();
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Re-read on focus so data written elsewhere (or app restarts) is reflected.
   useFocusEffect(
@@ -69,6 +84,29 @@ export default function HomeScreen() {
           )}
         </View>
       </View>
+
+      {backupDue && !backupDismissed && (
+        <View
+          style={[
+            styles.backupBanner,
+            { backgroundColor: theme.surface, borderColor: theme.accent },
+          ]}>
+          <Text style={[styles.backupText, { color: theme.text }]}>
+            Back up your log — the last export was over a month ago (or never).
+          </Text>
+          <View style={styles.backupActions}>
+            <Pressable
+              style={[styles.backupButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
+              disabled={exporting}
+              onPress={runBackup}>
+              <Text style={styles.backupButtonText}>Export now</Text>
+            </Pressable>
+            <Pressable onPress={() => setBackupDismissed(true)}>
+              <Text style={[styles.backupDismiss, { color: theme.muted }]}>Dismiss</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.list}>
         {model.todaySessions.map((session) => (
@@ -132,5 +170,35 @@ const styles = StyleSheet.create({
   empty: {
     textAlign: 'center',
     paddingVertical: 16,
+  },
+  backupBanner: {
+    borderRadius: RADIUS.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    gap: 10,
+  },
+  backupText: {
+    fontSize: 14,
+  },
+  backupActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  backupButton: {
+    borderRadius: RADIUS.pill,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  backupButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  backupDismiss: {
+    fontSize: 14,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });

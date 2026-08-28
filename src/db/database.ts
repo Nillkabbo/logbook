@@ -39,6 +39,7 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
       weekly_target_hours REAL NOT NULL DEFAULT 40,
       reminder_threshold_hours REAL NOT NULL DEFAULT 10,
       hourly_rate REAL NOT NULL DEFAULT 0,
+      last_export_at INTEGER,
       setup_completed INTEGER NOT NULL DEFAULT 0
     );
     INSERT OR IGNORE INTO settings (id) VALUES (1);
@@ -46,6 +47,7 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
   // Migrations for databases created before a column existed.
   await addColumnIfMissing(db, 'sessions', 'category', "TEXT NOT NULL DEFAULT ''");
   await addColumnIfMissing(db, 'settings', 'hourly_rate', 'REAL NOT NULL DEFAULT 0');
+  await addColumnIfMissing(db, 'settings', 'last_export_at', 'INTEGER');
   return db;
 }
 
@@ -126,8 +128,9 @@ export async function getSettings(): Promise<Settings> {
     weekly_target_hours: number;
     reminder_threshold_hours: number;
     hourly_rate: number;
+    last_export_at: number | null;
     setup_completed: number;
-  }>('SELECT week_start_day, weekly_target_hours, reminder_threshold_hours, hourly_rate, setup_completed FROM settings WHERE id = 1');
+  }>('SELECT week_start_day, weekly_target_hours, reminder_threshold_hours, hourly_rate, last_export_at, setup_completed FROM settings WHERE id = 1');
   if (!row) {
     return DEFAULT_SETTINGS;
   }
@@ -136,6 +139,7 @@ export async function getSettings(): Promise<Settings> {
     weeklyTargetHours: row.weekly_target_hours,
     reminderThresholdHours: row.reminder_threshold_hours,
     hourlyRate: row.hourly_rate,
+    lastExportAt: row.last_export_at ?? null,
     setupCompleted: row.setup_completed === 1,
   };
 }
@@ -145,11 +149,12 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   const current = await getSettings();
   const next = { ...current, ...patch };
   await db.runAsync(
-    `UPDATE settings SET week_start_day = ?, weekly_target_hours = ?, reminder_threshold_hours = ?, hourly_rate = ?, setup_completed = ? WHERE id = 1`,
+    `UPDATE settings SET week_start_day = ?, weekly_target_hours = ?, reminder_threshold_hours = ?, hourly_rate = ?, last_export_at = ?, setup_completed = ? WHERE id = 1`,
     next.weekStartDay,
     next.weeklyTargetHours,
     next.reminderThresholdHours,
     next.hourlyRate,
+    next.lastExportAt,
     next.setupCompleted ? 1 : 0,
   );
 }
