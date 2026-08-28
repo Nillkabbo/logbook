@@ -161,6 +161,8 @@ describe('logsModel expansion defaults', () => {
     expect(weeks[0].label).toBe('Thu, Aug 27 – Wed, Sep 2');
     expect(weeks[0].defaultExpanded).toBe(true);
     expect(weeks[1].defaultExpanded).toBe(false);
+    expect(weeks[0].isCurrent).toBe(true);
+    expect(weeks[1].isCurrent).toBe(false);
   });
 
   it('an over-target week defaults expanded', () => {

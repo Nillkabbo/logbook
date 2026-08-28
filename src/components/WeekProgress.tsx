@@ -11,6 +11,7 @@ export function WeekProgress({
   overTarget,
   overByLabel = null,
   emphasized = false,
+  row = false,
   earningsLabel = null,
 }: {
   totalLabel: string;
@@ -19,6 +20,8 @@ export function WeekProgress({
   overTarget: boolean;
   overByLabel?: string | null;
   emphasized?: boolean;
+  /** Row mode (Logs): 24px value, inline earnings, full-width bar. */
+  row?: boolean;
   /** Optional earnings line, centered under the bar. */
   earningsLabel?: string | null;
 }) {
@@ -28,16 +31,19 @@ export function WeekProgress({
   return (
     <View style={styles.container}>
       <View style={[styles.valueRow, emphasized && styles.valueRowCentered]}>
-        <Text style={[emphasized ? styles.valueLarge : styles.value, { color: valueColor }]}>
+        <Text style={[emphasized ? styles.valueLarge : row ? styles.valueRow24 : styles.value, { color: valueColor }]}>
           {totalLabel}
         </Text>
-        <Text style={[emphasized ? styles.targetLarge : styles.target, { color: theme.muted }]}>
+        <Text style={[emphasized ? styles.targetLarge : row ? styles.targetRow : styles.target, { color: theme.muted }]}>
           {' / '}
           {targetLabel}
         </Text>
+        {row && earningsLabel && (
+          <Text style={[styles.earningsInline, { color: theme.accent }]}>{earningsLabel}</Text>
+        )}
         {overTarget && (
           <View style={[styles.chip, { backgroundColor: theme.stopSoft }]}>
-            <Text style={[styles.chipText, { color: theme.stop }]}>
+            <Text style={[styles.chipText, { color: theme.stopOnSoft }]}>
               {t('overLabel')}{overByLabel ? ` +${overByLabel}` : ''}
             </Text>
           </View>
@@ -52,7 +58,7 @@ export function WeekProgress({
           ]}
         />
       </View>
-      {earningsLabel && (
+      {earningsLabel && emphasized && (
         <Text style={[styles.earnings, { color: theme.accent }]}>{earningsLabel}</Text>
       )}
     </View>
@@ -62,7 +68,6 @@ export function WeekProgress({
 const styles = StyleSheet.create({
   container: {
     alignSelf: 'stretch',
-    alignItems: 'center',
     gap: 6,
   },
   valueRow: {
@@ -75,6 +80,23 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 14,
+    fontVariant: ['tabular-nums'],
+  },
+  valueRow24: {
+    fontSize: 24,
+    fontWeight: '600',
+    letterSpacing: -0.5,
+    fontVariant: ['tabular-nums'],
+  },
+  targetRow: {
+    fontSize: 14,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
+  },
+  earningsInline: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 'auto',
     fontVariant: ['tabular-nums'],
   },
   valueLarge: {

@@ -34,8 +34,10 @@ export interface Theme {
   accentAlt: string;
   /** Check-out, over-target, destructive. Nothing else. */
   stop: string;
-  /** ~10% stop tint — the over-target chip fill. */
+  /** Over-target chip fill — the error-container tint. */
   stopSoft: string;
+  /** Text on the over-target chip. */
+  stopOnSoft: string;
   /** Translucent fill for the one glass element: the running session's card. */
   glass: string;
   /** Hairline edge for the glass card. */
@@ -64,7 +66,8 @@ const light: Theme = {
   onAccent: '#FFFFFF',
   accentAlt: '#0D9488',
   stop: '#DC2626',
-  stopSoft: 'rgba(220,38,38,0.1)',
+  stopSoft: '#FFDAD6',
+  stopOnSoft: '#93000A',
   heroGlow: '0px 20px 40px rgba(5,150,105,0.3), 0px 0px 48px 18px rgba(5,150,105,0.22)',
   stopGlow: '0px 0px 40px rgba(220,38,38,0.25)',
   dotGlow: '0px 0px 10px rgba(5,150,105,0.5)',
@@ -87,7 +90,8 @@ const dark: Theme = {
   onAccent: '#0B3B2E',
   accentAlt: '#2DD4BF',
   stop: '#F87171',
-  stopSoft: 'rgba(248,113,113,0.15)',
+  stopSoft: '#93000A',
+  stopOnSoft: '#FFDAD6',
   heroGlow: '0px 0px 40px rgba(52,211,153,0.15)',
   stopGlow: '0px 0px 40px rgba(248,113,113,0.3)',
   dotGlow: '0px 0px 10px rgba(52,211,153,0.5)',

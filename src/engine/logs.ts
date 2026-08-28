@@ -47,8 +47,10 @@ export interface LogWeek {
   earningsLabel: string | null;
   /** True when this week is marked Off — target judgment suspended. */
   off: boolean;
-  /** Whether the week first renders expanded: the current week and over-target weeks demand attention; the rest start collapsed. */
+  /** Whether this week first renders expanded: the current week and over-target weeks demand attention; the rest start collapsed. */
   defaultExpanded: boolean;
+  /** True for the week that contains `now`. */
+  isCurrent: boolean;
   /** Completed-session totals per category, largest first; empty label = uncategorised. */
   categoryBreakdown: Array<{ label: string; totalLabel: string }>;
 }
@@ -168,6 +170,7 @@ export function logsModel(
       overByLabel: summary.overByLabel,
       off,
       defaultExpanded: range.start.getTime() === currentWeekStart || summary.overTarget,
+      isCurrent: range.start.getTime() === currentWeekStart,
       earningsLabel: summary.earningsLabel,
       categoryBreakdown,
     };

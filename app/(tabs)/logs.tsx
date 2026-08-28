@@ -77,11 +77,14 @@ export default function LogsScreen() {
       )}
       {weeks.map((week) =>
         isExpanded(week) ? (
-          <View key={week.key} style={styles.week}>
+          <View key={week.key} style={styles.weekBlock}>
+          <View style={[styles.weekCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
             <View style={styles.weekHeader}>
-              <Pressable style={styles.weekTitleRow} onPress={() => toggleWeek(week)}>
+              <Pressable style={styles.weekTitleBlock} onPress={() => toggleWeek(week)}>
+                {week.isCurrent && (
+                  <Text style={[styles.weekEyebrow, { color: theme.muted }]}>{t('currentWeek')}</Text>
+                )}
                 <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
-                <Text style={[styles.chevron, { color: theme.muted }]}>⌄</Text>
               </Pressable>
               <Pressable onPress={() => toggleOff(week.key)}>
                 <Text style={[styles.offToggle, { color: theme.muted }]}>
@@ -103,10 +106,9 @@ export default function LogsScreen() {
                 progress={week.progress}
                 overTarget={week.overTarget}
                 overByLabel={week.overByLabel}
+                row
+                earningsLabel={week.earningsLabel}
               />
-            )}
-            {week.earningsLabel && (
-              <Text style={[styles.earnings, { color: theme.accent }]}>{week.earningsLabel}</Text>
             )}
             <View style={styles.bars}>
               {week.dayBars.map((bar) => (
@@ -123,9 +125,10 @@ export default function LogsScreen() {
               ))}
             </View>
             {week.categoryBreakdown.length > 0 && (
-              <View style={styles.breakdown}>
-                {week.categoryBreakdown.map((entry) => (
+              <View style={[styles.breakdown, { borderTopColor: theme.canvas }]}>
+                {week.categoryBreakdown.map((entry, index) => (
                   <View key={entry.label || '__none__'} style={styles.breakdownRow}>
+                    <View style={[styles.breakdownDot, { backgroundColor: dotColor(theme, index) }]} />
                     <Text style={[styles.breakdownLabel, { color: theme.muted }]}>
                       {entry.label || t('uncategorised')}
                     </Text>
@@ -136,23 +139,24 @@ export default function LogsScreen() {
                 ))}
               </View>
             )}
+          </View>
 
-            {week.days.map((day) => (
-              <View key={day.key} style={styles.day}>
-                <View style={styles.dayHeader}>
-                  <Text style={[styles.dayLabel, { color: theme.text }]}>{day.label}</Text>
-                  <Text style={[styles.dayTotal, { color: theme.muted }]}>{day.totalLabel}</Text>
-                </View>
-                {day.sessions.map((session) => (
-                  <Pressable
-                    key={session.id}
-                    style={({ pressed }) => [styles.rowWrap, pressed && { opacity: 0.8 }]}
-                    onPress={() => setSelected(session)}>
-                    <SessionRow session={session} now={now} />
-                  </Pressable>
-                ))}
+          {week.days.map((day) => (
+            <View key={day.key} style={styles.day}>
+              <View style={styles.dayHeader}>
+                <Text style={[styles.dayLabel, { color: theme.text }]}>{day.label}</Text>
+                <Text style={[styles.dayTotal, { color: theme.muted }]}>{day.totalLabel}</Text>
               </View>
-            ))}
+              {day.sessions.map((session) => (
+                <Pressable
+                  key={session.id}
+                  style={({ pressed }) => [styles.rowWrap, pressed && { opacity: 0.8 }]}
+                  onPress={() => setSelected(session)}>
+                  <SessionRow session={session} now={now} accentRunning />
+                </Pressable>
+              ))}
+            </View>
+          ))}
           </View>
         ) : (
           <Pressable
@@ -199,11 +203,17 @@ export default function LogsScreen() {
   );
 }
 
+/** The breakdown dot palette — emerald first, then muted zinc steps. */
+function dotColor(theme: ReturnType<typeof useTheme>, index: number): string {
+  if (index === 0) return theme.accent;
+  return index === 1 ? '#71717A' : theme.inset;
+}
+
 const styles = StyleSheet.create({
   container: {
     padding: 16,
     paddingBottom: 32,
-    gap: 12,
+    gap: 24,
   },
   empty: {
     textAlign: 'center',
@@ -218,40 +228,52 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    flexWrap: 'nowrap',
+    gap: 12,
   },
   filterChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
   },
   filterText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '500',
   },
-  week: {
-    gap: 8,
+  weekCard: {
+    borderRadius: RADIUS.card,
+    padding: 24,
+    gap: 24,
   },
   weekHeader: {
-    gap: 6,
-    paddingVertical: 8,
+    gap: 4,
+  },
+  weekTitleBlock: {
+    gap: 2,
   },
   weekTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
+  weekEyebrow: {
+    fontSize: 12,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
   weekLabel: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   chevron: {
     fontSize: 16,
     fontWeight: '600',
   },
   offToggle: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '400',
   },
   offRow: {
     flexDirection: 'row',
@@ -259,7 +281,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   offTotal: {
-    fontSize: 14,
+    fontSize: 24,
+    fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
   offBadge: {
@@ -281,42 +304,54 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 4,
     height: 32,
-    marginTop: 2,
+    marginTop: 8,
   },
   bar: {
     flex: 1,
     borderRadius: 2,
   },
   breakdown: {
-    gap: 2,
-    marginTop: 2,
+    gap: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 16,
   },
   breakdownRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  breakdownDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 999,
   },
   breakdownLabel: {
-    fontSize: 13,
+    fontSize: 14,
+    flex: 1,
   },
   breakdownTotal: {
-    fontSize: 13,
+    fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
+  weekBlock: {
+    gap: 24,
+  },
   day: {
-    gap: 4,
-    marginTop: 4,
+    gap: 16,
   },
   dayHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
+    paddingHorizontal: 8,
   },
   dayLabel: {
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '600',
+    letterSpacing: -0.2,
   },
   dayTotal: {
-    fontSize: 13,
+    fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
   rowWrap: {
@@ -327,12 +362,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderRadius: RADIUS.card,
-    padding: 14,
+    padding: 24,
     gap: 8,
   },
   collapsedLabel: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
     flexShrink: 1,
   },
   collapsedRight: {
@@ -341,7 +376,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   collapsedTotal: {
-    fontSize: 15,
+    fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
   statusPill: {

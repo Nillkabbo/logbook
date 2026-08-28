@@ -8,7 +8,7 @@ import { useHour12 } from '@/ui/clock';
 import { useI18n } from '@/ui/i18n';
 
 /** One session row as rendered on Home and Logs: time range, duration, optional note. */
-export function SessionRow({ session, now }: { session: Session; now: Date }) {
+export function SessionRow({ session, now, accentRunning = false }: { session: Session; now: Date; accentRunning?: boolean }) {
   const theme = useTheme();
   const hour12 = useHour12();
   const { t } = useI18n();
@@ -16,7 +16,9 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
   // hairline-edged, never counted in totals.
   const running = session.checkOut === null;
   const card = running
-    ? [styles.row, { backgroundColor: theme.glass, borderColor: theme.glassEdge }]
+    ? accentRunning
+      ? [styles.row, { backgroundColor: theme.surface, borderLeftWidth: 4, borderLeftColor: theme.accent }, theme.cardShadow]
+      : [styles.row, { backgroundColor: theme.glass, borderColor: theme.glassEdge }]
     : [styles.row, { backgroundColor: theme.surface }, theme.cardShadow];
   return (
     <View style={card}>
@@ -27,7 +29,11 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
         </Text>
         <View style={styles.durationWrap}>
           {running && <View style={[styles.liveDot, { backgroundColor: theme.accent, boxShadow: theme.dotGlow }]} />}
-          <Text style={[styles.rowDuration, { color: theme.text }]}>
+          <Text
+            style={[
+              styles.rowDuration,
+              { color: running && accentRunning ? theme.accent : theme.text },
+            ]}>
             {formatDuration(sessionDurationSeconds(session, session.checkOut ?? now))}
           </Text>
         </View>
