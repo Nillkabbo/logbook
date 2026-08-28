@@ -2,6 +2,8 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
 
 import { ScheduleEditor } from '@/components/ScheduleEditor';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
@@ -16,9 +18,10 @@ import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { refresh, settings, saveSettings, exportBackup, blocks, addBlock, removeBlock } =
+  const { refresh, settings, saveSettings, exportBackup, importCsv, blocks, addBlock, removeBlock } =
     useLogbook();
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const target = useValidatedHours(
     String(settings.weeklyTargetHours),
@@ -54,6 +57,29 @@ export default function SettingsScreen() {
     resetThreshold(String(settings.reminderThresholdHours));
     resetRate(settings.hourlyRate > 0 ? String(settings.hourlyRate) : '');
   }, [settings.weeklyTargetHours, settings.reminderThresholdHours, settings.hourlyRate, resetTarget, resetThreshold, resetRate]);
+
+  const importFromCsv = async () => {
+    if (importing) return;
+    setImporting(true);
+    try {
+      const picked = await DocumentPicker.getDocumentAsync({ type: 'text/csv' });
+      if (picked.canceled || picked.assets.length === 0) return;
+      const csv = await new File(picked.assets[0].uri).text();
+      const result = await importCsv(csv);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Alert.alert(
+        'Import complete',
+        `Imported ${result.toImport.length} session${result.toImport.length === 1 ? '' : 's'}.` +
+          ` Skipped ${result.duplicates} duplicate${result.duplicates === 1 ? '' : 's'}` +
+          `, ${result.skippedRunning} running` +
+          `, ${result.malformed} malformed.`,
+      );
+    } catch (error) {
+      Alert.alert('Import failed', String(error));
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const exportCsv = async () => {
     if (exporting) return;
@@ -132,6 +158,15 @@ export default function SettingsScreen() {
         <Text style={[styles.exportText, { color: theme.onAccent }]}>Export all sessions (CSV)</Text>
       </Pressable>
       <Text style={[styles.hint, { color: theme.muted }]}>One row per session via the share sheet.</Text>
+      <Pressable
+        style={[styles.exportButton, { borderColor: theme.accent, borderWidth: 1 }, importing && styles.buttonDisabled]}
+        disabled={importing}
+        onPress={importFromCsv}>
+        <Text style={[styles.exportText, { color: theme.accent }]}>Import backup (CSV)</Text>
+      </Pressable>
+      <Text style={[styles.hint, { color: theme.muted }]}>
+        Merges a previous export — duplicates and running rows are skipped.
+      </Text>
     </ScrollView>
   );
 }

@@ -96,12 +96,13 @@ export async function listSessions(): Promise<Session[]> {
   return rows.map(rowToSession);
 }
 
-export async function insertSession(checkIn: Date, note = ''): Promise<number> {
+export async function insertSession(checkIn: Date, note = '', category = ''): Promise<number> {
   const db = await getDb();
   const result = await db.runAsync(
-    'INSERT INTO sessions (check_in_utc, check_out_utc, note) VALUES (?, NULL, ?)',
+    'INSERT INTO sessions (check_in_utc, check_out_utc, note, category) VALUES (?, NULL, ?, ?)',
     checkIn.toISOString(),
     note,
+    category,
   );
   return result.lastInsertRowId;
 }

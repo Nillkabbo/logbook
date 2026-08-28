@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sessionsToCsv } from './csv';
+import { parseSessionsCsv, sessionsToCsv } from './csv';
 import type { Session } from './types';
 
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
@@ -62,5 +62,41 @@ describe('sessionsToCsv', () => {
     const rows = csv.split('\n');
     expect(rows[1]).toContain('2026-08-26');
     expect(rows[2]).toContain('2026-08-27');
+  });
+});
+
+describe('parseSessionsCsv — the import inverse', () => {
+  const completed = session(1, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 11, 47), 'deep work', 'client');
+  const running = session(2, at(2026, 7, 27, 13, 5), null, '', 'side gig');
+
+  it('round-trip: exporting then importing imports nothing new', () => {
+    const csv = sessionsToCsv([completed, running]);
+    const result = parseSessionsCsv(csv, [completed, running]);
+    expect(result.toImport).toHaveLength(0);
+    expect(result.duplicates).toBe(1); // the completed row
+    expect(result.skippedRunning).toBe(1);
+  });
+
+  it('into an empty log: every completed row imports with note and category intact', () => {
+    const csv = sessionsToCsv([completed, running]);
+    const result = parseSessionsCsv(csv, []);
+    expect(result.skippedRunning).toBe(1);
+    expect(result.toImport).toHaveLength(1);
+    expect(result.toImport[0].checkIn.getTime()).toBe(at(2026, 7, 27, 9, 0).getTime());
+    expect(result.toImport[0].checkOut?.getTime()).toBe(at(2026, 7, 27, 11, 47).getTime());
+    expect(result.toImport[0].note).toBe('deep work');
+    expect(result.toImport[0].category).toBe('client');
+  });
+
+  it('counts malformed rows without failing the import', () => {
+    const csv = [
+      'date,check_in,check_out,duration_minutes,note,category',
+      'not-a-date,nonsense,,60,,',
+      '2026-08-27,2026-08-27 09:00:00,2026-08-27 10:00:00,60,ok,ok',
+    ].join('\n');
+    const result = parseSessionsCsv(csv, []);
+    expect(result.malformed).toBe(1);
+    expect(result.toImport).toHaveLength(1);
+    expect(result.toImport[0].note).toBe('ok');
   });
 });

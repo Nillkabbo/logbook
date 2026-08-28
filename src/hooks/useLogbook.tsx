@@ -24,7 +24,7 @@ import {
 import { syncNotifications } from '@/notifications/reminders';
 import { deleteEvent, editEvent, reminderDecision } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
-import { sessionsToCsv } from '@/engine/csv';
+import { parseSessionsCsv, sessionsToCsv, type CsvImportResult } from '@/engine/csv';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
 import type { Session, SessionPatch, Settings, Weekday } from '@/engine/types';
 import { DEFAULT_SETTINGS } from '@/engine/types';
@@ -52,6 +52,8 @@ interface Logbook {
   blocks: WorkBlock[];
   addBlock: (weekdays: Weekday[], startMinute: number, endMinute: number) => Promise<void>;
   removeBlock: (id: number) => Promise<void>;
+  /** Merges an exported CSV into the log; returns the counts for reporting. */
+  importCsv: (csv: string) => Promise<CsvImportResult>;
 }
 
 const LogbookContext = createContext<Logbook | null>(null);
@@ -176,6 +178,18 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     [refresh, currentReminder],
   );
 
+  const importCsv = useCallback(
+    async (csv: string): Promise<CsvImportResult> => {
+      const result = parseSessionsCsv(csv, sessions);
+      for (const row of result.toImport) {
+        await insertSession(row.checkIn, row.note, row.category);
+      }
+      await refresh();
+      return result;
+    },
+    [sessions, refresh],
+  );
+
   const removeBlock = useCallback(
     async (id: number) => {
       await deleteBlockInDb(id);
@@ -203,6 +217,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       blocks,
       addBlock,
       removeBlock,
+      importCsv,
     }),
     [
       sessions,
@@ -220,6 +235,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       blocks,
       addBlock,
       removeBlock,
+      importCsv,
     ],
   );
 
