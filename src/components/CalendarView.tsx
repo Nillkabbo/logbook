@@ -1,9 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { formatDuration } from '@/engine/time';
+import { formatMoney } from '@/engine/money';
 import { useTheme } from '@/theme';
 import { useI18n } from '@/ui/i18n';
 
-/** One month of the calendar grid — intensity dots + tap-to-filter. */
+/** One month of the calendar grid — intensity cells, per-day earnings, tap-to-filter. */
 export function CalendarView({
   year,
   month,
@@ -11,6 +13,7 @@ export function CalendarView({
   selectedDay,
   onDayPress,
   onMonthChange,
+  hourlyRate = 0,
 }: {
   year: number;
   month: number;
@@ -19,9 +22,11 @@ export function CalendarView({
   selectedDay: number | null;
   onDayPress: (day: number | null) => void;
   onMonthChange: (delta: number) => void;
+  /** When > 0, cells show per-day earnings. */
+  hourlyRate?: number;
 }) {
   const theme = useTheme();
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const now = new Date();
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
   const today = now.getDate();
@@ -30,6 +35,7 @@ export function CalendarView({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const busiest = Math.max(0, ...dayTotals.values());
 
+  const monthSeconds = [...dayTotals.values()].reduce((sum, s) => sum + s, 0);
   const monthName = new Date(year, month, 1).toLocaleDateString(locale, {
     month: 'long',
     year: 'numeric',
@@ -46,34 +52,57 @@ export function CalendarView({
     const intensity = busiest === 0 ? 0 : seconds / busiest;
     const isSelected = selectedDay === day;
     const isToday = isCurrentMonth && day === today;
+    const earnings = hourlyRate > 0 && seconds > 0
+      ? formatMoney((seconds / 3600) * hourlyRate)
+      : null;
 
     return (
       <Pressable
         key={day}
         style={[
           styles.cell,
-          isSelected && { backgroundColor: theme.accent, borderRadius: 999 },
+          isSelected && styles.cellSelected,
         ]}
         onPress={() => onDayPress(isSelected ? null : day)}>
-        <Text
+        <View
           style={[
-            styles.dayText,
-            { color: isSelected ? theme.onAccent : isToday ? theme.accent : theme.text },
-            isToday && styles.dayToday,
+            styles.cellBox,
+            {
+              backgroundColor: isSelected
+                ? theme.accent
+                : isToday
+                  ? theme.accentSoft
+                  : intensity > 0
+                    ? theme.inset
+                    : 'transparent',
+              opacity: isSelected ? 1 : intensity > 0 ? 0.3 + intensity * 0.7 : 1,
+            },
           ]}>
-          {day}
-        </Text>
-        {seconds > 0 && !isSelected && (
-          <View
+          <Text
             style={[
-              styles.dayDot,
+              styles.dayText,
               {
-                backgroundColor: theme.accent,
-                opacity: 0.3 + intensity * 0.7,
+                color: isSelected
+                  ? theme.onAccent
+                  : isToday
+                    ? theme.accent
+                    : theme.text,
               },
-            ]}
-          />
-        )}
+              isToday && !isSelected && styles.dayToday,
+            ]}>
+            {day}
+          </Text>
+          {earnings && (
+            <Text
+              style={[
+                styles.dayEarnings,
+                { color: isSelected ? theme.onAccent : theme.accent },
+              ]}
+              numberOfLines={1}>
+              {earnings}
+            </Text>
+          )}
+        </View>
       </Pressable>
     );
   };
@@ -83,12 +112,20 @@ export function CalendarView({
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.surface }]}>
+    <View style={[styles.container, { backgroundColor: theme.surface }, theme.cardShadow.boxShadow ? { boxShadow: theme.cardShadow.boxShadow } : null]}>
       <View style={styles.header}>
         <Pressable hitSlop={12} onPress={() => onMonthChange(-1)}>
           <Text style={[styles.chevron, { color: theme.muted }]}>‹</Text>
         </Pressable>
-        <Text style={[styles.monthName, { color: theme.text }]}>{monthName}</Text>
+        <View style={styles.monthInfo}>
+          <Text style={[styles.monthName, { color: theme.text }]}>{monthName}</Text>
+          {monthSeconds > 0 && (
+            <Text style={[styles.monthTotal, { color: theme.muted }]}>
+              {formatDuration(monthSeconds)}
+              {hourlyRate > 0 ? ` · ${formatMoney((monthSeconds / 3600) * hourlyRate)}` : ''}
+            </Text>
+          )}
+        </View>
         <Pressable hitSlop={12} onPress={() => onMonthChange(1)}>
           <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
         </Pressable>
@@ -118,9 +155,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  monthInfo: {
+    alignItems: 'center',
+    gap: 2,
+  },
   monthName: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  monthTotal: {
+    fontSize: 12,
+    fontVariant: ['tabular-nums'],
   },
   chevron: {
     fontSize: 22,
@@ -144,21 +189,25 @@ const styles = StyleSheet.create({
   cell: {
     width: '14.2857%',
     aspectRatio: 1,
+    padding: 1,
+  },
+  cellBox: {
+    flex: 1,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
+    gap: 0,
   },
+  cellSelected: {},
   dayText: {
-    fontSize: 14,
+    fontSize: 13,
   },
   dayToday: {
     fontWeight: '700',
   },
-  dayDot: {
-    position: 'absolute',
-    bottom: 4,
-    width: 4,
-    height: 4,
-    borderRadius: 999,
+  dayEarnings: {
+    fontSize: 8,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
   },
 });

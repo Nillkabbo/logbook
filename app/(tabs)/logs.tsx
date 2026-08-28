@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Modal, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
@@ -61,6 +61,7 @@ export default function LogsScreen() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calMonth, setCalMonth] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [sharePickerOpen, setSharePickerOpen] = useState(false);
   // Per-visit expansion overrides on top of the model's defaults — never persisted.
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const isExpanded = (week: LogWeek) => expanded[week.key] ?? week.defaultExpanded;
@@ -110,14 +111,16 @@ export default function LogsScreen() {
     categoryShares.set(cat, (categoryShares.get(cat) ?? 0) + dur);
   }
 
-  // Share the current (first visible) week
-  const shareCurrentWeek = () => {
-    if (weeks.length === 0) return;
-    Share.share({ message: formatWeekShareText(weeks[0], locale) }).catch(() => {});
-  };
+  const shareWeekText = (week: LogWeek) =>
+    Share.share({ message: formatWeekShareText(week, locale) }).catch(() => {});
 
   const renderWeekCard = (week: LogWeek) => (
-    <View style={[styles.weekCard, cardStyle(theme)]}>
+    <View
+      style={[
+        styles.weekCard,
+        cardStyle(theme),
+        week.isCurrent && { borderLeftWidth: 4, borderLeftColor: theme.accent },
+      ]}>
       <View style={styles.weekHeader}>
         <Pressable
           style={styles.weekTitleBlock}
@@ -249,7 +252,8 @@ export default function LogsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.canvas }}>
-      <View style={[styles.filterArea, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.filterOuter, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.filterArea, cardStyle(theme)]}>
         <View style={styles.filterHeader}>
           <ChipRow
             accessibilityLabel={t('tabLogs')}
@@ -274,7 +278,7 @@ export default function LogsScreen() {
             android_ripple={{ color: theme.muted, borderless: true, radius: 18 }}
             hitSlop={8}
             style={[styles.toolbarButton, { backgroundColor: theme.inset }]}
-            onPress={shareCurrentWeek}>
+            onPress={() => setSharePickerOpen(true)}>
             <Text style={{ fontSize: 16 }}>↗</Text>
           </Pressable>
         </View>
@@ -284,6 +288,7 @@ export default function LogsScreen() {
             year={calMonth.getFullYear()}
             month={calMonth.getMonth()}
             dayTotals={dayTotals}
+            hourlyRate={settings.hourlyRate}
             selectedDay={
               selectedDay !== null && selectedDay.startsWith(
                 `${calMonth.getFullYear()}-${String(calMonth.getMonth() + 1).padStart(2, '0')}`
@@ -361,6 +366,7 @@ export default function LogsScreen() {
           </View>
         )}
       </View>
+      </View>
 
       <FlatList
         data={rows}
@@ -375,6 +381,38 @@ export default function LogsScreen() {
           </View>
         }
       />
+
+      <Modal visible={sharePickerOpen} transparent animationType="fade" onRequestClose={() => setSharePickerOpen(false)}>
+        <Pressable style={styles.shareScrim} onPress={() => setSharePickerOpen(false)}>
+          <View style={[styles.shareSheet, { backgroundColor: theme.surface }]}>
+            <View style={styles.shareGrabberRow}>
+              <View style={[styles.shareGrabber, { backgroundColor: theme.inset }]} />
+            </View>
+            <Text style={[styles.shareTitle, { color: theme.text }]}>{t('shareWeek')}</Text>
+            <View style={styles.shareList}>
+              {weeks.map((week) => (
+                <Pressable
+                  key={week.key}
+                  android_ripple={{ color: theme.inset }}
+                  style={styles.shareRow}
+                  onPress={() => {
+                    setSharePickerOpen(false);
+                    shareWeekText(week);
+                  }}>
+                  <View style={styles.shareRowText}>
+                    <Text style={[styles.shareRowLabel, { color: theme.text }]}>{week.label}</Text>
+                    <Text style={[styles.shareRowSub, { color: theme.muted }]}>
+                      {week.totalLabel} / {week.targetLabel}
+                      {week.earningsLabel ? ` · ${week.earningsLabel}` : ''}
+                    </Text>
+                  </View>
+                  <Text style={[styles.shareRowChevron, { color: theme.muted }]}>›</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
 
       {selected && (
         <SessionDetailSheet
@@ -413,9 +451,12 @@ const styles = StyleSheet.create({
   emptyIcon: {
     fontSize: 40,
   },
-  filterArea: {
+  filterOuter: {
     paddingHorizontal: 16,
     paddingBottom: 12,
+  },
+  filterArea: {
+    padding: 12,
     gap: 8,
   },
   filterHeader: {
@@ -438,6 +479,58 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 3,
     overflow: 'hidden',
+  },
+  shareScrim: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  shareSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 32,
+    maxHeight: '70%',
+  },
+  shareGrabberRow: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  shareGrabber: {
+    width: 40,
+    height: 6,
+    borderRadius: 999,
+  },
+  shareTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    paddingBottom: 12,
+  },
+  shareList: {
+    paddingHorizontal: 16,
+  },
+  shareRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+  },
+  shareRowText: {
+    flex: 1,
+    gap: 2,
+  },
+  shareRowLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  shareRowSub: {
+    fontSize: 13,
+    fontVariant: ['tabular-nums'],
+  },
+  shareRowChevron: {
+    fontSize: 20,
   },
   dateRangeRow: {
     flexDirection: 'row',
