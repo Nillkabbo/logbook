@@ -31,6 +31,8 @@ export interface Settings {
   hourlyRate: number;
   /** Epoch ms of the last CSV export; null when none has happened. */
   lastExportAt: number | null;
+  /** Week-start keys (YYYY-MM-DD) marked as Off weeks — target judgment suspended. */
+  offWeeks: string[];
   setupCompleted: boolean;
 }
 
@@ -40,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reminderThresholdHours: 10,
   hourlyRate: 0,
   lastExportAt: null,
+  offWeeks: [],
   setupCompleted: false,
 };
 

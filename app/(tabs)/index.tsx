@@ -119,14 +119,20 @@ export default function HomeScreen() {
         </View>
         <View style={[styles.totalItem, styles.weekItem]}>
           <Text style={[styles.totalLabel, { color: theme.muted }]}>This week</Text>
-          <WeekProgress
-            totalLabel={model.weekToDateLabel}
-            targetLabel={model.weeklyTargetLabel}
-            progress={model.weekProgress}
-            overTarget={model.overTarget}
-            overByLabel={model.overByLabel}
-            emphasized
-          />
+          {model.off ? (
+            <View style={[styles.offBadge, { borderColor: theme.accent }]}>
+              <Text style={[styles.offBadgeText, { color: theme.accent }]}>Off week</Text>
+            </View>
+          ) : (
+            <WeekProgress
+              totalLabel={model.weekToDateLabel}
+              targetLabel={model.weeklyTargetLabel}
+              progress={model.weekProgress}
+              overTarget={model.overTarget}
+              overByLabel={model.overByLabel}
+              emphasized
+            />
+          )}
           {model.earningsLabel && (
             <Text style={[styles.earnings, { color: theme.accent }]}>{model.earningsLabel}</Text>
           )}
@@ -281,6 +287,17 @@ const styles = StyleSheet.create({
   quickMore: {
     fontSize: 16,
     paddingHorizontal: 6,
+  },
+  offBadge: {
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginTop: 4,
+  },
+  offBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   backupBanner: {
     borderRadius: RADIUS.card,

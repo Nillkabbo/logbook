@@ -116,6 +116,21 @@ describe('homeModel week-to-date', () => {
     expect(model.overByLabel).toBeNull();
   });
 
+  it('an Off week suspends judgment but keeps totals and earnings', () => {
+    const off = homeModel(
+      SESSIONS,
+      { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25, offWeeks: ['2026-08-27'] },
+      NOW,
+    );
+    expect(off.off).toBe(true);
+    expect(off.overTarget).toBe(false);
+    expect(off.overByLabel).toBeNull();
+    expect(off.weekToDateLabel).toBe('2:15'); // totals still show
+    expect(off.earningsLabel).toBe('$ 56.25'); // money is still real
+    const judged = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25 }, NOW);
+    expect(judged.off).toBe(false);
+  });
+
   it('earnings appear when a rate is set; hidden when unset', () => {
     const withRate = homeModel(
       SESSIONS,

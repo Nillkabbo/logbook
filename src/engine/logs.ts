@@ -2,7 +2,7 @@ import { formatDuration } from './time';
 import { formatMoney } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
-import { formatDayLabel, weekProgress, weekRange, weekRangeLabel, type WeekRange } from './weeks';
+import { formatDayLabel, weekKey, weekProgress, weekRange, weekRangeLabel, type WeekRange } from './weeks';
 
 export interface LogDay {
   /** Local-day identity for list keys: `YYYY-MM-DD`. */
@@ -37,6 +37,8 @@ export interface LogWeek {
   overByLabel: string | null;
   /** Week earnings at the set rate; null when no rate is set. */
   earningsLabel: string | null;
+  /** True when this week is marked Off — target judgment suspended. */
+  off: boolean;
   /** Completed-session totals per category, largest first; empty label = uncategorised. */
   categoryBreakdown: Array<{ label: string; totalLabel: string }>;
 }
@@ -83,7 +85,8 @@ export function logsModel(
 
   return weeks.map(({ range, sessions }) => {
     const totalSeconds = sumCompletedSessions(sessions);
-    const progress = weekProgress(totalSeconds, targetSeconds);
+    const off = settings.offWeeks.includes(weekKey(range.start));
+    const progress = off ? { progress: 0, overTarget: false } : weekProgress(totalSeconds, targetSeconds);
 
     const byCategory = new Map<string, number>();
     for (const session of sessions) {
@@ -157,6 +160,7 @@ export function logsModel(
       progress: progress.progress,
       overTarget: progress.overTarget,
       overByLabel: progress.overTarget ? formatDuration(totalSeconds - targetSeconds) : null,
+      off,
       earningsLabel:
         settings.hourlyRate > 0
           ? formatMoney((totalSeconds / 3600) * settings.hourlyRate)

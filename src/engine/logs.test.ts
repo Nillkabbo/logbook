@@ -83,6 +83,15 @@ describe('logsModel', () => {
     expect(logsModel([], THURSDAY)).toEqual([]);
   });
 
+  it('an Off week suspends judgment: no over-target, no overage, totals kept', () => {
+    const weeks = logsModel([tue, wed, overnight], { ...THURSDAY, weeklyTargetHours: 4, offWeeks: ['2026-08-20'] });
+    expect(weeks[0].off).toBe(true);
+    expect(weeks[0].overTarget).toBe(false);
+    expect(weeks[0].overByLabel).toBeNull();
+    expect(weeks[0].totalLabel).toBe('6:00');
+    expect(logsModel([tue], THURSDAY)[0].off).toBe(false);
+  });
+
   it('a category filter recomputes everything over matches and hides empty weeks', () => {
     const NOW = at(2026, 7, 27, 12, 0);
     const weekBClient = session(7, at(2026, 7, 25, 8, 0), at(2026, 7, 25, 10, 0), '', 'client');

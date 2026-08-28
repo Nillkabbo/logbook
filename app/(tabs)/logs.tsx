@@ -6,13 +6,22 @@ import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
+import { weekKey } from '@/engine/weeks';
 import { logsModel } from '@/engine/logs';
 import type { Session } from '@/engine/types';
 import { useTheme } from '@/theme';
 
 export default function LogsScreen() {
   const theme = useTheme();
-  const { refresh, sessions, settings, now, saveSession, removeSession } = useLogbook();
+  const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings } =
+    useLogbook();
+
+  const toggleOff = (key: string) =>
+    saveSettings({
+      offWeeks: settings.offWeeks.includes(key)
+        ? settings.offWeeks.filter((k) => k !== key)
+        : [...settings.offWeeks, key],
+    });
   const [selected, setSelected] = useState<Session | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
@@ -58,14 +67,30 @@ export default function LogsScreen() {
       {weeks.map((week) => (
         <View key={week.key} style={styles.week}>
           <View style={[styles.weekHeader, { borderBottomColor: theme.border }]}>
-            <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
-            <WeekProgress
-              totalLabel={week.totalLabel}
-              targetLabel={week.targetLabel}
-              progress={week.progress}
-              overTarget={week.overTarget}
-              overByLabel={week.overByLabel}
-            />
+            <View style={styles.weekTitleRow}>
+              <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
+              <Pressable onPress={() => toggleOff(week.key)}>
+                <Text style={[styles.offToggle, { color: theme.muted }]}>
+                  {week.off ? 'Mark on' : 'Mark off'}
+                </Text>
+              </Pressable>
+            </View>
+            {week.off ? (
+              <View style={styles.offRow}>
+                <Text style={[styles.offTotal, { color: theme.text }]}>{week.totalLabel}</Text>
+                <View style={[styles.offBadge, { borderColor: theme.accent }]}>
+                  <Text style={[styles.offBadgeText, { color: theme.accent }]}>Off week</Text>
+                </View>
+              </View>
+            ) : (
+              <WeekProgress
+                totalLabel={week.totalLabel}
+                targetLabel={week.targetLabel}
+                progress={week.progress}
+                overTarget={week.overTarget}
+                overByLabel={week.overByLabel}
+              />
+            )}
             {week.earningsLabel && (
               <Text style={[styles.earnings, { color: theme.accent }]}>{week.earningsLabel}</Text>
             )}
@@ -163,8 +188,36 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  weekTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   weekLabel: {
     fontSize: 17,
+    fontWeight: '700',
+  },
+  offToggle: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  offRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  offTotal: {
+    fontSize: 14,
+    fontVariant: ['tabular-nums'],
+  },
+  offBadge: {
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  offBadgeText: {
+    fontSize: 11,
     fontWeight: '700',
   },
   earnings: {

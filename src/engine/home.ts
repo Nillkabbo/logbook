@@ -2,7 +2,7 @@ import { formatDuration, formatElapsed } from './time';
 import { formatMoney } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
-import { weekProgress, weekRange } from './weeks';
+import { weekKey, weekProgress, weekRange } from './weeks';
 
 export interface HomeModel {
   running: Session | null;
@@ -21,6 +21,8 @@ export interface HomeModel {
   overByLabel: string | null;
   /** Week earnings at the set rate; null when no rate is set. */
   earningsLabel: string | null;
+  /** True when the current week is marked Off — target judgment suspended. */
+  off: boolean;
 }
 
 function isSameLocalDay(a: Date, b: Date): boolean {
@@ -52,7 +54,10 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
     ),
   );
   const weeklyTargetSeconds = Math.round(settings.weeklyTargetHours * 3600);
-  const progress = weekProgress(weekToDateSeconds, weeklyTargetSeconds);
+  const off = settings.offWeeks.includes(weekKey(week.start));
+  const progress = off
+    ? { progress: 0, overTarget: false }
+    : weekProgress(weekToDateSeconds, weeklyTargetSeconds);
 
   return {
     running,
@@ -65,6 +70,7 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
     weekProgress: progress.progress,
     overTarget: progress.overTarget,
     overByLabel: progress.overTarget ? formatDuration(weekToDateSeconds - weeklyTargetSeconds) : null,
+    off,
     earningsLabel:
       settings.hourlyRate > 0
         ? formatMoney((weekToDateSeconds / 3600) * settings.hourlyRate)
