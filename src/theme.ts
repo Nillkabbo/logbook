@@ -7,13 +7,9 @@ import { useColorScheme } from 'react-native';
  * check-out, over-target, and destructive. Follows the system light/dark mode.
  */
 
-/** A floating card's ambient shadow — iOS shadow props plus an Android elevation stand-in. */
-export interface Shadow {
-  shadowColor: string;
-  shadowOffset: { width: number; height: number };
-  shadowOpacity: number;
-  shadowRadius: number;
-  elevation: number;
+/** A floating card's ambient shadow as one cross-platform `boxShadow` value (New Architecture + web). */
+export interface CardShadow {
+  boxShadow: string;
 }
 
 export interface Theme {
@@ -27,7 +23,7 @@ export interface Theme {
   /** Secondary text at ~60% — captions, hints. */
   muted: string;
   /** Soft ambient shadow that lifts a floating card off the canvas. */
-  cardShadow: Shadow;
+  cardShadow: CardShadow;
   /** The working state: check-in, active pills, fills, links. */
   accent: string;
   /** ~10% accent tint — tonal chip fills. */
@@ -53,11 +49,7 @@ const light: Theme = {
   text: '#18181B',
   muted: 'rgba(24,24,27,0.6)',
   cardShadow: {
-    shadowColor: '#18181B',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 2,
+    boxShadow: '0px 8px 24px rgba(24,24,27,0.06)',
   },
   accent: '#059669',
   accentSoft: 'rgba(5,150,105,0.1)',
@@ -76,11 +68,7 @@ const dark: Theme = {
   text: '#FAFAFA',
   muted: 'rgba(250,250,250,0.6)',
   cardShadow: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 3,
+    boxShadow: '0px 8px 24px rgba(0,0,0,0.4)',
   },
   accent: '#34D399',
   accentSoft: 'rgba(52,211,153,0.15)',
