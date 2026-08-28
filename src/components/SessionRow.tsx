@@ -4,16 +4,18 @@ import { formatDuration, formatTimeOfDay } from '@/engine/time';
 import { sessionDurationSeconds } from '@/engine/sessions';
 import type { Session } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
+import { useHour12 } from '@/ui/clock';
 
 /** One session row as rendered on Home and Logs: time range, duration, optional note. */
 export function SessionRow({ session, now }: { session: Session; now: Date }) {
   const theme = useTheme();
+  const hour12 = useHour12();
   return (
     <View style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <View style={styles.rowMain}>
         <Text style={[styles.rowTimes, { color: theme.text }]}>
-          {formatTimeOfDay(session.checkIn)} –{' '}
-          {session.checkOut ? formatTimeOfDay(session.checkOut) : 'now'}
+          {formatTimeOfDay(session.checkIn, hour12)} –{' '}
+          {session.checkOut ? formatTimeOfDay(session.checkOut, hour12) : 'now'}
         </Text>
         <Text style={[styles.rowDuration, { color: theme.text }]}>
           {formatDuration(sessionDurationSeconds(session, session.checkOut ?? now))}

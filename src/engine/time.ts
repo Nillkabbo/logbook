@@ -21,9 +21,15 @@ export function formatElapsed(totalSeconds: number): string {
   return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-/** 24-hour `HH:MM` wall-clock time in the local timezone. */
-export function formatTimeOfDay(date: Date): string {
-  const hours = String(date.getHours()).padStart(2, '0');
+/** Wall-clock time in the local timezone: `HH:MM` (24h, default) or `h:MM AM/PM` (hour12). */
+export function formatTimeOfDay(date: Date, hour12 = false): string {
   const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+  if (!hour12) {
+    const hours = String(date.getHours()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+  const twentyFour = date.getHours();
+  const meridiem = twentyFour < 12 ? 'AM' : 'PM';
+  const twelve = twentyFour % 12 === 0 ? 12 : twentyFour % 12;
+  return `${twelve}:${minutes} ${meridiem}`;
 }

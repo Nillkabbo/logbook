@@ -19,6 +19,7 @@ import { formatDuration, formatTimeOfDay } from '@/engine/time';
 import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
+import { useHour12 } from '@/ui/clock';
 
 interface Props {
   session: Session;
@@ -29,10 +30,12 @@ interface Props {
   onClose: () => void;
 }
 
-const formatDateTime = (date: Date) => `${formatDayLabel(date)}, ${formatTimeOfDay(date)}`;
+const formatDateTime = (date: Date, hour12: boolean) =>
+  `${formatDayLabel(date)}, ${formatTimeOfDay(date, hour12)}`;
 
 export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose }: Props) {
   const theme = useTheme();
+  const hour12 = useHour12();
   const [checkIn, setCheckIn] = useState(session.checkIn);
   const [checkOut, setCheckOut] = useState(session.checkOut);
   const [note, setNote] = useState(session.note);
@@ -134,7 +137,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           disabled={disabled}
           onPress={() => setPicker(picker === field ? null : field)}>
           <Text style={[styles.fieldValue, { color: theme.text }]}>
-            {value ? formatDateTime(value) : '—'}
+            {value ? formatDateTime(value, hour12) : '—'}
           </Text>
         </Pressable>
         {picker === field && value && (

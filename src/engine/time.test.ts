@@ -36,6 +36,13 @@ describe('formatElapsed', () => {
 });
 
 describe('formatTimeOfDay', () => {
+  it('12-hour mode: h:mm with AM/PM, no leading zero on the hour', () => {
+    expect(formatTimeOfDay(at(2026, 7, 27, 14, 30), true)).toBe('2:30 PM');
+    expect(formatTimeOfDay(at(2026, 7, 27, 9, 5), true)).toBe('9:05 AM');
+    expect(formatTimeOfDay(at(2026, 7, 27, 0, 0), true)).toBe('12:00 AM');
+    expect(formatTimeOfDay(at(2026, 7, 27, 23, 59), true)).toBe('11:59 PM');
+  });
+
   it('formats 24-hour HH:MM in the local timezone', () => {
     expect(formatTimeOfDay(at(2026, 7, 27, 9, 5))).toBe('09:05');
     expect(formatTimeOfDay(at(2026, 7, 27, 14, 30))).toBe('14:30');

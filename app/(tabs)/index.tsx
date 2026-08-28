@@ -12,12 +12,14 @@ import { homeModel } from '@/engine/home';
 import { formatTimeOfDay } from '@/engine/time';
 import { formatDayLabel } from '@/engine/weeks';
 import { isBackupDue } from '@/engine/backup';
+import { useHour12 } from '@/ui/clock';
 import type { Session } from '@/engine/types';
 import { blockOccurring, nextBlockOccurrence } from '@/engine/schedule';
 import { RADIUS, TYPE, useTheme } from '@/theme';
 
 export default function HomeScreen() {
   const theme = useTheme();
+  const hour12 = useHour12();
   const { refresh, checkIn, checkOut, sessions, settings, now, exportBackup, blocks,
     saveSession, removeSession } = useLogbook();
   const [selected, setSelected] = useState<Session | null>(null);
@@ -134,7 +136,7 @@ export default function HomeScreen() {
       )}
       {nextBlock && (
         <Text style={[styles.nextBlock, { color: theme.muted }]}>
-          Next block: {formatDayLabel(nextBlock.startsAt)}, {formatTimeOfDay(nextBlock.startsAt)}
+          Next block: {formatDayLabel(nextBlock.startsAt)}, {formatTimeOfDay(nextBlock.startsAt, hour12)}
         </Text>
       )}
 
