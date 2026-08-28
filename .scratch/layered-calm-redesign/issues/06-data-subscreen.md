@@ -21,15 +21,15 @@ actions.
 
 ## Acceptance criteria
 
-- [ ] The Data chevron row navigates to a pushed sub-screen with back
+- [x] The Data chevron row navigates to a pushed sub-screen with back
       chevron, "Data" title, and the tab bar still present
-- [ ] Export and import work from the new screen exactly as before
-- [ ] The last-export line shows the real timestamp, or reads as never
+- [x] Export and import work from the new screen exactly as before
+- [x] The last-export line shows the real timestamp, or reads as never
       exported when none exists, and refreshes after a successful export
-- [ ] Hints ("one row per session via the share sheet", "merges a previous
+- [x] Hints ("one row per session via the share sheet", "merges a previous
       export…") are preserved verbatim
-- [ ] New strings exist in both English and Bangla
-- [ ] `npm run typecheck` and `npm test` pass
+- [x] New strings exist in both English and Bangla
+- [x] `npm run typecheck` and `npm test` pass
 
 ## Blocked by
 

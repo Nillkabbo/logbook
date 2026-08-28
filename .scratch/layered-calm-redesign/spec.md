@@ -190,3 +190,17 @@ not what it means.
 ## Comments
 
 - Two-axis review (Standards + Spec) run against 22ed6e1...HEAD after implementation; findings fixed in the follow-up commit (toggle bug, OVER localization, export catch, engine-owned block labels). Suite: 100 passed.
+
+## Comments
+
+- Round 3 (export-exactness): the user supplied the full Stitch HTML export
+  (`.scratch/stitch-ui/stitch_logbook_modern` — code.html per screen), which
+  replaced vision-diff estimating with exact values. All screens re-derived
+  from the export's code: Home (b17c225), Logs (788171d), Settings+Schedule+Data
+  (66c16d5), Session sheet+Setup (93f0961).
+- Round 4 (platform polish): safe-area insets on every screen (36e134e),
+  Context7-verified RN/Expo best practices — memoised rows, transactional
+  imports, ripples, dark splash (f2bdc74) — and FlatList virtualization of the
+  Logs history (ee9a623).
+- Suite at close: 108 tests, typecheck clean, all routes rendering with zero
+  console errors.

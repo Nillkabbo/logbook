@@ -20,15 +20,15 @@ preserved unchanged.
 
 ## Acceptance criteria
 
-- [ ] Sheet fields render as borderless floating cards with soft shadows, in
+- [x] Sheet fields render as borderless floating cards with soft shadows, in
       both light and dark mode
-- [ ] The note field is visibly taller than the category field
-- [ ] Save is the only emerald element; the delete link is the only red
+- [x] The note field is visibly taller than the category field
+- [x] Save is the only emerald element; the delete link is the only red
       element on the sheet
-- [ ] Saving with valid times, the still-running toggle flow, category
+- [x] Saving with valid times, the still-running toggle flow, category
       suggestions, and delete-with-confirmation all behave exactly as before
-- [ ] New strings (if any) exist in both English and Bangla
-- [ ] `npm run typecheck` and `npm test` pass
+- [x] New strings (if any) exist in both English and Bangla
+- [x] `npm run typecheck` and `npm test` pass
 
 ## Blocked by
 

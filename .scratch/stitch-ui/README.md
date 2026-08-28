@@ -1,5 +1,12 @@
 # LogBook — Stitch UI mocks
 
+## Source of truth (round 3)
+
+`.scratch/stitch-ui/stitch_logbook_modern/` — the user-exported Stitch set with
+`code.html` per screen (exact values) plus `layered_calm/DESIGN.md`. All app
+screens were re-derived from this export; the CDN screenshot URLs above are
+historical.
+
 ## Projects
 
 | Project | ID | What it is |
@@ -57,6 +64,11 @@ Timed-out edits can spawn corrected copies instead of editing in place; two did:
 - `modern/` — modern screenshots as downloaded (light-Logs missing: bad CDN token)
 
 ## Known minor deviations (left as-is)
+
+- Headerless tab screens (the export adds titles; ratified in the spec).
+- 12h/24h clock follows the device preference (export renders 12h).
+- Category-pill order is engine-defined (recency), not the export's literal order.
+- No active-tab pill behind sub-screens on the shared tab bar.
 
 - Dark-mode muted grays sit near the WCAG AA edge — check before implementing.
 - The dark check-in gradient is barely perceptible.

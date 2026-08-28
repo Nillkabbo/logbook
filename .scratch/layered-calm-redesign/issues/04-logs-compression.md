@@ -23,20 +23,20 @@ earnings when expanded, with no target judgment.
 
 ## Acceptance criteria
 
-- [ ] Engine tests cover the expansion defaults: current week expanded;
+- [x] Engine tests cover the expansion defaults: current week expanded;
       over-target week expanded; past normal week collapsed; off week
       collapsed; a week that is both current and over-target counts once and
       is expanded
-- [ ] Collapsed weeks render as compact rows with date range, total, status
+- [x] Collapsed weeks render as compact rows with date range, total, status
       pill (Off week / OVER) where applicable, and a chevron
-- [ ] Tapping a week toggles expansion; user overrides survive until the
+- [x] Tapping a week toggles expansion; user overrides survive until the
       visit ends and are not persisted
-- [ ] Expanded weeks keep every existing element: mark off/on, progress and
+- [x] Expanded weeks keep every existing element: mark off/on, progress and
       over-target treatment, earnings, day bars, category breakdown, day
       groups
-- [ ] Weeks are labeled by date range only, never week numbers
-- [ ] Category filter behavior is unchanged
-- [ ] `npm run typecheck` and `npm test` pass
+- [x] Weeks are labeled by date range only, never week numbers
+- [x] Category filter behavior is unchanged
+- [x] `npm run typecheck` and `npm test` pass
 
 ## Blocked by
 

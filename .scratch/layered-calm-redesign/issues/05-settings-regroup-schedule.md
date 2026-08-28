@@ -23,16 +23,16 @@ Sub-screen titles join the string dictionary in English and Bangla.
 
 ## Acceptance criteria
 
-- [ ] Settings renders as grouped floating cards (Week / Earnings /
+- [x] Settings renders as grouped floating cards (Week / Earnings /
       navigation / Language) with section labels, no long single form
-- [ ] The Schedule chevron row navigates to a pushed sub-screen with back
+- [x] The Schedule chevron row navigates to a pushed sub-screen with back
       chevron, "Schedule" title, and the tab bar still present
-- [ ] Adding and removing work blocks works from the new screen exactly as
+- [x] Adding and removing work blocks works from the new screen exactly as
       before, with validation and hint copy preserved
-- [ ] Week-start, weekly target, reminder threshold, hourly rate, and
+- [x] Week-start, weekly target, reminder threshold, hourly rate, and
       language controls still save exactly as before
-- [ ] New strings exist in both English and Bangla
-- [ ] `npm run typecheck` and `npm test` pass
+- [x] New strings exist in both English and Bangla
+- [x] `npm run typecheck` and `npm test` pass
 
 ## Blocked by
 

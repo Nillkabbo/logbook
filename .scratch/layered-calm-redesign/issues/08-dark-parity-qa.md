@@ -47,3 +47,10 @@ prepare, present, and fix; the sign-off itself is the reporter's.
 ## Comments
 
 - Web QA evidence added (appweb/ screenshots): visuals verified in light and dark; boxShadow token fix landed in the follow-up commit. Web-only input defect (RN-web + React 19 responder) documented — does not affect Expo Go/native. Remaining for sign-off: reporter verifies on device via Expo Go.
+
+- Follow-up passes: export-exactness from the user-provided Stitch HTML export
+  (b17c225, 788171d, 66c16d5, 93f0961), safe areas + UX polish (36e134e),
+  documented RN/Expo best practices (f2bdc74), FlatList virtualization
+  (ee9a623). Dark parity re-verified per screen during capture passes; web
+  evidence in `.scratch/stitch-ui/appweb/`.
+- Human visual sign-off: **still pending** — the only open item on this issue.

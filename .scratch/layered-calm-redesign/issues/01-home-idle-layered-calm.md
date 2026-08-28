@@ -23,19 +23,19 @@ using the app's existing dark palette with its brighter accent.
 
 ## Acceptance criteria
 
-- [ ] Home idle renders borderless floating cards on a tonal zinc canvas with
+- [x] Home idle renders borderless floating cards on a tonal zinc canvas with
       soft ambient shadows, in both light and dark mode
-- [ ] The week-to-date fraction renders in the enlarged display tier, visibly
+- [x] The week-to-date fraction renders in the enlarged display tier, visibly
       larger than the today total
-- [ ] Progress bar is ~10px, fully rounded, with the unfilled track visible
-- [ ] Category chips are tonal emerald fills (no outline)
-- [ ] Emerald appears only on working-state elements; no red anywhere on this
+- [x] Progress bar is ~10px, fully rounded, with the unfilled track visible
+- [x] Category chips are tonal emerald fills (no outline)
+- [x] Emerald appears only on working-state elements; no red anywhere on this
       screen; no blue anywhere
-- [ ] Tabular numerals on every time and number
-- [ ] Behavior unchanged: totals math, earnings line, next-block line, and
+- [x] Tabular numerals on every time and number
+- [x] Behavior unchanged: totals math, earnings line, next-block line, and
       tapping a session row still opens the session sheet (the sheet itself
       may be unstyled at this point)
-- [ ] `npm run typecheck` and `npm test` pass
+- [x] `npm run typecheck` and `npm test` pass
 
 ## Blocked by
 

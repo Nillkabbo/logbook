@@ -19,13 +19,13 @@ new ones are added bilingually.
 
 ## Acceptance criteria
 
-- [ ] Setup renders in the Layered Calm language in both light and dark mode
-- [ ] Weekday pills are tonal; the selected day reads clearly as selected
-- [ ] Start tracking commits the chosen week-start day and weekly target;
+- [x] Setup renders in the Layered Calm language in both light and dark mode
+- [x] Weekday pills are tonal; the selected day reads clearly as selected
+- [x] Start tracking commits the chosen week-start day and weekly target;
       skip applies defaults — both exactly as before
-- [ ] Invalid target input still shows the existing validation error
-- [ ] New strings (if any) exist in both English and Bangla
-- [ ] `npm run typecheck` and `npm test` pass
+- [x] Invalid target input still shows the existing validation error
+- [x] New strings (if any) exist in both English and Bangla
+- [x] `npm run typecheck` and `npm test` pass
 
 ## Blocked by
 
