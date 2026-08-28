@@ -56,8 +56,8 @@ interface Logbook {
   removeBlock: (id: number) => Promise<void>;
   /** Merges an exported CSV into the log; returns the counts for reporting. */
   importCsv: (csv: string) => Promise<CsvImportResult>;
-  /** Dev-only: populates ~2 months of sample data. */
-  loadSampleData: () => void;
+  /** Dev-only: populates ~2 months of sample data; returns the count loaded. */
+  loadSampleData: () => Promise<number>;
   /** Deletes all sessions, blocks, and settings (after confirmation). */
   clearAllData: () => Promise<void>;
 }
@@ -144,7 +144,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   // the Data sub-screen. Clears existing data first so re-loading never
   // duplicates. Remove after testing.
   const loadSampleData = useCallback(async () => {
-    (async () => {
+    {
       // Clear existing data so re-loading is idempotent
       for (const session of await listSessions()) {
         await deleteSessionInDb(session.id);
@@ -195,6 +195,8 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       const OFF_WEEK = 2;
       const OVER_WEEKS = [3, 5];
 
+      let count = 0;
+
       // ── Generate sessions: 8 weeks of data (56 days) ──
       for (let weeksAgo = 8; weeksAgo >= 0; weeksAgo--) {
         const wStart = weekStart(weeksAgo);
@@ -219,14 +221,14 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
           if (weeksAgo === 0 && date > now) continue;
 
           // 1-3 sessions per day
-          const count = isOver ? randInt(2, 3) : randInt(1, 3);
+          const sessionsToday = isOver ? randInt(2, 3) : randInt(1, 3);
           // Over-target weeks get longer sessions
           const baseDur = isOver ? randInt(180, 300) : randInt(60, 240);
 
           // Start times: morning ~8:30, midday ~12:00, afternoon ~14:30
           const startHours = [8.5, 12, 14.5];
 
-          for (let i = 0; i < count; i++) {
+          for (let i = 0; i < sessionsToday; i++) {
             const cat = pick(CATEGORIES);
             const note = rand() < 0.35 ? pick(NOTES[cat] ?? ['']) : '';
             const startH = startHours[i] + rand() * 0.5; // up to 30min jitter
@@ -245,6 +247,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
             );
             const id = await insertSession(checkIn, note, cat);
             await completeSession(id, checkOut);
+            count++;
           }
         }
       }
@@ -252,6 +255,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       // ── Running session: started 45 minutes ago ──
       const runningStart = new Date(now.getTime() - 45 * 60 * 1000);
       await insertSession(runningStart, '', '');
+      count++;
 
       // ── Settings ──
       const offSunday = weekStart(OFF_WEEK);
@@ -259,7 +263,8 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       await updateSettingsInDb({ hourlyRate: 30, offWeeks: [offKey] });
 
       await refresh();
-    })();
+      return count;
+    };
   }, [refresh]);
 
   const clearAllData = useCallback(async () => {

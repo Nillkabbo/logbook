@@ -19,6 +19,8 @@ export default function DataScreen() {
   const { refresh, settings, sessions, exportBackup, importCsv, loadSampleData, clearAllData } = useLogbook();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -100,17 +102,43 @@ export default function DataScreen() {
       <View style={[styles.card, cardStyle(theme)]}>
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
-          style={[styles.secondary, insetInput(theme)]}
-          onPress={loadSampleData}>
+          style={[styles.secondary, insetInput(theme), loading && styles.disabled]}
+          disabled={loading}
+          onPress={async () => {
+            if (loading) return;
+            setLoading(true);
+            try {
+              const count = await loadSampleData();
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+              Alert.alert(t('data'), t('sampleLoaded', { n: count }));
+            } finally {
+              setLoading(false);
+            }
+          }}>
           <Text style={[styles.secondaryText, { color: theme.accent }]}>{t('loadSample')}</Text>
         </Pressable>
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
-          style={[styles.secondary, insetInput(theme)]}
+          style={[styles.secondary, insetInput(theme), clearing && styles.disabled]}
+          disabled={clearing}
           onPress={() =>
             Alert.alert(t('clearDataConfirm'), t('clearDataBody'), [
               { text: t('cancel'), style: 'cancel' },
-              { text: t('clearDataAction'), style: 'destructive', onPress: clearAllData },
+              {
+                text: t('clearDataAction'),
+                style: 'destructive',
+                onPress: async () => {
+                  if (clearing) return;
+                  setClearing(true);
+                  try {
+                    await clearAllData();
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+                    Alert.alert(t('data'), t('dataCleared'));
+                  } finally {
+                    setClearing(false);
+                  }
+                },
+              },
             ])
           }>
           <Text style={[styles.secondaryText, { color: theme.stop }]}>{t('clearData')}</Text>
