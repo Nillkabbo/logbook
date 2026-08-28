@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatDuration, formatTimeOfDay } from '@/engine/time';
+import { formatMoney } from '@/engine/money';
 import { sessionDurationSeconds } from '@/engine/sessions';
 import type { Session } from '@/engine/types';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
@@ -9,7 +10,7 @@ import { useHour12 } from '@/ui/clock';
 import { useI18n } from '@/ui/i18n';
 
 /** One session row as rendered on Home and Logs: time range, duration, optional note. */
-function SessionRowImpl({ session, now, accentRunning = false }: { session: Session; now: Date; accentRunning?: boolean }) {
+function SessionRowImpl({ session, now, accentRunning = false, hourlyRate = 0 }: { session: Session; now: Date; accentRunning?: boolean; hourlyRate?: number }) {
   const theme = useTheme();
   const hour12 = useHour12();
   const { t } = useI18n();
@@ -29,6 +30,13 @@ function SessionRowImpl({ session, now, accentRunning = false }: { session: Sess
           {session.checkOut ? formatTimeOfDay(session.checkOut, hour12) : t('now')}
         </Text>
         <View style={styles.durationWrap}>
+          {hourlyRate > 0 && !running && (
+            <Text style={[styles.rowEarnings, { color: theme.accent }]}>
+              {formatMoney(
+                (sessionDurationSeconds(session) / 3600) * hourlyRate,
+              )}
+            </Text>
+          )}
           {running && <View style={[styles.liveDot, { backgroundColor: theme.accent, boxShadow: theme.dotGlow }]} />}
           <Text
             style={[
@@ -105,6 +113,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
+  rowEarnings: {
+    fontSize: 14,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
+  },
   rowNote: {
     fontSize: 13,
   },
@@ -122,5 +135,6 @@ export const SessionRow = memo(
     prev.session.note === next.session.note &&
     prev.session.category === next.session.category &&
     prev.accentRunning === next.accentRunning &&
+    prev.hourlyRate === next.hourlyRate &&
     (next.session.checkOut !== null || prev.now.getTime() === next.now.getTime()),
 );

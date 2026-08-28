@@ -169,7 +169,7 @@ export default function LogsScreen() {
             android_ripple={{ color: theme.inset, foreground: true }}
             style={({ pressed }) => [styles.rowWrap, pressed && { opacity: 0.8 }]}
             onPress={() => setSelected(item.session)}>
-            <SessionRow session={item.session} now={now} accentRunning />
+            <SessionRow session={item.session} now={now} accentRunning hourlyRate={settings.hourlyRate} />
           </Pressable>
         );
       case 'collapsed':
