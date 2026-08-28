@@ -6,11 +6,11 @@ Parent spec: `.scratch/logbook-v1/spec.md`
 
 **Blocked by:** 02 — Check-in/check-out loop with SQLite persistence.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Unit tests pass for week boundaries with every weekday configured as the week-start day
-- [ ] Unit tests pass for a session starting exactly at a week boundary, and for midnight-crossing sessions owned by the check-in day/week
-- [ ] Unit tests pass for week-to-date totals across multiple sessions and days, with running sessions excluded
-- [ ] Home shows week-to-date total vs weekly target (read from settings) with a progress bar
-- [ ] Exceeding the target renders a distinct over-target state
-- [ ] All engine tests run in plain Node with no device or mocks
+- [x] Unit tests pass for week boundaries with every weekday configured as the week-start day
+- [x] Unit tests pass for a session starting exactly at a week boundary, and for midnight-crossing sessions owned by the check-in day/week
+- [x] Unit tests pass for week-to-date totals across multiple sessions and days, with running sessions excluded
+- [x] Home shows week-to-date total vs weekly target (read from settings) with a progress bar
+- [x] Exceeding the target renders a distinct over-target state
+- [x] All engine tests run in plain Node with no device or mocks

@@ -12,6 +12,7 @@ import {
 import type { Session, Settings } from '@/engine/types';
 import { DEFAULT_SETTINGS } from '@/engine/types';
 import type { SessionPatch } from '@/db/database';
+import { cancelCheckInReminder, scheduleCheckInReminder } from '@/notifications/reminders';
 
 /**
  * App-side store over the SQLite adapter: loads sessions + settings, exposes
@@ -45,13 +46,16 @@ export function useLogbook() {
   }, [running]);
 
   const checkIn = useCallback(async () => {
-    await insertSession(new Date());
+    const checkInAt = new Date();
+    await insertSession(checkInAt);
+    await scheduleCheckInReminder(checkInAt, settings.reminderThresholdHours);
     await refresh();
-  }, [refresh]);
+  }, [refresh, settings.reminderThresholdHours]);
 
   const checkOut = useCallback(async () => {
     if (!running) return;
     await completeSession(running.id, new Date());
+    await cancelCheckInReminder();
     await refresh();
   }, [running, refresh]);
 
