@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
@@ -15,7 +15,6 @@ import { useI18n, type StringKey } from '@/ui/i18n';
  * Skippable — defaults (Sunday, 40h) apply and everything is changeable in Settings.
  */
 export function FirstLaunchSetup() {
-  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t } = useI18n();
   const { ready, settings, saveSettings } = useLogbook();
@@ -43,10 +42,11 @@ export function FirstLaunchSetup() {
 
   return (
     <Modal visible animationType="fade" onRequestClose={() => {}}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.canvas }} edges={['top', 'bottom']}>
       <ScrollView
         style={{ backgroundColor: theme.canvas }}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.container, { paddingTop: insets.top, paddingBottom: 48 + insets.bottom }]}>
+        contentContainerStyle={[styles.container, { paddingBottom: 48 }]}>
         <Text style={[styles.title, { color: theme.text }]}>{t('welcome')}</Text>
         <Text style={[styles.intro, { color: theme.muted }]}>
           {t('welcomeIntro')}
@@ -78,6 +78,7 @@ export function FirstLaunchSetup() {
           </Text>
         </Pressable>
       </ScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }

@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DateTimeField } from '@/components/DateTimeField';
 import { formatDuration } from '@/engine/time';
@@ -33,7 +33,6 @@ interface Props {
 }
 
 export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose }: Props) {
-  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const hour12 = useHour12();
   const { t } = useI18n();
@@ -105,11 +104,12 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
       <View style={styles.grabberRow}>
         <View style={[styles.grabber, { backgroundColor: '#D4D4D8' }]} />
       </View>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
       <ScrollView
         style={{ backgroundColor: theme.canvas }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.container, { paddingBottom: 48 + insets.bottom }]}>
+        contentContainerStyle={styles.container}>
         <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
 
         {renderField('in')}
@@ -174,6 +174,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           </Pressable>
         </View>
       </ScrollView>
+      </SafeAreaView>
       </View>
     </Modal>
   );

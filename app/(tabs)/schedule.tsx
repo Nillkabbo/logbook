@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
@@ -11,7 +11,6 @@ import { useI18n } from '@/ui/i18n';
 
 /** The Schedule sub-screen: the work-block list and add form, split out of Settings. */
 export default function ScheduleScreen() {
-  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t } = useI18n();
   const { refresh, blocks, addBlock, removeBlock } = useLogbook();
@@ -23,14 +22,16 @@ export default function ScheduleScreen() {
   );
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.canvas }} edges={['top']}>
     <ScrollView
       style={{ backgroundColor: theme.canvas }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 8 }]}>
+      contentContainerStyle={styles.container}>
       <SubScreenHeader title={t('schedule')} />
       <ScheduleEditor blocks={blocks} onAdd={addBlock} onRemove={removeBlock} />
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
