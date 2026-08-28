@@ -31,7 +31,7 @@ export default function LogsScreen() {
       style={{ backgroundColor: theme.subtle }}
       contentContainerStyle={styles.container}>
       {weeks.length === 0 && (
-        <Text style={[styles.empty, { color: theme.muted }]}>No sessions logged yet.</Text>
+        <Text style={[styles.empty, { color: theme.muted }]}>No sessions yet — your history builds here.</Text>
       )}
       {weeks.map((week) => (
         <View key={week.key} style={styles.week}>

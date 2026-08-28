@@ -2,6 +2,8 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { SessionDetailSheet } from '@/components/SessionDetailSheet';
+
 import { CheckInToggle } from '@/components/CheckInToggle';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
@@ -10,13 +12,15 @@ import { homeModel } from '@/engine/home';
 import { formatTimeOfDay } from '@/engine/time';
 import { formatDayLabel } from '@/engine/weeks';
 import { isBackupDue } from '@/engine/backup';
+import type { Session } from '@/engine/types';
 import { blockOccurring, nextBlockOccurrence } from '@/engine/schedule';
 import { RADIUS, TYPE, useTheme } from '@/theme';
 
 export default function HomeScreen() {
   const theme = useTheme();
-  const { refresh, checkIn, checkOut, sessions, settings, now, exportBackup, blocks } =
-    useLogbook();
+  const { refresh, checkIn, checkOut, sessions, settings, now, exportBackup, blocks,
+    saveSession, removeSession } = useLogbook();
+  const [selected, setSelected] = useState<Session | null>(null);
   const [busy, setBusy] = useState(false);
   const [backupDismissed, setBackupDismissed] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -136,12 +140,30 @@ export default function HomeScreen() {
 
       <ScrollView contentContainerStyle={styles.list}>
         {model.todaySessions.map((session) => (
-          <SessionRow key={session.id} session={session} now={now} />
+          <Pressable key={session.id} onPress={() => setSelected(session)}>
+            {({ pressed }) => (
+              <View style={pressed && styles.rowPressed}>
+                <SessionRow session={session} now={now} />
+              </View>
+            )}
+          </Pressable>
         ))}
         {model.todaySessions.length === 0 && (
-          <Text style={[styles.empty, { color: theme.muted }]}>No sessions yet today.</Text>
+          <Text style={[styles.empty, { color: theme.muted }]}>
+            Nothing logged yet today.{'\n'}Tap Check in when you start working.
+          </Text>
         )}
       </ScrollView>
+
+      {selected && (
+        <SessionDetailSheet
+          session={selected}
+          suggestions={[...new Set(sessions.map((s) => s.category))].filter((c) => c.length > 0)}
+          onSave={(patch) => saveSession(selected.id, patch)}
+          onDelete={removeSession}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </View>
   );
 }
@@ -196,6 +218,10 @@ const styles = StyleSheet.create({
   empty: {
     textAlign: 'center',
     paddingVertical: 16,
+    lineHeight: 22,
+  },
+  rowPressed: {
+    opacity: 0.7,
   },
   backupBanner: {
     borderRadius: RADIUS.card,

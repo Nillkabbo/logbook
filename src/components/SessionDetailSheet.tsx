@@ -1,4 +1,5 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -14,7 +15,7 @@ import {
 } from 'react-native';
 
 import { formatDayLabel } from '@/engine/weeks';
-import { formatTimeOfDay } from '@/engine/time';
+import { formatDuration, formatTimeOfDay } from '@/engine/time';
 import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
 import { RADIUS, useTheme } from '@/theme';
@@ -68,7 +69,10 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
     setBusy(true);
     try {
       await onSave({ checkIn, checkOut, note: note.trim(), category: category.trim() });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       onClose();
+    } catch {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
     } finally {
       setBusy(false);
     }
@@ -82,6 +86,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         style: 'destructive',
         onPress: async () => {
           await onDelete(session.id);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
           onClose();
         },
       },
@@ -155,6 +160,14 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         </View>
         {renderField('out')}
 
+        {(checkOut === null || checkOut.getTime() > checkIn.getTime()) && (
+          <Text style={[styles.durationPreview, { color: theme.muted }]}>
+            {checkOut === null
+              ? `${formatDuration(Math.floor((Date.now() - checkIn.getTime()) / 1000))} so far`
+              : formatDuration(Math.floor((checkOut.getTime() - checkIn.getTime()) / 1000))}
+          </Text>
+        )}
+
         <Text style={[styles.fieldLabel, { color: theme.muted }]}>Category</Text>
         <TextInput
           style={[
@@ -191,17 +204,15 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
 
         {error && <Text style={[styles.error, { color: theme.stop }]}>{error}</Text>}
 
-        <View style={styles.actions}>
-          <Pressable
-            style={[styles.button, { borderColor: theme.stop }]}
-            onPress={confirmDelete}>
-            <Text style={[styles.deleteText, { color: theme.stop }]}>Delete</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
-            disabled={busy}
-            onPress={save}>
-            <Text style={[styles.saveText, { color: theme.onAccent }]}>Save</Text>
+        <Pressable
+          style={[styles.button, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
+          disabled={busy}
+          onPress={save}>
+          <Text style={[styles.saveText, { color: theme.onAccent }]}>Save</Text>
+        </Pressable>
+        <View style={styles.deleteRow}>
+          <Pressable onPress={confirmDelete}>
+            <Text style={[styles.deleteText, { color: theme.stop }]}>Delete session</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -256,17 +267,20 @@ const styles = StyleSheet.create({
   error: {
     fontSize: 14,
   },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
   button: {
-    flex: 1,
     padding: 14,
     borderRadius: RADIUS.card,
     alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 8,
+  },
+  deleteRow: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  durationPreview: {
+    fontSize: 14,
+    fontVariant: ['tabular-nums'],
+    textAlign: 'center',
   },
   buttonDisabled: {
     opacity: 0.6,

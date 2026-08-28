@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 import { ScheduleEditor } from '@/components/ScheduleEditor';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
@@ -59,6 +60,9 @@ export default function SettingsScreen() {
     setExporting(true);
     try {
       const shared = await exportBackup();
+      if (shared) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      }
       if (!shared) {
         Alert.alert('Export unavailable', 'Sharing is not available on this device.');
       }
