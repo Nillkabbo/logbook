@@ -56,6 +56,8 @@ interface Logbook {
   removeBlock: (id: number) => Promise<void>;
   /** Merges an exported CSV into the log; returns the counts for reporting. */
   importCsv: (csv: string) => Promise<CsvImportResult>;
+  /** Dev-only: populates ~2 months of sample data. */
+  loadSampleData: () => void;
 }
 
 const LogbookContext = createContext<Logbook | null>(null);
@@ -136,12 +138,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     syncAfter(null);
   }, [ready, syncAfter]);
 
-  // DEV-ONLY dummy data: 2 months of realistic sessions for functionality
-  // testing. Runs when the DB is empty; remove after testing.
-  useEffect(() => {
-    if (!__DEV__) return;
-    if (!ready) return;
-    if (sessions.length > 0) return;
+  // DEV-ONLY: 2 months of realistic sample data, explicitly triggered from
+  // the Data sub-screen. Remove the button after testing.
+  const loadSampleData = useCallback(async () => {
     (async () => {
       // Deterministic pseudo-random for reproducibility
       let seed = 42;
@@ -205,7 +204,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       await updateSettingsInDb({ hourlyRate: 30, setupCompleted: true, offWeeks: [offKey] });
       await refresh();
     })();
-  }, [ready, sessions.length, refresh]);
+  }, [refresh]);
 
   const checkIn = useCallback(async () => {
     const checkInAt = new Date();
@@ -321,6 +320,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       addBlock,
       removeBlock,
       importCsv,
+      loadSampleData,
     }),
     [
       sessions,
