@@ -1,13 +1,13 @@
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 
-import { ScheduleEditor } from '@/components/ScheduleEditor';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
+import { formatTimeOfDay } from '@/engine/time';
 import {
   validateHourlyRate,
   validateReminderThreshold,
@@ -19,9 +19,8 @@ import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { t } = useI18n();
-  const { refresh, settings, saveSettings, exportBackup, importCsv, blocks, addBlock, removeBlock } =
-    useLogbook();
+  const { t, weekdayName } = useI18n();
+  const { refresh, settings, saveSettings, exportBackup, importCsv, blocks } = useLogbook();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
 
@@ -103,97 +102,104 @@ export default function SettingsScreen() {
     }
   };
 
+  const insetInput = (value: string, onChangeText: (next: string) => void, onBlur: () => void) => (
+    <TextInput
+      style={[styles.input, { color: theme.text, backgroundColor: theme.inset }]}
+      value={value}
+      onChangeText={onChangeText}
+      onBlur={onBlur}
+      keyboardType="decimal-pad"
+      placeholderTextColor={theme.muted}
+    />
+  );
+
+  // The first work block summarised, as the Schedule row's sub-label.
+  const atMinutes = (minutes: number) =>
+    new Date(2026, 0, 1, Math.floor(minutes / 60), minutes % 60);
+  const blockSummary =
+    blocks.length === 0
+      ? t('noBlocks')
+      : `${blocks[0].weekdays.map((d) => weekdayName(d)).join(', ')} · ${formatTimeOfDay(
+          atMinutes(blocks[0].startMinute),
+          false,
+        )}–${formatTimeOfDay(atMinutes(blocks[0].endMinute), false)}`;
+
   return (
     <ScrollView
       style={{ backgroundColor: theme.canvas }}
       contentContainerStyle={styles.container}>
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('weekStartsOn')}</Text>
-      <WeekdayPicker
-        value={settings.weekStartDay}
-        onChange={useCallback((day: Weekday | Weekday[]) => saveSettings({ weekStartDay: day as Weekday }), [saveSettings])}
-      />
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('week')}</Text>
+      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+        <Text style={[styles.rowLabel, { color: theme.text }]}>{t('weekStartsOn')}</Text>
+        <WeekdayPicker
+          value={settings.weekStartDay}
+          onChange={useCallback((day: Weekday | Weekday[]) => saveSettings({ weekStartDay: day as Weekday }), [saveSettings])}
+        />
+        <Text style={[styles.rowLabel, { color: theme.text }]}>{t('weeklyTarget')}</Text>
+        {insetInput(target.value, target.onChangeText, target.onBlur)}
+        {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
+        <Text style={[styles.rowLabel, { color: theme.text }]}>{t('reminderThreshold')}</Text>
+        {insetInput(threshold.value, threshold.onChangeText, threshold.onBlur)}
+        {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{t(threshold.error as StringKey)}</Text>}
+        <Text style={[styles.hint, { color: theme.muted }]}>{t('reminderHint')}</Text>
+      </View>
 
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('weeklyTarget')}</Text>
-      <TextInput
-        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
-        value={target.value}
-        onChangeText={target.onChangeText}
-        onBlur={target.onBlur}
-        keyboardType="decimal-pad"
-        placeholderTextColor={theme.muted}
-      />
-      {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('earnings')}</Text>
+      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+        <Text style={[styles.rowLabel, { color: theme.text }]}>{t('hourlyRate')}</Text>
+        {insetInput(rate.value, rate.onChangeText, rate.onBlur)}
+        {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
+        <Text style={[styles.hint, { color: theme.muted }]}>{t('rateHint')}</Text>
+      </View>
 
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('reminderThreshold')}</Text>
-      <TextInput
-        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
-        value={threshold.value}
-        onChangeText={threshold.onChangeText}
-        onBlur={threshold.onBlur}
-        keyboardType="decimal-pad"
-        placeholderTextColor={theme.muted}
-      />
-      {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{t(threshold.error as StringKey)}</Text>}
-      <Text style={[styles.hint, { color: theme.muted }]}>{t('reminderHint')}</Text>
-
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('hourlyRate')}</Text>
-      <TextInput
-        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
-        value={rate.value}
-        onChangeText={rate.onChangeText}
-        onBlur={rate.onBlur}
-        keyboardType="decimal-pad"
-        placeholder="Not set"
-        placeholderTextColor={theme.muted}
-      />
-      {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
-      <Text style={[styles.hint, { color: theme.muted }]}>
-        {t('rateHint')}
-      </Text>
-
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('schedule')}</Text>
-      <ScheduleEditor blocks={blocks} onAdd={addBlock} onRemove={removeBlock} />
+      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+        <Pressable style={styles.navRow} onPress={() => router.push('/(tabs)/schedule')}>
+          <View style={styles.navText}>
+            <Text style={[styles.navTitle, { color: theme.text }]}>{t('schedule')}</Text>
+            <Text style={[styles.navSub, { color: theme.muted }]}>{blockSummary}</Text>
+          </View>
+          <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
+        </Pressable>
+      </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('language')}</Text>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        {(['system', 'en', 'bn'] as LanguageSetting[]).map((option) => {
-          const active = settings.language === option;
-          const label = option === 'system' ? t('system') : option === 'en' ? 'English' : 'বাংলা';
-          return (
-            <Pressable
-              key={option}
-              onPress={() => saveSettings({ language: option })}
-              style={{
-                paddingVertical: 8,
-                paddingHorizontal: 14,
-                borderRadius: 18,
-                borderWidth: StyleSheet.hairlineWidth,
-                borderColor: active ? theme.accent : theme.border,
-                backgroundColor: active ? theme.accent : 'transparent',
-              }}>
-              <Text style={{ fontSize: 14, color: active ? theme.onAccent : theme.text }}>{label}</Text>
-            </Pressable>
-          );
-        })}
+      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {(['system', 'en', 'bn'] as LanguageSetting[]).map((option) => {
+            const active = settings.language === option;
+            const label = option === 'system' ? t('system') : option === 'en' ? 'English' : 'বাংলা';
+            return (
+              <Pressable
+                key={option}
+                onPress={() => saveSettings({ language: option })}
+                style={[
+                  styles.pill,
+                  { backgroundColor: active ? theme.accent : theme.inset },
+                ]}>
+                <Text style={{ fontSize: 14, color: active ? theme.onAccent : theme.text }}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('exportSection')}</Text>
-      <Pressable
-        style={[styles.exportButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
-        disabled={exporting}
-        onPress={exportCsv}>
-        <Text style={[styles.exportText, { color: theme.onAccent }]}>{t('exportAll')}</Text>
-      </Pressable>
-      <Text style={[styles.hint, { color: theme.muted }]}>{t('exportHint')}</Text>
-      <Pressable
-        style={[styles.exportButton, { borderColor: theme.accent, borderWidth: 1 }, importing && styles.buttonDisabled]}
-        disabled={importing}
-        onPress={importFromCsv}>
-        <Text style={[styles.exportText, { color: theme.accent }]}>{t('importBackup')}</Text>
-      </Pressable>
-      <Text style={[styles.hint, { color: theme.muted }]}>
-        {t('importHint')}
-      </Text>
+      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+        <Pressable
+          style={[styles.actionButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
+          disabled={exporting}
+          onPress={exportCsv}>
+          <Text style={[styles.actionText, { color: theme.onAccent }]}>{t('exportAll')}</Text>
+        </Pressable>
+        <Text style={[styles.hint, { color: theme.muted }]}>{t('exportHint')}</Text>
+        <Pressable
+          style={[styles.actionButton, { backgroundColor: theme.inset }, importing && styles.buttonDisabled]}
+          disabled={importing}
+          onPress={importFromCsv}>
+          <Text style={[styles.actionText, { color: theme.text }]}>{t('importBackup')}</Text>
+        </Pressable>
+        <Text style={[styles.hint, { color: theme.muted }]}>{t('importHint')}</Text>
+      </View>
     </ScrollView>
   );
 }
@@ -201,7 +207,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    gap: 10,
+    gap: 8,
     paddingBottom: 32,
   },
   sectionTitle: {
@@ -210,9 +216,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginTop: 8,
   },
-  input: {
-    borderWidth: StyleSheet.hairlineWidth,
+  card: {
     borderRadius: RADIUS.card,
+    padding: 16,
+    gap: 10,
+  },
+  rowLabel: {
+    fontSize: 15,
+  },
+  input: {
+    borderRadius: RADIUS.control,
     padding: 12,
     fontSize: 16,
   },
@@ -222,15 +235,39 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: 13,
   },
-  exportButton: {
-    borderRadius: RADIUS.card,
+  navRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  navText: {
+    gap: 2,
+    flexShrink: 1,
+  },
+  navTitle: {
+    fontSize: 16,
+  },
+  navSub: {
+    fontSize: 13,
+  },
+  chevron: {
+    fontSize: 20,
+  },
+  pill: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: RADIUS.pill,
+  },
+  actionButton: {
+    borderRadius: RADIUS.control,
     padding: 14,
     alignItems: 'center',
   },
   buttonDisabled: {
     opacity: 0.6,
   },
-  exportText: {
+  actionText: {
     fontSize: 16,
     fontWeight: '600',
   },

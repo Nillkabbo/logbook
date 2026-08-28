@@ -64,7 +64,7 @@ export function ScheduleEditor({
 
   const timeField = (field: 'start' | 'end', label: string, value: Date) => (
     <Pressable
-      style={[styles.timeField, { borderColor: theme.border, backgroundColor: theme.surface }]}
+      style={[styles.timeField, { backgroundColor: theme.inset }]}
       onPress={() => setPicker(field)}>
       <Text style={[styles.timeLabel, { color: theme.muted }]}>{field === 'start' ? t('from') : t('to')}</Text>
       <Text style={[styles.timeValue, { color: theme.text }]}>{formatTimeOfDay(value, hour12)}</Text>
@@ -77,7 +77,7 @@ export function ScheduleEditor({
       {blocks.map((block) => (
         <View
           key={block.id}
-          style={[styles.row, { borderColor: theme.border, backgroundColor: theme.surface }]}>
+          style={[styles.row, { backgroundColor: theme.surface }, theme.cardShadow]}>
           <Text style={[styles.rowText, { color: theme.text }]}>
             {block.weekdays.map((d) => weekdayName(d)).join(', ')} ·{' '}
             {formatTimeOfDay(atMinutes(block.startMinute), hour12)}–
@@ -116,8 +116,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderRadius: RADIUS.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 12,
+    padding: 14,
   },
   rowText: {
     fontSize: 14,
@@ -133,8 +132,7 @@ const styles = StyleSheet.create({
   },
   timeField: {
     flex: 1,
-    borderRadius: RADIUS.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: RADIUS.control,
     padding: 12,
     gap: 2,
   },
@@ -148,7 +146,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   addButton: {
-    borderRadius: RADIUS.card,
+    borderRadius: RADIUS.control,
     padding: 12,
     alignItems: 'center',
   },

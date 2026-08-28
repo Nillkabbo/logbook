@@ -40,8 +40,7 @@ export function WeekdayPicker({
             key={name}
             style={[
               styles.pill,
-              { borderColor: active ? theme.accent : theme.border },
-              active && { backgroundColor: theme.accent },
+              { backgroundColor: active ? theme.accent : theme.inset },
             ]}
             onPress={() => press(index)}>
             <Text
@@ -111,7 +110,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: RADIUS.pill,
-    borderWidth: StyleSheet.hairlineWidth,
   },
   pillText: {
     fontSize: 14,
