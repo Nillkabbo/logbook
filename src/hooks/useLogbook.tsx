@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { Appearance } from 'react-native';
 
 import {
   completeSession,
@@ -81,6 +82,16 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // The theme preference drives the app-wide color scheme; every useColorScheme
+  // consumer (tokens, expo-router navigation) follows it. null restores system.
+  useEffect(() => {
+    Appearance.setColorScheme(
+      settings.themePreference === 'system'
+        ? 'unspecified'
+        : settings.themePreference,
+    );
+  }, [settings.themePreference]);
 
   const running = useMemo(() => sessions.find((s) => s.checkOut === null) ?? null, [sessions]);
 

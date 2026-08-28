@@ -2,12 +2,12 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { getLocales } from 'expo-localization';
 
 import { dateLocale } from '@/engine/weeks';
-import type { LanguageSetting } from '@/engine/types';
+import type { LanguageSetting, ThemeSetting } from '@/engine/types';
 import { WEEKDAYS, WEEKDAYS_SHORT, stringFor } from './strings';
 import type { Language, StringKey, StringParams } from './strings';
 
 export type { Language, StringKey } from './strings';
-export type { LanguageSetting };
+export type { LanguageSetting, ThemeSetting };
 export { stringsFor } from './strings';
 
 interface I18n {

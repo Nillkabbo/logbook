@@ -16,6 +16,9 @@ export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 /** UI language: follow the device, or fixed English/Bangla. */
 export type LanguageSetting = 'system' | 'en' | 'bn';
 
+/** UI theme: follow the device, or fixed light/dark. */
+export type ThemeSetting = 'system' | 'light' | 'dark';
+
 export const WEEKDAY_NAMES = [
   'Sunday',
   'Monday',
@@ -38,6 +41,8 @@ export interface Settings {
   offWeeks: string[];
   /** UI language; 'system' follows the device. */
   language: LanguageSetting;
+  /** UI theme; 'system' follows the device. */
+  themePreference: ThemeSetting;
   setupCompleted: boolean;
 }
 
@@ -49,6 +54,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lastExportAt: null,
   offWeeks: [],
   language: 'system',
+  themePreference: 'system',
   setupCompleted: false,
 };
 

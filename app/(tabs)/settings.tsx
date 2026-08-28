@@ -14,7 +14,7 @@ import {
 } from '@/engine/validation';
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
-import { useI18n, type LanguageSetting, type StringKey } from '@/ui/i18n';
+import { useI18n, type LanguageSetting, type StringKey, type ThemeSetting } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
@@ -137,6 +137,18 @@ export default function SettingsScreen() {
           </View>
           <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
         </Pressable>
+      </View>
+
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('theme')}</Text>
+      <View style={[styles.card, cardStyle(theme)]}>
+        <ChipRow
+          size="lg"
+          accessibilityLabel={t('theme')}
+          options={['system', 'light', 'dark']}
+          isSelected={(option) => settings.themePreference === option}
+          onSelect={(option) => saveSettings({ themePreference: option as ThemeSetting })}
+          labelOf={(option) => (option === 'system' ? t('system') : option === 'light' ? t('light') : t('dark'))}
+        />
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('language')}</Text>
