@@ -94,20 +94,24 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
 
   // The one sync verb: run a Reminder-lifecycle decision (or re-derive the
   // running session's), then rebuild every OS notification from current truth.
+  // Truth is re-read from the db, never from render-scope state — callers run
+  // this right after refresh(), when closures still hold the previous render's
+  // settings and blocks.
   const syncAfter = useCallback(
-    async (event: ReminderEvent | null, blocksOverride?: WorkBlock[]) => {
+    async (event: ReminderEvent | null) => {
+      const [freshSettings, freshBlocks] = await Promise.all([getSettings(), listBlocks()]);
       const reminder = event
-        ? reminderDecision(event, settings, new Date())
+        ? reminderDecision(event, freshSettings, new Date())
         : running
-          ? reminderDecision({ type: 'checked-in', checkIn: running.checkIn }, settings, new Date())
+          ? reminderDecision({ type: 'checked-in', checkIn: running.checkIn }, freshSettings, new Date())
           : null;
       await syncNotifications({
         reminder,
-        blocks: blocksOverride ?? blocks,
-        language: settings.language,
+        blocks: freshBlocks,
+        language: freshSettings.language,
       });
     },
-    [settings, blocks, running],
+    [running],
   );
 
   // Once, after the first load, rebuild every OS notification from current
@@ -161,8 +165,10 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     async (patch: Partial<Settings>) => {
       await updateSettingsInDb(patch);
       await refresh();
+      // Notification text follows the language — rebuild when it moves.
+      if (patch.language !== undefined) await syncAfter(null);
     },
-    [refresh],
+    [refresh, syncAfter],
   );
 
   const exportBackup = useCallback(async (): Promise<boolean> => {
@@ -175,19 +181,14 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   }, [sessions, refresh]);
 
   // Block changes must rebuild the reminder too — a null reminder would
-  // silently drop a running session's notification.
-  const currentReminder = useCallback(() => {
-    if (!running) return null;
-    return reminderDecision({ type: 'checked-in', checkIn: running.checkIn }, settings, new Date());
-  }, [running, settings]);
-
+  // silently drop a running session's notification. The single seam handles it.
   const addBlock = useCallback(
     async (weekdays: Weekday[], startMinute: number, endMinute: number) => {
       await insertBlock(weekdays, startMinute, endMinute);
       await refresh();
-      await syncNotifications({ reminder: currentReminder(), blocks: await listBlocks(), language: settings.language });
+      await syncAfter(null);
     },
-    [refresh, currentReminder],
+    [refresh, syncAfter],
   );
 
   const importCsv = useCallback(
@@ -209,9 +210,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     async (id: number) => {
       await deleteBlockInDb(id);
       await refresh();
-      await syncNotifications({ reminder: currentReminder(), blocks: await listBlocks(), language: settings.language });
+      await syncAfter(null);
     },
-    [refresh, currentReminder],
+    [refresh, syncAfter],
   );
 
   // Memoised: consumers depend on this identity for effects (focus refresh).
