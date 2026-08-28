@@ -53,7 +53,7 @@ export function FirstLaunchSetup() {
 
         <Text style={[styles.label, { color: theme.muted }]}>{t('weeklyTarget')}</Text>
         <TextInput
-          style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+          style={[styles.input, { color: theme.text, backgroundColor: theme.inset }]}
           value={target.value}
           onChangeText={target.onChangeText}
           onBlur={target.onBlur}
@@ -102,8 +102,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   input: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: RADIUS.card,
+    borderRadius: RADIUS.control,
     padding: 12,
     fontSize: 16,
   },
@@ -111,7 +110,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   primaryButton: {
-    borderRadius: RADIUS.card,
+    borderRadius: RADIUS.control,
     padding: 14,
     alignItems: 'center',
     marginTop: 8,
