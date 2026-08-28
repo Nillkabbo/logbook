@@ -1,5 +1,5 @@
 import { useFocusEffect, router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -17,6 +17,7 @@ import { useI18n, type LanguageSetting, type StringKey } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, weekdayShortName } = useI18n();
   const { refresh, settings, saveSettings, blocks } = useLogbook();
@@ -87,10 +88,8 @@ export default function SettingsScreen() {
         : t('nBlocks', { n: blocks.length });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.canvas }} edges={['top']}>
+    <View style={{ flex: 1, backgroundColor: theme.canvas, paddingTop: insets.top + 12 }}>
     <ScrollView
-      style={{ backgroundColor: theme.canvas }}
-      keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.container}>
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('week')}</Text>
@@ -151,14 +150,13 @@ export default function SettingsScreen() {
       </View>
 
     </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    paddingTop: 12,
     gap: 8,
     paddingBottom: 32,
   },
