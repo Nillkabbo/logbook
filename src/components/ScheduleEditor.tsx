@@ -6,7 +6,7 @@ import { WeekdayPicker } from '@/components/settings-entry';
 import { useHour12 } from '@/ui/clock';
 import { blockRangeLabel, validateBlockTimes, type WorkBlock } from '@/engine/schedule';
 import type { Weekday } from '@/engine/types';
-import { RADIUS, useTheme } from '@/theme';
+import { cardStyle, RADIUS, useTheme } from '@/theme';
 import { useI18n, type StringKey } from '@/ui/i18n';
 
 const minutesOfDay = (date: Date) => date.getHours() * 60 + date.getMinutes();
@@ -65,7 +65,7 @@ export function ScheduleEditor({
       {blocks.map((block) => (
         <View
           key={block.id}
-          style={[styles.row, { backgroundColor: theme.surface }, theme.cardShadow]}>
+          style={[styles.row, cardStyle(theme)]}>
           <Text style={[styles.rowText, { color: theme.text }]}>
             {blockRangeLabel(block, weekdayShortName, hour12)}
           </Text>
@@ -75,7 +75,7 @@ export function ScheduleEditor({
         </View>
       ))}
 
-      <View style={[styles.formCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
+      <View style={[styles.formCard, cardStyle(theme)]}>
         <WeekdayPicker variant="segmented" value={days} onChange={(next) => setDays(next as Weekday[])} />
         <View style={styles.timeRow}>
           {timeField('start', start, setStart)}
@@ -83,7 +83,7 @@ export function ScheduleEditor({
         </View>
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
-          style={[styles.addButton, { backgroundColor: theme.accent }, busy && styles.disabled]}
+          style={[styles.addButton, { backgroundColor: theme.accent, borderRadius: 16 }, busy && styles.disabled]}
           disabled={busy}
           onPress={add}>
           <Text style={[styles.addText, { color: theme.onAccent }]}>{t('addBlock')}</Text>

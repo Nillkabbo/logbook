@@ -19,7 +19,7 @@ import { DateTimeField } from '@/components/DateTimeField';
 import { formatDuration } from '@/engine/time';
 import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
-import { RADIUS, useTheme } from '@/theme';
+import { cardStyle, RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
 import { useI18n, type StringKey } from '@/ui/i18n';
 
@@ -113,7 +113,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
         <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
 
         {renderField('in')}
-        <View style={[styles.runningCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
+        <View style={[styles.runningCard, cardStyle(theme)]}>
           <Text style={[styles.runningLabel, { color: theme.text }]}>{t('stillRunning')}</Text>
           {/* Turning it off anchors the checkout at the check-in: the user must
               pick an explicit time before Save passes validation. */}
@@ -131,11 +131,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
 
         <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('category')}</Text>
         <TextInput
-          style={[
-            styles.noteInput,
-            { color: theme.text, backgroundColor: theme.surface },
-            theme.cardShadow,
-          ]}
+          style={[styles.noteInput, cardStyle(theme), { color: theme.text }]}
           value={category}
           onChangeText={setCategory}
           placeholder={t("categoryPlaceholder")}
@@ -155,12 +151,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
 
         <Text style={[styles.fieldLabel, { color: theme.muted }]}>{t('note')}</Text>
         <TextInput
-          style={[
-            styles.noteInput,
-            styles.noteTall,
-            { color: theme.text, backgroundColor: theme.surface },
-            theme.cardShadow,
-          ]}
+          style={[styles.noteInput, styles.noteTall, cardStyle(theme), { color: theme.text }]}
           value={note}
           onChangeText={setNote}
           placeholder={t("notePlaceholder")}

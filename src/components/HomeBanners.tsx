@@ -6,7 +6,7 @@ import { useLogbook } from '@/hooks/useLogbook';
 import { isBackupDue } from '@/engine/backup';
 import { blockOccurring } from '@/engine/schedule';
 import { useI18n } from '@/ui/i18n';
-import { RADIUS, useTheme } from '@/theme';
+import { cardStyle, RADIUS, useTheme } from '@/theme';
 
 /** The stale-export nudge; dismissable until the next launch. */
 export function BackupBanner() {
@@ -30,7 +30,7 @@ export function BackupBanner() {
   };
 
   return (
-    <View style={[styles.banner, { backgroundColor: theme.surface }, theme.cardShadow]}>
+    <View style={[styles.banner, cardStyle(theme)]}>
       <Text style={[styles.text, { color: theme.text }]}>{t('backupTitle')}</Text>
       <View style={styles.actions}>
         <Pressable
@@ -55,7 +55,7 @@ export function BlockBanner({ onCheckIn, busy }: { onCheckIn: () => void; busy: 
   const occurring = running ? null : blockOccurring(blocks, now);
   if (!occurring) return null;
   return (
-    <View style={[styles.banner, { backgroundColor: theme.surface }, theme.cardShadow]}>
+    <View style={[styles.banner, cardStyle(theme)]}>
       <Text style={[styles.text, { color: theme.text }]}>{t('blockInProgress')}</Text>
       <Pressable
         style={[styles.button, styles.selfStart, { backgroundColor: theme.accent }, busy && styles.disabled]}

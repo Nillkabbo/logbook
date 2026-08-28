@@ -8,7 +8,7 @@ import { File } from 'expo-file-system';
 
 import { SubScreenHeader } from '@/components/SubScreenHeader';
 import { useLogbook } from '@/hooks/useLogbook';
-import { RADIUS, useTheme } from '@/theme';
+import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useI18n } from '@/ui/i18n';
 
 /** The Data sub-screen: CSV export and import, split out of Settings. */
@@ -86,7 +86,7 @@ export default function DataScreen() {
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 8 }]}>
       <SubScreenHeader title={t('data')} />
 
-      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+      <View style={[styles.card, cardStyle(theme)]}>
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
           style={[styles.primary, { backgroundColor: theme.accent }, exporting && styles.disabled]}
@@ -98,10 +98,10 @@ export default function DataScreen() {
         <Text style={[styles.hint, styles.numeric, { color: theme.muted }]}>{lastExportLabel}</Text>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+      <View style={[styles.card, cardStyle(theme)]}>
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
-          style={[styles.secondary, { backgroundColor: theme.inset }, importing && styles.disabled]}
+          style={[styles.secondary, insetInput(theme), importing && styles.disabled]}
           disabled={importing}
           onPress={importFromCsv}>
           <Text style={[styles.secondaryText, { color: theme.text }]}>{t('importBackup')}</Text>

@@ -11,7 +11,7 @@ import {
   validateReminderThreshold,
   validateWeeklyTarget,
 } from '@/engine/validation';
-import { RADIUS, useTheme } from '@/theme';
+import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useI18n, type LanguageSetting, type StringKey } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
@@ -60,7 +60,7 @@ export default function SettingsScreen() {
     <View style={styles.fieldStack}>
       <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
       <TextInput
-        style={[styles.input, { color: theme.text, backgroundColor: theme.inset }]}
+        style={[styles.input, insetInput(theme), { color: theme.text }]}
         value={value}
         onChangeText={onChangeText}
         onBlur={onBlur}
@@ -86,7 +86,7 @@ export default function SettingsScreen() {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 12 }]}>
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('week')}</Text>
-      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+      <View style={[styles.card, cardStyle(theme)]}>
         <Text style={[styles.rowLabel, { color: theme.text }]}>{t('weekStartsOn')}</Text>
         <WeekdayPicker
           value={settings.weekStartDay}
@@ -100,13 +100,13 @@ export default function SettingsScreen() {
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('earnings')}</Text>
-      <View style={[styles.card, styles.cardTight, { backgroundColor: theme.surface }, theme.cardShadow]}>
+      <View style={[styles.card, styles.cardTight, cardStyle(theme)]}>
         {labeledInput(t('hourlyRate'), rate.value, rate.onChangeText, rate.onBlur)}
         {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
         <Text style={[styles.hint, styles.hintTuck, { color: theme.muted }]}>{t('rateHint')}</Text>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+      <View style={[styles.card, cardStyle(theme)]}>
         <Pressable
           android_ripple={{ color: theme.inset }}
           style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
@@ -133,7 +133,7 @@ export default function SettingsScreen() {
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('language')}</Text>
-      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
+      <View style={[styles.card, cardStyle(theme)]}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {(['system', 'en', 'bn'] as LanguageSetting[]).map((option) => {
             const active = settings.language === option;

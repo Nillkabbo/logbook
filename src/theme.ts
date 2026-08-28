@@ -105,6 +105,24 @@ export function useTheme(): Theme {
   return scheme === 'dark' ? dark : light;
 }
 
+/** A floating card: surface + ambient shadow + card radius. Add padding/gap at the call site. */
+export function cardStyle(theme: Theme) {
+  return { backgroundColor: theme.surface, boxShadow: theme.cardShadow.boxShadow, borderRadius: RADIUS.card } as const;
+}
+
+/** A tonal status chip: accent tint fill with accent text. */
+export function softPill(theme: Theme, tone: 'accent' | 'stop' = 'accent') {
+  return {
+    backgroundColor: tone === 'accent' ? theme.accentSoft : theme.stopSoft,
+    borderRadius: RADIUS.pill,
+  } as const;
+}
+
+/** An inset input: inset fill + control radius. Padding/font at the call site. */
+export function insetInput(theme: Theme) {
+  return { backgroundColor: theme.inset, borderRadius: RADIUS.control } as const;
+}
+
 /** Shape: card radius, control radius, pill radius, bar height. */
 export const RADIUS = { card: 24, control: 12, pill: 999, bar: 10 } as const;
 

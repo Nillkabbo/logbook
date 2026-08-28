@@ -11,7 +11,7 @@ import { categorySuggestions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
 import { logsModel, type LogDay, type LogWeek } from '@/engine/logs';
 import type { Session } from '@/engine/types';
-import { RADIUS, useTheme } from '@/theme';
+import { cardStyle, RADIUS, useTheme } from '@/theme';
 
 /** One virtualized row: a week's summary card, a day header, a session card, or a collapsed week. */
 type Row =
@@ -74,7 +74,7 @@ export default function LogsScreen() {
   const rows = buildRows(weeks, isExpanded);
 
   const renderWeekCard = (week: LogWeek) => (
-    <View style={[styles.weekCard, { backgroundColor: theme.surface }, theme.cardShadow]}>
+    <View style={[styles.weekCard, cardStyle(theme)]}>
       <View style={styles.weekHeader}>
         <Pressable
           style={styles.weekTitleBlock}
@@ -170,8 +170,7 @@ export default function LogsScreen() {
             android_ripple={{ color: theme.inset, foreground: true }}
             style={({ pressed }) => [
               styles.collapsed,
-              { backgroundColor: theme.surface },
-              theme.cardShadow,
+              cardStyle(theme),
               pressed && { opacity: 0.85 },
             ]}
             onPress={() => toggleWeek(item.week)}>

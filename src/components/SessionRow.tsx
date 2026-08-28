@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { formatDuration, formatTimeOfDay } from '@/engine/time';
 import { sessionDurationSeconds } from '@/engine/sessions';
 import type { Session } from '@/engine/types';
-import { RADIUS, useTheme } from '@/theme';
+import { cardStyle, RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
 import { useI18n } from '@/ui/i18n';
 
@@ -18,9 +18,9 @@ function SessionRowImpl({ session, now, accentRunning = false }: { session: Sess
   const running = session.checkOut === null;
   const card = running
     ? accentRunning
-      ? [styles.row, { backgroundColor: theme.surface, borderLeftWidth: 4, borderLeftColor: theme.accent }, theme.cardShadow]
+      ? [styles.row, cardStyle(theme), { borderLeftWidth: 4, borderLeftColor: theme.accent }]
       : [styles.row, { backgroundColor: theme.glass, borderColor: theme.glassEdge }]
-    : [styles.row, { backgroundColor: theme.surface }, theme.cardShadow];
+    : [styles.row, cardStyle(theme)];
   return (
     <View style={card}>
       <View style={styles.rowMain}>
