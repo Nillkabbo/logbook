@@ -1,5 +1,5 @@
 ---
-Status: ready-for-agent
+Status: done
 ---
 
 # Layered Calm redesign
@@ -207,3 +207,8 @@ not what it means.
 - Expert review (two commits): all 17 findings fixed or dispositioned —
   sheet cancel + dirty guard, Logs color semantics (green = working state
   only), AA dark contrast, duration promoted, hint rewritten, touch targets.
+
+## Sign-off
+
+Reporter verified on device (Expo Go) 2026-08-28. All acceptance criteria
+met; the redesign is complete.

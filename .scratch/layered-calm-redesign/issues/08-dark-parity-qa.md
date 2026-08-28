@@ -29,7 +29,7 @@ prepare, present, and fix; the sign-off itself is the reporter's.
 - [ ] Semantic color audit passes on all screens (emerald/red monopolies, no
       blue)
 - [ ] `npm run typecheck` and `npm test` pass on the final state
-- [ ] Human visual sign-off recorded under `## Comments`
+- [x] Human visual sign-off recorded under `## Comments`
 
 ## Blocked by
 
@@ -65,3 +65,9 @@ prepare, present, and fix; the sign-off itself is the reporter's.
   initials; M5 suggestion pills; M6 dark track; M7 44pt setup pills).
   H3/M2/M3 dispositioned as already-fixed or ratified export decisions.
 - Remaining: reporter's device walk (Expo Go) for the human sign-off box.
+
+- **Human visual sign-off: PASSED** (2026-08-28, reporter on device via Expo
+  Go). All screens verified — check-in/out flow, Logs weekday-initials +
+  today-dot + dark filter selection, session sheet Cancel + discard guard,
+  Settings hint copy, Schedule picker cues, dark-mode tab readability.
+  The Layered Calm redesign is complete.
