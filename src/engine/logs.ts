@@ -234,3 +234,52 @@ export function logsModel(
 
   return { weeks: groupedWeeks, summary };
 }
+
+/** Day-of-month → completed seconds, for the calendar's intensity dots. */
+export function monthDayTotals(
+  sessions: Session[],
+  year: number,
+  month: number, // 0-based, matching Date
+): Map<number, number> {
+  const totals = new Map<number, number>();
+  for (const session of sessions) {
+    if (
+      session.checkOut === null ||
+      session.checkIn.getFullYear() !== year ||
+      session.checkIn.getMonth() !== month
+    ) {
+      continue;
+    }
+    const day = session.checkIn.getDate();
+    totals.set(day, (totals.get(day) ?? 0) + sessionDurationSeconds(session));
+  }
+  return totals;
+}
+
+/** A share-ready text summary of one week — formatted for messaging apps. */
+export function formatWeekShareText(week: LogWeek, locale = 'en-US'): string {
+  const lines: string[] = [];
+  lines.push(`LogBook — ${week.label}`);
+  lines.push('');
+  lines.push(`Total: ${week.totalLabel} / ${week.targetLabel}`);
+  if (week.earningsLabel) lines.push(`Earned: ${week.earningsLabel}`);
+  if (week.categoryBreakdown.length > 0) {
+    lines.push('');
+    for (const entry of week.categoryBreakdown) {
+      lines.push(`  ${entry.label || 'Uncategorised'}: ${entry.totalLabel}`);
+    }
+  }
+  if (week.days.length > 0) {
+    lines.push('');
+    lines.push('Sessions:');
+    for (const day of week.days) {
+      for (const session of day.sessions) {
+        const duration = formatDuration(sessionDurationSeconds(session));
+        const category = session.category.length > 0 ? ` (${session.category})` : '';
+        const note = session.note.length > 0 ? ` — ${session.note}` : '';
+        lines.push(`  • ${day.label}: ${duration}${category}${note}`);
+      }
+    }
+  }
+  return lines.join('\n');
+}

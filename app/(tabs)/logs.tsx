@@ -1,16 +1,17 @@
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
-import { categorySuggestions } from '@/engine/sessions';
+import { categorySuggestions, sumCompletedSessions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
-import { logsModel, type LogDay, type LogWeek } from '@/engine/logs';
+import { formatWeekShareText, logsModel, monthDayTotals, type LogDay, type LogWeek } from '@/engine/logs';
 import type { Session } from '@/engine/types';
+import { CalendarView } from '@/components/CalendarView';
 import { ChipRow } from '@/components/ChipRow';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
 
@@ -57,6 +58,9 @@ export default function LogsScreen() {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'all'>('all');
   const [query, setQuery] = useState('');
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calMonth, setCalMonth] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   // Per-visit expansion overrides on top of the model's defaults — never persisted.
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const isExpanded = (week: LogWeek) => expanded[week.key] ?? week.defaultExpanded;
@@ -70,19 +74,47 @@ export default function LogsScreen() {
       setCategoryFilter(null); // filters are per-visit, not sticky
       setDateRange('all');
       setQuery('');
+      setSelectedDay(null);
+      setCalendarOpen(false);
       setExpanded({}); // expansion overrides are per-visit too
     }, [refresh]),
   );
 
-  const { weeks, summary } = logsModel(sessions, settings, now, {
+  // When a calendar day is selected, filter sessions to that day's check-ins.
+  const dayFiltered =
+    selectedDay !== null ? sessions.filter((s) => {
+      const d = s.checkIn;
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === selectedDay;
+    }) : sessions;
+
+  const { weeks, summary } = logsModel(dayFiltered, settings, now, {
     category: categoryFilter ?? undefined,
-    dateRange,
+    dateRange: selectedDay !== null ? 'all' : dateRange,
     query: query.trim().length > 0 ? query : undefined,
   }, locale);
   const suggestions = categorySuggestions(sessions);
   const rows = buildRows(weeks, isExpanded);
   const hasActiveFilter =
-    categoryFilter !== null || dateRange !== 'all' || query.trim().length > 0;
+    categoryFilter !== null || dateRange !== 'all' || query.trim().length > 0 || selectedDay !== null;
+
+  // Calendar data
+  const dayTotals = monthDayTotals(sessions, calMonth.getFullYear(), calMonth.getMonth());
+
+  // Category distribution (stacked bar)
+  const totalFilteredSeconds = sumCompletedSessions(dayFiltered);
+  const categoryShares = new Map<string, number>();
+  for (const session of dayFiltered) {
+    if (session.checkOut === null) continue;
+    const cat = session.category || '__none__';
+    const dur = (session.checkOut.getTime() - session.checkIn.getTime()) / 1000;
+    categoryShares.set(cat, (categoryShares.get(cat) ?? 0) + dur);
+  }
+
+  // Share the current (first visible) week
+  const shareCurrentWeek = () => {
+    if (weeks.length === 0) return;
+    Share.share({ message: formatWeekShareText(weeks[0], locale) }).catch(() => {});
+  };
 
   const renderWeekCard = (week: LogWeek) => (
     <View style={[styles.weekCard, cardStyle(theme)]}>
@@ -218,13 +250,60 @@ export default function LogsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.canvas }}>
       <View style={[styles.filterArea, { paddingTop: insets.top + 12 }]}>
-        <ChipRow
-          accessibilityLabel={t('tabLogs')}
-          options={[t('all'), ...suggestions]}
-          isSelected={(option) => (categoryFilter === null ? option === t('all') : option === categoryFilter)}
-          onSelect={(option) => setCategoryFilter(option === t('all') ? null : option)}
-          selectedStyle="dark"
-        />
+        <View style={styles.filterHeader}>
+          <ChipRow
+            accessibilityLabel={t('tabLogs')}
+            options={[t('all'), ...suggestions]}
+            isSelected={(option) => (categoryFilter === null ? option === t('all') : option === categoryFilter)}
+            onSelect={(option) => setCategoryFilter(option === t('all') ? null : option)}
+            selectedStyle="dark"
+          />
+          <View style={styles.toolbarRight}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('calendar')}
+            android_ripple={{ color: theme.muted, borderless: true, radius: 18 }}
+            hitSlop={8}
+            style={[styles.toolbarButton, { backgroundColor: calendarOpen || selectedDay ? theme.accent : theme.inset }]}
+            onPress={() => setCalendarOpen((prev) => !prev)}>
+            <Text style={{ fontSize: 16 }}>{selectedDay ? '●' : '📅'}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('shareWeek')}
+            android_ripple={{ color: theme.muted, borderless: true, radius: 18 }}
+            hitSlop={8}
+            style={[styles.toolbarButton, { backgroundColor: theme.inset }]}
+            onPress={shareCurrentWeek}>
+            <Text style={{ fontSize: 16 }}>↗</Text>
+          </Pressable>
+        </View>
+        </View>
+        {calendarOpen && (
+          <CalendarView
+            year={calMonth.getFullYear()}
+            month={calMonth.getMonth()}
+            dayTotals={dayTotals}
+            selectedDay={
+              selectedDay !== null && selectedDay.startsWith(
+                `${calMonth.getFullYear()}-${String(calMonth.getMonth() + 1).padStart(2, '0')}`
+              )
+                ? parseInt(selectedDay.slice(8), 10)
+                : null
+            }
+            onDayPress={(day) => {
+              if (day === null) {
+                setSelectedDay(null);
+              } else {
+                const key = `${calMonth.getFullYear()}-${String(calMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                setSelectedDay((prev) => (prev === key ? null : key));
+              }
+            }}
+            onMonthChange={(delta) =>
+              setCalMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))
+            }
+          />
+        )}
         <View style={styles.dateRangeRow}>
           {(['week', 'month', 'all'] as const).map((range) => (
             <Pressable
@@ -262,6 +341,23 @@ export default function LogsScreen() {
               {t('nSessions', { n: summary.sessionCount })} · {summary.totalLabel}
               {summary.earningsLabel ? ` · ${summary.earningsLabel}` : ''}
             </Text>
+          </View>
+        )}
+        {totalFilteredSeconds > 0 && categoryShares.size > 1 && (
+          <View style={styles.categoryBar}>
+            {[...categoryShares.entries()]
+              .sort((a, b) => b[1] - a[1])
+              .map(([cat, seconds]) => (
+                <View
+                  key={cat}
+                  style={{
+                    flex: seconds / totalFilteredSeconds,
+                    height: 6,
+                    backgroundColor: cat === '__none__' ? theme.inset : theme.accent,
+                    opacity: cat === '__none__' ? 0.4 : 0.5 + 0.5 * (seconds / totalFilteredSeconds),
+                  }}
+                />
+              ))}
           </View>
         )}
       </View>
@@ -321,6 +417,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     gap: 8,
+  },
+  filterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toolbarRight: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  toolbarButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryBar: {
+    flexDirection: 'row',
+    borderRadius: 3,
+    overflow: 'hidden',
   },
   dateRangeRow: {
     flexDirection: 'row',
