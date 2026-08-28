@@ -53,6 +53,7 @@ export default function TabLayout() {
       />
       {/* Pushed sub-screens: hidden from the tab bar, but inside the group so the bar stays. */}
       <Tabs.Screen name="schedule" options={{ href: null, title: t('schedule') }} />
+      <Tabs.Screen name="data" options={{ href: null, title: t('data') }} />
     </Tabs>
   );
 }

@@ -1,9 +1,6 @@
 import { useFocusEffect, router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
-import * as DocumentPicker from 'expo-document-picker';
-import { File } from 'expo-file-system';
+import { useCallback, useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
@@ -20,9 +17,7 @@ import type { Weekday } from '@/engine/types';
 export default function SettingsScreen() {
   const theme = useTheme();
   const { t, weekdayName } = useI18n();
-  const { refresh, settings, saveSettings, exportBackup, importCsv, blocks } = useLogbook();
-  const [exporting, setExporting] = useState(false);
-  const [importing, setImporting] = useState(false);
+  const { refresh, settings, saveSettings, blocks } = useLogbook();
 
   const target = useValidatedHours(
     String(settings.weeklyTargetHours),
@@ -58,49 +53,6 @@ export default function SettingsScreen() {
     resetThreshold(String(settings.reminderThresholdHours));
     resetRate(settings.hourlyRate > 0 ? String(settings.hourlyRate) : '');
   }, [settings.weeklyTargetHours, settings.reminderThresholdHours, settings.hourlyRate, resetTarget, resetThreshold, resetRate]);
-
-  const importFromCsv = async () => {
-    if (importing) return;
-    setImporting(true);
-    try {
-      const picked = await DocumentPicker.getDocumentAsync({ type: 'text/csv' });
-      if (picked.canceled || picked.assets.length === 0) return;
-      const csv = await new File(picked.assets[0].uri).text();
-      const result = await importCsv(csv);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      Alert.alert(
-        t('importComplete'),
-        t('importedNSessions').replace('{n}', String(result.toImport.length)) +
-          '\n' +
-          t('skippedCounts')
-            .replace('{duplicates}', String(result.duplicates))
-            .replace('{running}', String(result.skippedRunning))
-            .replace('{malformed}', String(result.malformed)),
-      );
-    } catch (error) {
-      Alert.alert(t('importFailed'), String(error));
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  const exportCsv = async () => {
-    if (exporting) return;
-    setExporting(true);
-    try {
-      const shared = await exportBackup();
-      if (shared) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      }
-      if (!shared) {
-        Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
-      }
-    } catch (error) {
-      Alert.alert(t('exportFailed'), String(error));
-    } finally {
-      setExporting(false);
-    }
-  };
 
   const insetInput = (value: string, onChangeText: (next: string) => void, onBlur: () => void) => (
     <TextInput
@@ -160,6 +112,13 @@ export default function SettingsScreen() {
           </View>
           <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
         </Pressable>
+        <Pressable style={styles.navRow} onPress={() => router.push('/(tabs)/data')}>
+          <View style={styles.navText}>
+            <Text style={[styles.navTitle, { color: theme.text }]}>{t('data')}</Text>
+            <Text style={[styles.navSub, { color: theme.muted }]}>{t('exportSection')}</Text>
+          </View>
+          <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
+        </Pressable>
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('language')}</Text>
@@ -183,23 +142,6 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('exportSection')}</Text>
-      <View style={[styles.card, { backgroundColor: theme.surface }, theme.cardShadow]}>
-        <Pressable
-          style={[styles.actionButton, { backgroundColor: theme.accent }, exporting && styles.buttonDisabled]}
-          disabled={exporting}
-          onPress={exportCsv}>
-          <Text style={[styles.actionText, { color: theme.onAccent }]}>{t('exportAll')}</Text>
-        </Pressable>
-        <Text style={[styles.hint, { color: theme.muted }]}>{t('exportHint')}</Text>
-        <Pressable
-          style={[styles.actionButton, { backgroundColor: theme.inset }, importing && styles.buttonDisabled]}
-          disabled={importing}
-          onPress={importFromCsv}>
-          <Text style={[styles.actionText, { color: theme.text }]}>{t('importBackup')}</Text>
-        </Pressable>
-        <Text style={[styles.hint, { color: theme.muted }]}>{t('importHint')}</Text>
-      </View>
     </ScrollView>
   );
 }
@@ -258,17 +200,5 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: RADIUS.pill,
-  },
-  actionButton: {
-    borderRadius: RADIUS.control,
-    padding: 14,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  actionText: {
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
