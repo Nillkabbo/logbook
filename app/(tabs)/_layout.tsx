@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
 
 const TINT = '#0a7ea4';
@@ -13,22 +13,38 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" color={color} size={size} />,
+          tabBarIcon: ({ color }) => (
+            <SymbolView
+              name={{ ios: 'house', android: 'home', web: 'home' }}
+              tintColor={color}
+              size={28}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="logs"
         options={{
           title: 'Logs',
-          tabBarIcon: ({ color, size }) => <Ionicons name="time" color={color} size={size} />,
+          tabBarIcon: ({ color }) => (
+            <SymbolView
+              name={{ ios: 'clock', android: 'schedule', web: 'history' }}
+              tintColor={color}
+              size={28}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" color={color} size={size} />
+          tabBarIcon: ({ color }) => (
+            <SymbolView
+              name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
+              tintColor={color}
+              size={28}
+            />
           ),
         }}
       />
