@@ -10,6 +10,7 @@ export function WeekProgress({
   progress,
   overTarget,
   overByLabel = null,
+  off = false,
   emphasized = false,
   row = false,
   earningsLabel = null,
@@ -19,6 +20,8 @@ export function WeekProgress({
   progress: number;
   overTarget: boolean;
   overByLabel?: string | null;
+  /** Off weeks show the total with an Off week pill instead of the target bar. */
+  off?: boolean;
   emphasized?: boolean;
   /** Row mode (Logs): 24px value, inline earnings, full-width bar. */
   row?: boolean;
@@ -27,7 +30,17 @@ export function WeekProgress({
 }) {
   const theme = useTheme();
   const { t } = useI18n();
-  const valueColor = overTarget ? theme.stop : theme.text;
+  const valueColor = overTarget && !off ? theme.stop : theme.text;
+  if (off) {
+    return (
+      <View style={[styles.offRow, emphasized && styles.offRowCentered]}>
+        <Text style={[styles.offTotal, { color: theme.text }]}>{totalLabel}</Text>
+        <View style={[styles.offPill, { backgroundColor: theme.accentSoft }]}>
+          <Text style={[styles.offPillText, { color: theme.accent }]}>{t('offWeek')}</Text>
+        </View>
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
       <View style={[styles.valueRow, emphasized && styles.valueRowCentered]}>
@@ -146,5 +159,27 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     textAlign: 'center',
     alignSelf: 'stretch',
+  },
+  offRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  offRowCentered: {
+    justifyContent: 'center',
+  },
+  offTotal: {
+    fontSize: 24,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  offPill: {
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+  },
+  offPillText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

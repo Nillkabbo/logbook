@@ -93,24 +93,16 @@ export default function LogsScreen() {
           </Text>
         </Pressable>
       </View>
-      {week.off ? (
-        <View style={styles.offRow}>
-          <Text style={[styles.offTotal, { color: theme.text }]}>{week.totalLabel}</Text>
-          <View style={[styles.offBadge, { backgroundColor: theme.accentSoft }]}>
-            <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
-          </View>
-        </View>
-      ) : (
-        <WeekProgress
-          totalLabel={week.totalLabel}
-          targetLabel={week.targetLabel}
-          progress={week.progress}
-          overTarget={week.overTarget}
-          overByLabel={week.overByLabel}
-          row
-          earningsLabel={week.earningsLabel}
-        />
-      )}
+      <WeekProgress
+        totalLabel={week.totalLabel}
+        targetLabel={week.targetLabel}
+        progress={week.progress}
+        overTarget={week.overTarget}
+        overByLabel={week.overByLabel}
+        off={week.off}
+        row
+        earningsLabel={week.earningsLabel}
+      />
       <View style={styles.bars}>
         {week.dayBars.map((bar) => (
           <View
@@ -293,25 +285,6 @@ const styles = StyleSheet.create({
   offToggle: {
     fontSize: 14,
     fontWeight: '400',
-  },
-  offRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  offTotal: {
-    fontSize: 24,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
-  offBadge: {
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-  },
-  offBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
   },
   bars: {
     flexDirection: 'row',

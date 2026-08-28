@@ -93,24 +93,16 @@ export default function HomeScreen() {
         <View style={[styles.divider, { backgroundColor: theme.inset }]} />
         <View style={styles.totalItem}>
           <Text style={[styles.totalLabel, { color: theme.muted }]}>{t('thisWeek')}</Text>
-          {model.off ? (
-            <View style={styles.offRow}>
-              <Text style={[styles.offTotal, { color: theme.text }]}>{model.weekToDateLabel}</Text>
-              <View style={[styles.offBadge, { backgroundColor: theme.accentSoft }]}>
-                <Text style={[styles.offBadgeText, { color: theme.accent }]}>{t('offWeek')}</Text>
-              </View>
-            </View>
-          ) : (
-            <WeekProgress
-              totalLabel={model.weekToDateLabel}
-              targetLabel={model.weeklyTargetLabel}
-              progress={model.weekProgress}
-              overTarget={model.overTarget}
-              overByLabel={model.overByLabel}
-              emphasized
-              earningsLabel={model.earningsLabel}
-            />
-          )}
+          <WeekProgress
+            totalLabel={model.weekToDateLabel}
+            targetLabel={model.weeklyTargetLabel}
+            progress={model.weekProgress}
+            overTarget={model.overTarget}
+            overByLabel={model.overByLabel}
+            off={model.off}
+            emphasized
+            earningsLabel={model.earningsLabel}
+          />
         </View>
       </View>
 
@@ -202,26 +194,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
-  },
-  offRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-  },
-  offTotal: {
-    fontSize: 24,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
-  offBadge: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-  },
-  offBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
   },
   nextBlock: {
     fontSize: 13,
