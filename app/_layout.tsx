@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { FirstLaunchSetup } from '@/components/FirstLaunchSetup';
 import { initNotificationHandling } from '@/notifications/reminders';
 
 export {
@@ -32,6 +33,7 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
+      <FirstLaunchSetup />
     </ThemeProvider>
   );
 }

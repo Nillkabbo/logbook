@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateSessionTimes } from './validation';
+import { validateReminderThreshold, validateSessionTimes, validateWeeklyTarget } from './validation';
 
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
   new Date(y, mo, d, h, mi, s);
@@ -34,5 +34,33 @@ describe('validateSessionTimes', () => {
     expect(validateSessionTimes(at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 1), NOW)).toMatch(
       /future/i,
     );
+  });
+});
+
+describe('validateReminderThreshold', () => {
+  it('accepts the inclusive 1–16 hour range', () => {
+    expect(validateReminderThreshold(1)).toBeNull();
+    expect(validateReminderThreshold(10)).toBeNull();
+    expect(validateReminderThreshold(16)).toBeNull();
+    expect(validateReminderThreshold(2.5)).toBeNull();
+  });
+
+  it('rejects values outside 1–16 and non-numbers', () => {
+    expect(validateReminderThreshold(0.5)).toMatch(/1.*16/i);
+    expect(validateReminderThreshold(17)).toMatch(/1.*16/i);
+    expect(validateReminderThreshold(Number.NaN)).toMatch(/number/i);
+  });
+});
+
+describe('validateWeeklyTarget', () => {
+  it('accepts positive hours', () => {
+    expect(validateWeeklyTarget(40)).toBeNull();
+    expect(validateWeeklyTarget(0.5)).toBeNull();
+  });
+
+  it('rejects zero, negatives, and non-numbers', () => {
+    expect(validateWeeklyTarget(0)).toMatch(/positive/i);
+    expect(validateWeeklyTarget(-5)).toMatch(/positive/i);
+    expect(validateWeeklyTarget(Number.NaN)).toMatch(/number/i);
   });
 });

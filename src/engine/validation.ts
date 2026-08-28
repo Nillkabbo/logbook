@@ -18,3 +18,25 @@ export function validateSessionTimes(
   }
   return null;
 }
+
+/** Reminder threshold must be a number in the inclusive 1–16 hour range. */
+export function validateReminderThreshold(hours: number): string | null {
+  if (!Number.isFinite(hours)) {
+    return 'Reminder threshold must be a number.';
+  }
+  if (hours < 1 || hours > 16) {
+    return 'Reminder threshold must be between 1 and 16 hours.';
+  }
+  return null;
+}
+
+/** Weekly target must be a positive number of hours. */
+export function validateWeeklyTarget(hours: number): string | null {
+  if (!Number.isFinite(hours)) {
+    return 'Weekly target must be a number.';
+  }
+  if (hours <= 0) {
+    return 'Weekly target must be a positive number of hours.';
+  }
+  return null;
+}

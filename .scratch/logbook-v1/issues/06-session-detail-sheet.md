@@ -6,12 +6,12 @@ Parent spec: `.scratch/logbook-v1/spec.md`
 
 **Blocked by:** 04 (deleting a running session must cancel its reminder), 05 (the sheet opens from a Logs row).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Tapping a log row opens a detail sheet with native pickers for check-in and check-out plus a note field
-- [ ] Saving with checkout ≤ check-in, or any future timestamp, is rejected with a clear message
-- [ ] A valid edit updates the log row, day total, week header, and Home totals
-- [ ] Edits that move a session across midnight or a week boundary re-own it to the new check-in day/week
-- [ ] Delete requires confirmation; a confirmed delete removes the session from everywhere
-- [ ] Deleting a running session cancels the check-in (Home returns to Check in state) and cancels the pending reminder
-- [ ] Note text persists and displays in the log list and detail sheet
+- [x] Tapping a log row opens a detail sheet with native pickers for check-in and check-out plus a note field
+- [x] Saving with checkout ≤ check-in, or any future timestamp, is rejected with a clear message
+- [x] A valid edit updates the log row, day total, week header, and Home totals
+- [x] Edits that move a session across midnight or a week boundary re-own it to the new check-in day/week
+- [x] Delete requires confirmation; a confirmed delete removes the session from everywhere
+- [x] Deleting a running session cancels the check-in (Home returns to Check in state) and cancels the pending reminder
+- [x] Note text persists and displays in the log list and detail sheet
