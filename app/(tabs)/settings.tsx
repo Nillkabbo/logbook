@@ -57,7 +57,13 @@ export default function SettingsScreen() {
     resetRate(settings.hourlyRate > 0 ? String(settings.hourlyRate) : '');
   }, [settings.weeklyTargetHours, settings.reminderThresholdHours, settings.hourlyRate, resetTarget, resetThreshold, resetRate]);
 
-  const labeledInput = (label: string, value: string, onChangeText: (next: string) => void, onBlur: () => void) => (
+  const labeledInput = (
+    label: string,
+    value: string,
+    onChangeText: (next: string) => void,
+    onBlur: () => void,
+    hint?: string,
+  ) => (
     <View style={styles.fieldStack}>
       <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
       <TextInput
@@ -68,6 +74,7 @@ export default function SettingsScreen() {
         keyboardType="decimal-pad"
         placeholderTextColor={theme.muted}
       />
+      {hint && <Text style={[styles.hint, { color: theme.muted }]}>{hint}</Text>}
     </View>
   );
 
@@ -95,16 +102,14 @@ export default function SettingsScreen() {
         />
         {labeledInput(t('weeklyTarget'), target.value, target.onChangeText, target.onBlur)}
         {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
-        {labeledInput(t('reminderThreshold'), threshold.value, threshold.onChangeText, threshold.onBlur)}
+        {labeledInput(t('reminderThreshold'), threshold.value, threshold.onChangeText, threshold.onBlur, t('reminderHint'))}
         {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{t(threshold.error as StringKey)}</Text>}
-        <Text style={[styles.hint, styles.hintTuck, { color: theme.muted }]}>{t('reminderHint')}</Text>
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('earnings')}</Text>
       <View style={[styles.card, styles.cardTight, cardStyle(theme)]}>
-        {labeledInput(t('hourlyRate'), rate.value, rate.onChangeText, rate.onBlur)}
+        {labeledInput(t('hourlyRate'), rate.value, rate.onChangeText, rate.onBlur, t('rateHint'))}
         {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
-        <Text style={[styles.hint, styles.hintTuck, { color: theme.muted }]}>{t('rateHint')}</Text>
       </View>
 
       <View style={[styles.card, cardStyle(theme)]}>
@@ -175,9 +180,6 @@ const styles = StyleSheet.create({
   fieldStack: {
     gap: 8,
   },
-  hintTuck: {
-    marginTop: -16,
-  },
   rowLabel: {
     fontSize: 15,
   },
@@ -200,6 +202,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 13,
+    marginTop: -2,
   },
   navRow: {
     flexDirection: 'row',
