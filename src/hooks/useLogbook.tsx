@@ -13,15 +13,19 @@ import {
   deleteSession as deleteSessionInDb,
   getSettings,
   insertSession,
+  insertBlock,
+  deleteBlock as deleteBlockInDb,
+  listBlocks,
   listSessions,
   updateSession as updateSessionInDb,
   updateSettings as updateSettingsInDb,
 } from '@/db/database';
-import { applyReminderDecision } from '@/notifications/reminders';
+import { applyReminderDecision, syncBlockNotifications } from '@/notifications/reminders';
 import { reminderDecision } from '@/engine/reminders';
+import type { WorkBlock } from '@/engine/schedule';
 import { sessionsToCsv } from '@/engine/csv';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
-import type { Session, SessionPatch, Settings } from '@/engine/types';
+import type { Session, SessionPatch, Settings, Weekday } from '@/engine/types';
 import { DEFAULT_SETTINGS } from '@/engine/types';
 
 /**
@@ -44,6 +48,9 @@ interface Logbook {
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
   /** Runs the CSV export and records the timestamp; false when sharing is unavailable. */
   exportBackup: () => Promise<boolean>;
+  blocks: WorkBlock[];
+  addBlock: (weekdays: Weekday[], startMinute: number, endMinute: number) => Promise<void>;
+  removeBlock: (id: number) => Promise<void>;
 }
 
 const LogbookContext = createContext<Logbook | null>(null);
@@ -51,13 +58,19 @@ const LogbookContext = createContext<Logbook | null>(null);
 export function LogbookProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [blocks, setBlocks] = useState<WorkBlock[]>([]);
   const [now, setNow] = useState(() => new Date());
   const [ready, setReady] = useState(false);
 
   const refresh = useCallback(async () => {
-    const [nextSessions, nextSettings] = await Promise.all([listSessions(), getSettings()]);
+    const [nextSessions, nextSettings, nextBlocks] = await Promise.all([
+      listSessions(),
+      getSettings(),
+      listBlocks(),
+    ]);
     setSessions(nextSessions);
     setSettings(nextSettings);
+    setBlocks(nextBlocks);
     setReady(true);
   }, []);
 
@@ -83,15 +96,19 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     // button/timer flipping to the running state.
     await applyReminderDecision(
       reminderDecision({ type: 'checked-in', checkIn: checkInAt }, settings, new Date()),
+      blocks,
     );
-  }, [refresh, settings]);
+  }, [refresh, settings, blocks]);
 
   const checkOut = useCallback(async () => {
     if (!running) return;
     await completeSession(running.id, new Date());
     await refresh();
-    await applyReminderDecision(reminderDecision({ type: 'checked-out' }, settings, new Date()));
-  }, [running, refresh, settings]);
+    await applyReminderDecision(
+      reminderDecision({ type: 'checked-out' }, settings, new Date()),
+      blocks,
+    );
+  }, [running, refresh, settings, blocks]);
 
   const saveSession = useCallback(
     async (id: number, patch: SessionPatch) => {
@@ -108,9 +125,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
         settings,
         new Date(),
       );
-      await applyReminderDecision(decision);
+      await applyReminderDecision(decision, blocks);
     },
-    [sessions, refresh, settings],
+    [sessions, refresh, settings, blocks],
   );
 
   const removeSession = useCallback(
@@ -123,9 +140,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
         settings,
         new Date(),
       );
-      await applyReminderDecision(decision);
+      await applyReminderDecision(decision, blocks);
     },
-    [sessions, refresh, settings],
+    [sessions, refresh, settings, blocks],
   );
 
   const saveSettings = useCallback(
@@ -145,6 +162,23 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     return shared;
   }, [sessions, refresh]);
 
+  const addBlock = useCallback(
+    async (weekdays: Weekday[], startMinute: number, endMinute: number) => {
+      await insertBlock(weekdays, startMinute, endMinute);
+      const nextBlocks = await listBlocks();
+      setBlocks(nextBlocks);
+      await syncBlockNotifications(nextBlocks);
+    },
+    [],
+  );
+
+  const removeBlock = useCallback(async (id: number) => {
+    await deleteBlockInDb(id);
+    const nextBlocks = await listBlocks();
+    setBlocks(nextBlocks);
+    await syncBlockNotifications(nextBlocks);
+  }, []);
+
   // Memoised: consumers depend on this identity for effects (focus refresh).
   const value = useMemo<Logbook>(
     () => ({
@@ -160,6 +194,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       removeSession,
       saveSettings,
       exportBackup,
+      blocks,
+      addBlock,
+      removeBlock,
     }),
     [
       sessions,
@@ -174,6 +211,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       removeSession,
       saveSettings,
       exportBackup,
+      blocks,
+      addBlock,
+      removeBlock,
     ],
   );
 

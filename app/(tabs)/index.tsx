@@ -7,12 +7,16 @@ import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { homeModel } from '@/engine/home';
+import { formatTimeOfDay } from '@/engine/time';
+import { formatDayLabel } from '@/engine/weeks';
 import { isBackupDue } from '@/engine/backup';
+import { blockOccurring, nextBlockOccurrence } from '@/engine/schedule';
 import { RADIUS, TYPE, useTheme } from '@/theme';
 
 export default function HomeScreen() {
   const theme = useTheme();
-  const { refresh, checkIn, checkOut, sessions, settings, now, exportBackup } = useLogbook();
+  const { refresh, checkIn, checkOut, sessions, settings, now, exportBackup, blocks } =
+    useLogbook();
   const [busy, setBusy] = useState(false);
   const [backupDismissed, setBackupDismissed] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -38,6 +42,8 @@ export default function HomeScreen() {
 
   // The store's `now` ticks every second while a session runs, re-driving this model.
   const model = homeModel(sessions, settings, now);
+  const nextBlock = model.running ? null : nextBlockOccurrence(blocks, now);
+  const currentBlock = model.running ? null : blockOccurring(blocks, now);
 
   const onToggle = async () => {
     if (busy) return;
@@ -106,6 +112,26 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </View>
+      )}
+
+      {currentBlock && (
+        <View
+          style={[styles.blockBanner, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+          <Text style={[styles.backupText, { color: theme.text }]}>
+            Work block in progress — checked in yet?
+          </Text>
+          <Pressable
+            style={[styles.backupButton, { backgroundColor: theme.accent }]}
+            disabled={busy}
+            onPress={onToggle}>
+            <Text style={styles.backupButtonText}>Check in</Text>
+          </Pressable>
+        </View>
+      )}
+      {nextBlock && (
+        <Text style={[styles.nextBlock, { color: theme.muted }]}>
+          Next block: {formatDayLabel(nextBlock.startsAt)}, {formatTimeOfDay(nextBlock.startsAt)}
+        </Text>
       )}
 
       <ScrollView contentContainerStyle={styles.list}>
@@ -200,5 +226,17 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  blockBanner: {
+    borderRadius: RADIUS.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    gap: 10,
+    alignItems: 'flex-start',
+  },
+  nextBlock: {
+    fontSize: 13,
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
   },
 });

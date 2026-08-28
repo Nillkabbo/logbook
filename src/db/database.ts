@@ -7,6 +7,7 @@ import {
   type Settings,
   type Weekday,
 } from '@/engine/types';
+import type { WorkBlock } from '@/engine/schedule';
 
 /**
  * SQLite adapter for LogBook. The only module that talks to expo-sqlite; everything
@@ -41,6 +42,12 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
       hourly_rate REAL NOT NULL DEFAULT 0,
       last_export_at INTEGER,
       setup_completed INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS blocks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      weekdays TEXT NOT NULL,
+      start_minute INTEGER NOT NULL,
+      end_minute INTEGER NOT NULL
     );
     INSERT OR IGNORE INTO settings (id) VALUES (1);
   `);
@@ -157,4 +164,43 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
     next.lastExportAt,
     next.setupCompleted ? 1 : 0,
   );
+}
+
+interface BlockRow {
+  id: number;
+  weekdays: string;
+  start_minute: number;
+  end_minute: number;
+}
+
+function rowToBlock(row: BlockRow): WorkBlock {
+  return {
+    id: row.id,
+    weekdays: row.weekdays.split(',').map((n) => (Number(n) % 7) as Weekday),
+    startMinute: row.start_minute,
+    endMinute: row.end_minute,
+  };
+}
+
+export async function listBlocks(): Promise<WorkBlock[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<BlockRow>(
+    'SELECT id, weekdays, start_minute, end_minute FROM blocks ORDER BY id ASC',
+  );
+  return rows.map(rowToBlock);
+}
+
+export async function insertBlock(weekdays: Weekday[], startMinute: number, endMinute: number): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT INTO blocks (weekdays, start_minute, end_minute) VALUES (?, ?, ?)',
+    weekdays.join(','),
+    startMinute,
+    endMinute,
+  );
+}
+
+export async function deleteBlock(id: number): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM blocks WHERE id = ?', id);
 }

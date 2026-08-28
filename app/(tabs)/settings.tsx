@@ -2,6 +2,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 
+import { ScheduleEditor } from '@/components/ScheduleEditor';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import {
@@ -13,7 +14,8 @@ import { RADIUS, useTheme } from '@/theme';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { refresh, settings, saveSettings, exportBackup } = useLogbook();
+  const { refresh, settings, saveSettings, exportBackup, blocks, addBlock, removeBlock } =
+    useLogbook();
   const [exporting, setExporting] = useState(false);
 
   const target = useValidatedHours(
@@ -108,6 +110,9 @@ export default function SettingsScreen() {
       <Text style={[styles.hint, { color: theme.muted }]}>
         When set, weeks show their earnings. Empty hides them.
       </Text>
+
+      <Text style={[styles.sectionTitle, { color: theme.muted }]}>Schedule</Text>
+      <ScheduleEditor blocks={blocks} onAdd={addBlock} onRemove={removeBlock} />
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>Export</Text>
       <Pressable
