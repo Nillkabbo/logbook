@@ -6,11 +6,18 @@ import { DEFAULT_SETTINGS, type Session } from './types';
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
   new Date(y, mo, d, h, mi, s);
 
-const session = (id: number, checkIn: Date, checkOut: Date | null, note = ''): Session => ({
+const session = (
+  id: number,
+  checkIn: Date,
+  checkOut: Date | null,
+  note = '',
+  category = '',
+): Session => ({
   id,
   checkIn,
   checkOut,
   note,
+  category,
 });
 
 describe('homeModel', () => {

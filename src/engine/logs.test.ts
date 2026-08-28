@@ -6,11 +6,18 @@ import { DEFAULT_SETTINGS, type Session } from './types';
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
   new Date(y, mo, d, h, mi, s);
 
-const session = (id: number, checkIn: Date, checkOut: Date | null, note = ''): Session => ({
+const session = (
+  id: number,
+  checkIn: Date,
+  checkOut: Date | null,
+  note = '',
+  category = '',
+): Session => ({
   id,
   checkIn,
   checkOut,
   note,
+  category,
 });
 
 describe('logsModel', () => {
@@ -74,5 +81,19 @@ describe('logsModel', () => {
 
   it('no sessions yields an empty list', () => {
     expect(logsModel([], THURSDAY)).toEqual([]);
+  });
+
+  it('weeks carry a per-category breakdown of completed sessions, largest first', () => {
+    const a = session(7, at(2026, 7, 25, 8, 0), at(2026, 7, 25, 10, 0), '', 'client site');
+    const b = session(8, at(2026, 7, 26, 9, 0), at(2026, 7, 26, 12, 0), '', 'study');
+    const c = session(9, at(2026, 7, 26, 13, 0), at(2026, 7, 26, 15, 30), '', 'client site');
+    const uncat = session(10, at(2026, 7, 25, 11, 0), at(2026, 7, 25, 11, 45));
+    const run = session(11, at(2026, 7, 26, 16, 0), null, '', 'study'); // running — excluded
+    const weeks = logsModel([a, b, c, uncat, run], THURSDAY);
+    expect(weeks[0].categoryBreakdown).toEqual([
+      { label: 'client site', totalLabel: '4:30' }, // 2h + 2h30m
+      { label: 'study', totalLabel: '3:00' },
+      { label: '', totalLabel: '0:45' }, // uncategorised
+    ]);
   });
 });

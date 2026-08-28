@@ -6,6 +6,8 @@ export interface Session {
   checkIn: Date;
   checkOut: Date | null;
   note: string;
+  /** Free-form work label; empty when uncategorised. */
+  category: string;
 }
 
 /** 0 = Sunday … 6 = Saturday, matching `Date.prototype.getDay()`. */
@@ -35,9 +37,10 @@ export const DEFAULT_SETTINGS: Settings = {
   setupCompleted: false,
 };
 
-/** An edited session's new truth: both timestamps (checkout null = running) and the note. */
+/** An edited session's new truth: both timestamps (checkout null = running), note, and category. */
 export interface SessionPatch {
   checkIn: Date;
   checkOut: Date | null;
   note: string;
+  category: string;
 }

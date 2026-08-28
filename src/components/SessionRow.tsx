@@ -19,6 +19,11 @@ export function SessionRow({ session, now }: { session: Session; now: Date }) {
           {formatDuration(sessionDurationSeconds(session, session.checkOut ?? now))}
         </Text>
       </View>
+      {session.category.length > 0 && (
+        <View style={[styles.chip, { borderColor: theme.accent }]}>
+          <Text style={[styles.chipText, { color: theme.accent }]}>{session.category}</Text>
+        </View>
+      )}
       {session.note.length > 0 && <Text style={[styles.rowNote, { color: theme.muted }]}>{session.note}</Text>}
     </View>
   );
@@ -29,7 +34,18 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: RADIUS.card,
     borderWidth: StyleSheet.hairlineWidth,
-    gap: 2,
+    gap: 4,
+  },
+  chip: {
+    alignSelf: 'flex-start',
+    borderRadius: RADIUS.pill,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 1,
+  },
+  chipText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   rowMain: {
     flexDirection: 'row',

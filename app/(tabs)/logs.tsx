@@ -22,6 +22,9 @@ export default function LogsScreen() {
   );
 
   const weeks = logsModel(sessions, settings);
+  const categorySuggestions = [...new Set(sessions.map((s) => s.category))].filter(
+    (c) => c.length > 0,
+  );
 
   return (
     <ScrollView
@@ -41,6 +44,20 @@ export default function LogsScreen() {
               overTarget={week.overTarget}
               overByLabel={week.overByLabel}
             />
+            {week.categoryBreakdown.length > 0 && (
+              <View style={styles.breakdown}>
+                {week.categoryBreakdown.map((entry) => (
+                  <View key={entry.label || '__none__'} style={styles.breakdownRow}>
+                    <Text style={[styles.breakdownLabel, { color: theme.muted }]}>
+                      {entry.label || 'Uncategorised'}
+                    </Text>
+                    <Text style={[styles.breakdownTotal, { color: theme.text }]}>
+                      {entry.totalLabel}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
 
           {week.days.map((day) => (
@@ -65,6 +82,7 @@ export default function LogsScreen() {
       {selected && (
         <SessionDetailSheet
           session={selected}
+          suggestions={categorySuggestions}
           onSave={(patch) => saveSession(selected.id, patch)}
           onDelete={removeSession}
           onClose={() => setSelected(null)}
@@ -95,6 +113,21 @@ const styles = StyleSheet.create({
   weekLabel: {
     fontSize: 17,
     fontWeight: '700',
+  },
+  breakdown: {
+    gap: 2,
+    marginTop: 2,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  breakdownLabel: {
+    fontSize: 13,
+  },
+  breakdownTotal: {
+    fontSize: 13,
+    fontVariant: ['tabular-nums'],
   },
   day: {
     gap: 4,

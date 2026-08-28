@@ -30,6 +30,7 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
       check_in_utc TEXT NOT NULL,
       check_out_utc TEXT,
       note TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     );
     CREATE TABLE IF NOT EXISTS settings (
@@ -41,7 +42,21 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
     );
     INSERT OR IGNORE INTO settings (id) VALUES (1);
   `);
+  // Migrations for databases created before a column existed.
+  await addColumnIfMissing(db, 'sessions', 'category', "TEXT NOT NULL DEFAULT ''");
   return db;
+}
+
+async function addColumnIfMissing(
+  db: SQLite.SQLiteDatabase,
+  table: string,
+  column: string,
+  definition: string,
+): Promise<void> {
+  const columns = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
+  if (!columns.some((c) => c.name === column)) {
+    await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
 }
 
 interface SessionRow {
@@ -49,6 +64,7 @@ interface SessionRow {
   check_in_utc: string;
   check_out_utc: string | null;
   note: string;
+  category: string;
 }
 
 function rowToSession(row: SessionRow): Session {
@@ -57,13 +73,14 @@ function rowToSession(row: SessionRow): Session {
     checkIn: new Date(row.check_in_utc),
     checkOut: row.check_out_utc === null ? null : new Date(row.check_out_utc),
     note: row.note,
+    category: row.category,
   };
 }
 
 export async function listSessions(): Promise<Session[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<SessionRow>(
-    'SELECT id, check_in_utc, check_out_utc, note FROM sessions ORDER BY check_in_utc ASC',
+    'SELECT id, check_in_utc, check_out_utc, note, category FROM sessions ORDER BY check_in_utc ASC',
   );
   return rows.map(rowToSession);
 }
@@ -86,10 +103,11 @@ export async function completeSession(id: number, checkOut: Date): Promise<void>
 export async function updateSession(id: number, patch: SessionPatch): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    'UPDATE sessions SET check_in_utc = ?, check_out_utc = ?, note = ? WHERE id = ?',
+    'UPDATE sessions SET check_in_utc = ?, check_out_utc = ?, note = ?, category = ? WHERE id = ?',
     patch.checkIn.toISOString(),
     patch.checkOut === null ? null : patch.checkOut.toISOString(),
     patch.note,
+    patch.category,
     id,
   );
 }

@@ -21,6 +21,8 @@ import { RADIUS, useTheme } from '@/theme';
 
 interface Props {
   session: Session;
+  /** Distinct categories already used, for suggestions. */
+  suggestions: string[];
   onSave: (patch: SessionPatch) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   onClose: () => void;
@@ -28,11 +30,12 @@ interface Props {
 
 const formatDateTime = (date: Date) => `${formatDayLabel(date)}, ${formatTimeOfDay(date)}`;
 
-export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props) {
+export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose }: Props) {
   const theme = useTheme();
   const [checkIn, setCheckIn] = useState(session.checkIn);
   const [checkOut, setCheckOut] = useState(session.checkOut);
   const [note, setNote] = useState(session.note);
+  const [category, setCategory] = useState(session.category);
   const [picker, setPicker] = useState<'in' | 'out' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -41,6 +44,7 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
     setCheckIn(session.checkIn);
     setCheckOut(session.checkOut);
     setNote(session.note);
+    setCategory(session.category);
     setError(null);
     setPicker(null);
   }, [session]);
@@ -63,7 +67,7 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
     }
     setBusy(true);
     try {
-      await onSave({ checkIn, checkOut, note: note.trim() });
+      await onSave({ checkIn, checkOut, note: note.trim(), category: category.trim() });
       onClose();
     } finally {
       setBusy(false);
@@ -150,6 +154,27 @@ export function SessionDetailSheet({ session, onSave, onDelete, onClose }: Props
           <Switch value={running} onValueChange={(on) => setCheckOut(on ? null : checkIn)} />
         </View>
         {renderField('out')}
+
+        <Text style={[styles.fieldLabel, { color: theme.muted }]}>Category</Text>
+        <TextInput
+          style={[
+            styles.noteInput,
+            { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
+          ]}
+          value={category}
+          onChangeText={setCategory}
+          placeholder="What kind of work?"
+          placeholderTextColor={theme.muted}
+          autoCapitalize="none"
+        />
+        {suggestions
+          .filter((s) => s.length > 0 && s !== category)
+          .slice(0, 6)
+          .map((s) => (
+            <Pressable key={s} onPress={() => setCategory(s)}>
+              <Text style={{ color: theme.accent, fontSize: 13, paddingVertical: 2 }}>{s}</Text>
+            </Pressable>
+          ))}
 
         <Text style={[styles.fieldLabel, { color: theme.muted }]}>Note</Text>
         <TextInput

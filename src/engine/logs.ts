@@ -1,5 +1,5 @@
 import { formatDuration } from './time';
-import { sumCompletedSessions } from './sessions';
+import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { formatDayLabel, weekProgress, weekRange, weekRangeLabel, type WeekRange } from './weeks';
 
@@ -24,6 +24,8 @@ export interface LogWeek {
   overTarget: boolean;
   /** Clock-style overage (e.g. "2:00") in an over-target week; null otherwise. */
   overByLabel: string | null;
+  /** Completed-session totals per category, largest first; empty label = uncategorised. */
+  categoryBreakdown: Array<{ label: string; totalLabel: string }>;
 }
 
 function localDayKey(date: Date): string {
@@ -60,6 +62,26 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
     const totalSeconds = sumCompletedSessions(sessions);
     const progress = weekProgress(totalSeconds, targetSeconds);
 
+    const byCategory = new Map<string, number>();
+    for (const session of sessions) {
+      if (session.checkOut === null || session.category === '') continue;
+      byCategory.set(
+        session.category,
+        (byCategory.get(session.category) ?? 0) + sessionDurationSeconds(session),
+      );
+    }
+    // Uncategorised sessions join the breakdown last, labelled ''.
+    const uncategorised =
+      sessions
+        .filter((s) => s.checkOut !== null && s.category === '')
+        .reduce((sum, s) => sum + sessionDurationSeconds(s), 0) || null;
+    const categoryBreakdown = [
+      ...[...byCategory.entries()]
+        .map(([label, seconds]) => ({ label, seconds }))
+        .sort((a, b) => b.seconds - a.seconds),
+      ...(uncategorised !== null ? [{ label: '', seconds: uncategorised }] : []),
+    ].map(({ label, seconds }) => ({ label, totalLabel: formatDuration(seconds) }));
+
     const byDay = new Map<number, { date: Date; sessions: Session[] }>();
     for (const session of sessions) {
       const date = localMidnight(session.checkIn);
@@ -91,6 +113,7 @@ export function logsModel(sessions: Session[], settings: Settings): LogWeek[] {
       progress: progress.progress,
       overTarget: progress.overTarget,
       overByLabel: progress.overTarget ? formatDuration(totalSeconds - targetSeconds) : null,
+      categoryBreakdown,
     };
   });
 }

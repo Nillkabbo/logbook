@@ -24,7 +24,7 @@ function escapeCsv(value: string): string {
  * timezone; running sessions carry a blank checkout and blank duration.
  */
 export function sessionsToCsv(sessions: Session[]): string {
-  const lines = ['date,check_in,check_out,duration_minutes,note'];
+  const lines = ['date,check_in,check_out,duration_minutes,note,category'];
   const ordered = [...sessions].sort((a, b) => a.checkIn.getTime() - b.checkIn.getTime());
   for (const session of ordered) {
     const durationMinutes =
@@ -38,6 +38,7 @@ export function sessionsToCsv(sessions: Session[]): string {
         session.checkOut === null ? '' : localDateTime(session.checkOut),
         durationMinutes,
         escapeCsv(session.note),
+        escapeCsv(session.category),
       ].join(','),
     );
   }

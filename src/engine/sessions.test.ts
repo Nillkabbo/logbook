@@ -10,18 +10,18 @@ const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
 describe('sessionDurationSeconds', () => {
   it('completed session: checkout minus check-in', () => {
     // 09:00 → 11:47 = 2h 47m = 10020s
-    const session = { id: 1, checkIn: at(2026, 7, 27, 9, 0), checkOut: at(2026, 7, 27, 11, 47), note: '' };
+    const session = { id: 1, checkIn: at(2026, 7, 27, 9, 0), checkOut: at(2026, 7, 27, 11, 47), note: '', category: '' };
     expect(sessionDurationSeconds(session)).toBe(10020);
   });
 
   it('running session: now minus check-in, seconds precision', () => {
     // 09:00:15 → 09:30:45 = 30m 30s = 1830s
-    const session = { id: 1, checkIn: at(2026, 7, 27, 9, 0, 15), checkOut: null, note: '' };
+    const session = { id: 1, checkIn: at(2026, 7, 27, 9, 0, 15), checkOut: null, note: '', category: '' };
     expect(sessionDurationSeconds(session, at(2026, 7, 27, 9, 30, 45))).toBe(1830);
   });
 
   it('running session without `now` is a contract violation', () => {
-    const session = { id: 1, checkIn: at(2026, 7, 27, 9, 0), checkOut: null, note: '' };
+    const session = { id: 1, checkIn: at(2026, 7, 27, 9, 0), checkOut: null, note: '', category: '' };
     expect(() => sessionDurationSeconds(session)).toThrow();
   });
 });
