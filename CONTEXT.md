@@ -47,3 +47,7 @@ _Avoid_: overtime, excess
 **Reminder threshold**:
 The configurable number of hours after check-in at which a reminder fires if the session is still running. Default 10, range 1–16.
 _Avoid_: alarm, timeout, notification delay
+
+**Reminder lifecycle**:
+The rule that a reminder exists if and only if a Running session exists, maintained across the check-in, check-out, edit, and delete transitions.
+_Avoid_: notification rules, reminder logic

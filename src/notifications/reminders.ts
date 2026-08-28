@@ -13,6 +13,8 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
+import type { ReminderDecision } from '@/engine/reminders';
+
 type NotificationsModule = typeof import('expo-notifications');
 
 let cached: NotificationsModule | null = null;
@@ -64,33 +66,29 @@ async function ensurePermission(mod: NotificationsModule): Promise<boolean> {
   return requested.granted;
 }
 
-/** Schedules the reminder unless the module is unavailable or permission is denied. */
-export async function scheduleCheckInReminder(checkIn: Date, thresholdHours: number): Promise<void> {
+/**
+ * Executes a Reminder-lifecycle decision. Scheduling, cancelling, permissions,
+ * and platform availability live here — the policy lives in the engine.
+ */
+export async function applyReminderDecision(decision: ReminderDecision): Promise<void> {
+  if (decision.kind === 'keep') return;
   const mod = await loadNotifications();
   if (!mod) return;
   try {
+    if (decision.kind === 'cancel') {
+      await mod.cancelAllScheduledNotificationsAsync();
+      return;
+    }
     const granted = await ensurePermission(mod);
     if (!granted) return;
-    const fireDate = new Date(checkIn.getTime() + thresholdHours * 3600 * 1000);
-    if (fireDate.getTime() <= Date.now()) return; // threshold already elapsed
     await mod.scheduleNotificationAsync({
       content: { title: REMINDER_TITLE, body: REMINDER_BODY },
       trigger: {
         type: mod.SchedulableTriggerInputTypes.DATE,
-        date: fireDate,
+        date: decision.fireAt,
       },
     });
   } catch {
     // A denied or failed reminder must never break the check-in flow.
-  }
-}
-
-export async function cancelCheckInReminder(): Promise<void> {
-  const mod = await loadNotifications();
-  if (!mod) return;
-  try {
-    await mod.cancelAllScheduledNotificationsAsync();
-  } catch {
-    // Nothing to cancel — safe to ignore.
   }
 }

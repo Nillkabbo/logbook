@@ -17,7 +17,8 @@ import {
   updateSession as updateSessionInDb,
   updateSettings as updateSettingsInDb,
 } from '@/db/database';
-import { cancelCheckInReminder, scheduleCheckInReminder } from '@/notifications/reminders';
+import { applyReminderDecision } from '@/notifications/reminders';
+import { reminderDecision } from '@/engine/reminders';
 import type { Session, SessionPatch, Settings } from '@/engine/types';
 import { DEFAULT_SETTINGS } from '@/engine/types';
 
@@ -74,42 +75,53 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     const checkInAt = new Date();
     await insertSession(checkInAt);
     await refresh();
-    // Schedule after refresh: the OS permission prompt must never delay the
+    // Apply after refresh: the OS permission prompt must never delay the
     // button/timer flipping to the running state.
-    await scheduleCheckInReminder(checkInAt, settings.reminderThresholdHours);
-  }, [refresh, settings.reminderThresholdHours]);
+    await applyReminderDecision(
+      reminderDecision({ type: 'checked-in', checkIn: checkInAt }, settings, new Date()),
+    );
+  }, [refresh, settings]);
 
   const checkOut = useCallback(async () => {
     if (!running) return;
     await completeSession(running.id, new Date());
     await refresh();
-    await cancelCheckInReminder();
-  }, [running, refresh]);
+    await applyReminderDecision(reminderDecision({ type: 'checked-out' }, settings, new Date()));
+  }, [running, refresh, settings]);
 
   const saveSession = useCallback(
     async (id: number, patch: SessionPatch) => {
       const target = sessions.find((s) => s.id === id);
       await updateSessionInDb(id, patch);
-      // An edit that completes a running session retires its reminder.
-      if (target?.checkOut === null && patch.checkOut !== null) {
-        await cancelCheckInReminder();
-      }
       await refresh();
+      const decision = reminderDecision(
+        {
+          type: 'edited',
+          wasRunning: target?.checkOut === null,
+          nowRunning: patch.checkOut === null,
+          checkIn: patch.checkIn,
+        },
+        settings,
+        new Date(),
+      );
+      await applyReminderDecision(decision);
     },
-    [sessions, refresh],
+    [sessions, refresh, settings],
   );
 
   const removeSession = useCallback(
     async (id: number) => {
       const target = sessions.find((s) => s.id === id);
       await deleteSessionInDb(id);
-      // Deleting a running session cancels the check-in, reminder included.
-      if (target?.checkOut === null) {
-        await cancelCheckInReminder();
-      }
       await refresh();
+      const decision = reminderDecision(
+        { type: 'deleted', wasRunning: target?.checkOut === null },
+        settings,
+        new Date(),
+      );
+      await applyReminderDecision(decision);
     },
-    [sessions, refresh],
+    [sessions, refresh, settings],
   );
 
   const saveSettings = useCallback(
