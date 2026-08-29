@@ -7,6 +7,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 
 import { SubScreenHeader } from '@/components/SubScreenHeader';
+import { loadSampleData } from '@/dev/sampleData';
 import { useLogbook } from '@/hooks/useLogbook';
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useI18n } from '@/ui/i18n';
@@ -16,7 +17,7 @@ export default function DataScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale } = useI18n();
-  const { refresh, settings, sessions, exportBackup, importCsv, loadSampleData, clearAllData } = useLogbook();
+  const { refresh, settings, sessions, exportBackup, importCsv, clearAllData } = useLogbook();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -112,6 +113,7 @@ export default function DataScreen() {
               setLoading(true);
               try {
                 const count = await loadSampleData(8);
+                await refresh();
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
                 Alert.alert(t('data'), t('sampleLoaded', { n: count }));
               } finally {
@@ -129,6 +131,7 @@ export default function DataScreen() {
               setLoading(true);
               try {
                 const count = await loadSampleData(52);
+                await refresh();
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
                 Alert.alert(t('data'), t('sampleLoaded', { n: count }));
               } finally {

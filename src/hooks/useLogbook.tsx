@@ -27,7 +27,7 @@ import {
 import { syncNotifications } from '@/notifications/reminders';
 import { deleteEvent, editEvent, reminderDecision, type ReminderEvent } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
-import type { RateRecord } from '@/engine/money';
+import { currentRate, type RateRecord } from '@/engine/money';
 import { listRateHistory, insertRate, deleteRate } from '@/db/database';
 import { parseSessionsCsv, type CsvImportResult } from '@/engine/csv';
 import { exportSessionsCsv } from '@/export/csvExport';
@@ -61,8 +61,6 @@ interface Logbook {
   removeBlock: (id: number) => Promise<void>;
   /** Merges an exported CSV into the log; returns the counts for reporting. */
   importCsv: (csv: string) => Promise<CsvImportResult>;
-  /** Dev-only: populates sample data; returns the count loaded. weeks=8 for 2mo, 52 for 1yr. */
-  loadSampleData: (weeks?: number) => Promise<number>;
   /** Rate history, oldest first. */
   rateHistory: RateRecord[];
   /** Adds a rate change (replaces any record with the same effective date). */
@@ -155,141 +153,6 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     resynced.current = true;
     syncAfter(null);
   }, [ready, syncAfter]);
-
-  // DEV-ONLY: 2 months of realistic sample data, explicitly triggered from
-  // the Data sub-screen. Clears existing data first so re-loading never
-  // duplicates. Remove after testing.
-  const loadSampleData = useCallback(async (weeks = 8) => {
-    {
-      // Clear existing data so re-loading is idempotent
-      for (const session of await listSessions()) {
-        await deleteSessionInDb(session.id);
-      }
-      for (const block of await listBlocks()) {
-        await deleteBlockInDb(block.id);
-      }
-      for (const record of await listRateHistory()) {
-        await deleteRate(record.id);
-      }
-
-      // Deterministic PRNG (Lehmer/Park-Miller)
-      let prng = 12345;
-      const rand = () => {
-        prng = (prng * 48271) % 2147483647;
-        return prng / 2147483647;
-      };
-      const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
-      const randInt = (min: number, max: number) =>
-        min + Math.floor(rand() * (max - min + 1));
-
-      const CATEGORIES = ['Deep work', 'Deep work', 'Meetings', 'Meetings', 'Admin', 'Writing'];
-      const NOTES: Record<string, string[]> = {
-        'Deep work': ['payments refactor', 'auth flow', 'dashboard polish', 'API migration', 'bug hunt'],
-        'Meetings': ['sprint planning', '1:1 with Sam', 'design review', 'client call', 'standup'],
-        'Admin': ['expenses', 'inbox zero', 'timesheet'],
-        'Writing': ['blog post', 'release notes', 'docs update'],
-      };
-
-      const now = new Date();
-
-      // ── Work blocks ──
-      await insertBlock([1, 2, 3, 4, 5], 540, 1020); // Mon–Fri 9:00–17:00
-      await insertBlock([6], 600, 840); // Sat 10:00–14:00
-
-      // ── Rate history: $28 from Jan, $30 from Apr, $32.50 from Aug ──
-      await insertRate(28, new Date(now.getFullYear(), 0, 1));
-      await insertRate(30, new Date(now.getFullYear(), 3, 1));
-      await insertRate(32.5, new Date(now.getFullYear(), 7, 1));
-
-      // ── Compute week boundaries relative to this week's Sunday ──
-      const thisSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
-
-      const weekStart = (weeksAgo: number) => {
-        const d = new Date(thisSunday);
-        d.setDate(thisSunday.getDate() - weeksAgo * 7);
-        return d;
-      };
-      const weekEnd = (weeksAgo: number) => {
-        const d = new Date(thisSunday);
-        d.setDate(thisSunday.getDate() - weeksAgo * 7 + 7);
-        return d;
-      };
-
-      // Off week = 2 weeks ago; over-target = 3 and 5 weeks ago
-      const OFF_WEEK = 2;
-      const OVER_WEEKS = [3, 5];
-
-      let count = 0;
-
-      // ── Generate sessions ──
-      for (let weeksAgo = weeks; weeksAgo >= 0; weeksAgo--) {
-        const wStart = weekStart(weeksAgo);
-        const wEnd = weekEnd(weeksAgo);
-        const isOff = weeksAgo === OFF_WEEK;
-        const isOver = OVER_WEEKS.includes(weeksAgo);
-
-        for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
-          if (isOff) break; // skip the entire off week
-
-          const date = new Date(wStart);
-          date.setDate(wStart.getDate() + dayOffset);
-          const dow = date.getDay();
-
-          // Sunday: never
-          if (dow === 0) continue;
-          // Saturday: 20% chance
-          if (dow === 6 && rand() > 0.2) continue;
-          // Weekday: 15% skip (not in over-target weeks)
-          if (dow >= 1 && dow <= 5 && rand() < 0.15 && !isOver) continue;
-          // Today (weeksAgo=0, dayOffset=today's dow): skip if before now
-          if (weeksAgo === 0 && date > now) continue;
-
-          // 1-3 sessions per day
-          const sessionsToday = isOver ? randInt(2, 3) : randInt(1, 3);
-          // Over-target weeks get longer sessions
-          const baseDur = isOver ? randInt(180, 300) : randInt(60, 240);
-
-          // Start times: morning ~8:30, midday ~12:00, afternoon ~14:30
-          const startHours = [8.5, 12, 14.5];
-
-          for (let i = 0; i < sessionsToday; i++) {
-            const cat = pick(CATEGORIES);
-            const note = rand() < 0.35 ? pick(NOTES[cat] ?? ['']) : '';
-            const startH = startHours[i] + rand() * 0.5; // up to 30min jitter
-            const durMin = baseDur + randInt(-30, 30);
-            const startTotalMin = Math.floor(startH * 60);
-            const endTotalMin = Math.min(startTotalMin + durMin, 17 * 60 + 30);
-            if (endTotalMin - startTotalMin < 30) continue;
-
-            const checkIn = new Date(
-              date.getFullYear(), date.getMonth(), date.getDate(),
-              Math.floor(startTotalMin / 60), startTotalMin % 60,
-            );
-            const checkOut = new Date(
-              date.getFullYear(), date.getMonth(), date.getDate(),
-              Math.floor(endTotalMin / 60), endTotalMin % 60,
-            );
-            const id = await insertSession(checkIn, note, cat);
-            await completeSession(id, checkOut);
-            count++;
-          }
-        }
-      }
-
-      // ── Running session: started 45 minutes ago ──
-      const runningStart = new Date(now.getTime() - 45 * 60 * 1000);
-      await insertSession(runningStart, '', '');
-      count++;
-
-      // ── Settings ──
-      const offSunday = weekStart(OFF_WEEK);
-      const offKey = `${offSunday.getFullYear()}-${String(offSunday.getMonth() + 1).padStart(2, '0')}-${String(offSunday.getDate()).padStart(2, '0')}`;
-      await updateSettingsInDb({ hourlyRate: 32.5, offWeeks: [offKey] });
-
-      await refresh();
-      return count;
-    };
-  }, [refresh]);
 
   const clearAllData = useCallback(async () => {
     for (const session of await listSessions()) {
@@ -435,20 +298,14 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       }
     }
     await insertRate(rate, effectiveFrom);
-    // settings.hourlyRate mirrors the latest-effective record (ties → newest insert).
-    const after = await listRateHistory();
-    const latest = after.reduce((a, b) =>
-      b.effectiveFrom.getTime() >= a.effectiveFrom.getTime() ? b : a,
-    );
-    await updateSettingsInDb({ hourlyRate: latest.rate });
+    // settings.hourlyRate mirrors the current rate — one engine rule (ADR-0002).
+    await updateSettingsInDb({ hourlyRate: currentRate(await listRateHistory()) });
     await refresh();
   }, [refresh]);
 
   const removeRate = useCallback(async (id: number) => {
     await deleteRate(id);
-    const all = await listRateHistory();
-    const latest = all[all.length - 1];
-    await updateSettingsInDb({ hourlyRate: latest?.rate ?? 0 });
+    await updateSettingsInDb({ hourlyRate: currentRate(await listRateHistory()) });
     await refresh();
   }, [refresh]);
 
@@ -491,7 +348,6 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       addBlock,
       removeBlock,
       importCsv,
-      loadSampleData,
       clearAllData,
       rateHistory,
       addRateChange,
@@ -516,7 +372,6 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       addBlock,
       removeBlock,
       importCsv,
-      loadSampleData,
       clearAllData,
       rateHistory,
       addRateChange,

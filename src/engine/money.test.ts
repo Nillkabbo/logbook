@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { at } from './test-support';
 
-import { formatMoney, rateForDate, sessionEarnings, sumEarnings, type RateRecord } from './money';
+import { currentRate, formatMoney, rateForDate, sessionEarnings, sumEarnings, type RateRecord } from './money';
 
 describe('formatMoney', () => {
   it('formats USD with two decimals', () => {
@@ -67,5 +67,23 @@ describe('sumEarnings', () => {
 
   it('0 when nothing is covered', () => {
     expect(sumEarnings(sessions, [])).toBe(0);
+  });
+});
+
+describe('currentRate', () => {
+  it('returns the latest-effective record, order-independent', () => {
+    const history = [
+      { id: 1, rate: 30, effectiveFrom: at(2026, 3, 1, 0, 0) },
+      { id: 2, rate: 25, effectiveFrom: at(2026, 0, 1, 0, 0) },
+    ];
+    expect(currentRate(history)).toBe(30);
+    expect(currentRate([...history].reverse())).toBe(30);
+  });
+
+  it('ties go to the later entry; empty history is 0', () => {
+    const a = { id: 1, rate: 25, effectiveFrom: at(2026, 0, 1, 0, 0) };
+    const b = { id: 2, rate: 30, effectiveFrom: at(2026, 0, 1, 0, 0) };
+    expect(currentRate([a, b])).toBe(30);
+    expect(currentRate([])).toBe(0);
   });
 });

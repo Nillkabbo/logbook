@@ -41,6 +41,21 @@ export function sessionEarnings(
 }
 
 /**
+ * The rate active now: the latest-effective record, ties going to the later
+ * entry (the db returns oldest-first, so the newest insert wins). 0 when no
+ * record exists — this is what `settings.hourlyRate` mirrors (ADR-0002).
+ */
+export function currentRate(history: RateRecord[]): number {
+  let active: RateRecord | null = null;
+  for (const record of history) {
+    if (!active || record.effectiveFrom.getTime() >= active.effectiveFrom.getTime()) {
+      active = record;
+    }
+  }
+  return active?.rate ?? 0;
+}
+
+/**
  * Total earnings over a batch of sessions, each at its own check-in-date rate.
  * Running sessions (checkOut null) contribute nothing. 0 when no rate covers
  * any session — callers treat 0 as "hide earnings".
