@@ -327,7 +327,8 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   const renameCategory = useCallback(
     async (oldName: string, newName: string): Promise<boolean> => {
       const trimmed = newName.trim();
-      if (trimmed.length === 0 || trimmed === oldName) return trimmed !== oldName ? false : true;
+      if (trimmed === oldName) return true; // no-op
+      if (trimmed.length === 0) return false;
       if (categories.some((c) => c !== oldName && c.toLowerCase() === trimmed.toLowerCase())) {
         return false;
       }

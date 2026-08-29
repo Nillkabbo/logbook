@@ -28,6 +28,7 @@ export function CategorySection({
   const [addError, setAddError] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [renameError, setRenameError] = useState(false);
 
   const submitAdd = async () => {
     const ok = await onAdd(newValue);
@@ -44,10 +45,10 @@ export function CategorySection({
     if (editing === null) return;
     const ok = await onRename(editing, editValue);
     if (!ok) {
-      setEditValue(editing); // revert — clash or empty
-      setEditing(null);
+      setRenameError(true); // clash or empty — keep editing, show why
       return;
     }
+    setRenameError(false);
     setEditing(null);
   };
 
@@ -90,7 +91,12 @@ export function CategorySection({
             <Pressable hitSlop={8} onPress={submitRename}>
               <Text style={[styles.action, { color: theme.accent }]}>{t('save')}</Text>
             </Pressable>
-            <Pressable hitSlop={8} onPress={() => setEditing(null)}>
+            <Pressable
+              hitSlop={8}
+              onPress={() => {
+                setEditing(null);
+                setRenameError(false);
+              }}>
               <Text style={[styles.action, { color: theme.muted }]}>{t('cancel')}</Text>
             </Pressable>
           </View>
@@ -152,6 +158,7 @@ export function CategorySection({
         </Pressable>
       )}
       {addError && <Text style={[styles.error, { color: theme.stop }]}>{t('categoryExists')}</Text>}
+      {renameError && <Text style={[styles.error, { color: theme.stop }]}>{t('categoryExists')}</Text>}
     </View>
   );
 }
