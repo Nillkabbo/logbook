@@ -128,9 +128,9 @@ export default function LogsScreen() {
           accessibilityLabel={week.label}
           onPress={() => toggleWeek(week)}>
           {week.isCurrent && (
-            <Text style={[styles.weekEyebrow, { color: theme.muted }]}>{t('currentWeek')}</Text>
+            <Text style={[styles.weekEyebrow, { color: theme.accent }]}>{t('currentWeek')}</Text>
           )}
-          <Text style={[styles.weekLabel, { color: theme.text }]}>{week.label}</Text>
+          <Text style={[styles.weekLabel, { color: week.isCurrent ? theme.text : weekEdgeColor(week, theme) }]}>{week.label}</Text>
         </Pressable>
         <Pressable
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -423,6 +423,19 @@ export default function LogsScreen() {
       )}
     </View>
   );
+}
+
+/** The week-edge palette — each week gets a distinct color so scrolling
+ *  history reads as clearly separated blocks. Current week = accent green;
+ *  over-target = red; off = muted; others rotate through a calm palette. */
+const WEEK_COLORS = ['#0891B2', '#7C3AED', '#D97706', '#DB2777', '#4F46E5'];
+
+function weekEdgeColor(week: LogWeek, theme: ReturnType<typeof useTheme>): string {
+  if (week.isCurrent) return theme.accent;
+  if (week.off) return theme.inset;
+  // Hash the week key to a stable palette index
+  const hash = week.key.split('-').reduce((sum, part) => sum + parseInt(part, 10), 0);
+  return WEEK_COLORS[hash % WEEK_COLORS.length];
 }
 
 /** The breakdown dot palette — neutral zinc steps. Green is reserved for the
