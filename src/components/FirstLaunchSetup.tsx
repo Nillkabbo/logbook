@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CategoryPickerModal } from '@/components/CategoryPickerModal';
+import { KeyboardSafeScrollView } from '@/components/KeyboardSafe';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { validateHourlyRate, validateWeeklyTarget } from '@/engine/validation';
@@ -61,10 +62,8 @@ export function FirstLaunchSetup() {
   return (
     <Modal visible animationType="fade" onRequestClose={() => {}}>
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.canvas }} edges={['top', 'bottom']}>
-      <ScrollView
+      <KeyboardSafeScrollView
         style={{ backgroundColor: theme.canvas }}
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
         contentContainerStyle={[styles.container, { paddingBottom: 48 }]}>
         <Text style={[styles.title, { color: theme.text }]}>{t('welcome')}</Text>
         <Text style={[styles.intro, { color: theme.muted }]}>
@@ -136,7 +135,7 @@ export function FirstLaunchSetup() {
             {t('skipSetup')}
           </Text>
         </Pressable>
-      </ScrollView>
+      </KeyboardSafeScrollView>
       </SafeAreaView>
     </Modal>
   );

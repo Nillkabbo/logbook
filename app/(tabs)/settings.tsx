@@ -1,11 +1,12 @@
 import { useFocusEffect, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ChipRow } from '@/components/ChipRow';
 import { DateTimeField } from '@/components/DateTimeField';
 import { CategorySection } from '@/components/CategorySection';
+import { KeyboardSafeScrollView } from '@/components/KeyboardSafe';
 import { RateSection } from '@/components/RateSection';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
@@ -87,10 +88,8 @@ export default function SettingsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.canvas, paddingTop: insets.top + 12 }}>
-    <ScrollView
+    <KeyboardSafeScrollView
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      automaticallyAdjustKeyboardInsets
       contentContainerStyle={styles.container}>
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('week')}</Text>
       <View style={[styles.card, cardStyle(theme)]}>
@@ -206,7 +205,7 @@ export default function SettingsScreen() {
         />
       </View>
 
-    </ScrollView>
+    </KeyboardSafeScrollView>
     </View>
   );
 }

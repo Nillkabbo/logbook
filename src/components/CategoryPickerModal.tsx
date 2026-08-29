@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { KeyboardSafeSheetBody } from '@/components/KeyboardSafe';
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useI18n } from '@/ui/i18n';
 
@@ -57,9 +58,7 @@ export function CategoryPickerModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={[styles.scrim, { backgroundColor: 'rgba(9,9,11,0.5)' }]} onPress={onClose}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.avoid}>
+        <KeyboardSafeSheetBody contentContainerStyle={styles.avoid}>
           <Pressable style={[styles.sheet, cardStyle(theme), { backgroundColor: theme.surface }]} onPress={() => {}}>
             <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
             <TextInput
@@ -96,7 +95,7 @@ export function CategoryPickerModal({
               </Pressable>
             </View>
           </Pressable>
-        </KeyboardAvoidingView>
+        </KeyboardSafeSheetBody>
       </Pressable>
     </Modal>
   );

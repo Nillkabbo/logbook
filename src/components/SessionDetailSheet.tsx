@@ -5,21 +5,20 @@ import {
   Animated,
   Dimensions,
   Easing,
-  KeyboardAvoidingView,
   Modal,
   PanResponder,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DateTimeField } from '@/components/DateTimeField';
+import { KeyboardSafeSheetBody } from '@/components/KeyboardSafe';
 import { formatDuration, formatDurationWords } from '@/engine/time';
 import type { Session, SessionPatch } from '@/engine/types';
 import { validateSessionTimes } from '@/engine/validation';
@@ -44,6 +43,7 @@ const DISMISS_THRESHOLD = 90;
 export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose, isNew = false }: Props) {
   const theme = useTheme();
   const hour12 = useHour12();
+  const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const [checkIn, setCheckIn] = useState(session.checkIn);
   const [checkOut, setCheckOut] = useState(session.checkOut);
@@ -195,15 +195,10 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
           </View>
 
           {/* Scrollable form content */}
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={{ flex: 1 }}>
-            <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-              <ScrollView
-                style={{ backgroundColor: theme.surface }}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.container}>
+          <KeyboardSafeSheetBody
+            style={{ backgroundColor: theme.surface }}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.container, { paddingBottom: 24 + insets.bottom }]}>
                 {renderField('in')}
                 {!isNew && (
                   <View style={[styles.runningCard, cardStyle(theme)]}>
@@ -273,9 +268,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
                     </Pressable>
                   </View>
                 )}
-              </ScrollView>
-            </SafeAreaView>
-          </KeyboardAvoidingView>
+          </KeyboardSafeSheetBody>
         </Animated.View>
       </View>
     </Modal>
