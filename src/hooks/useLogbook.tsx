@@ -516,6 +516,12 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       addBlock,
       removeBlock,
       importCsv,
+      loadSampleData,
+      clearAllData,
+      rateHistory,
+      addRateChange,
+      removeRate,
+      setCurrentRate,
     ],
   );
 
