@@ -527,7 +527,11 @@ export default function LogsScreen() {
       />
 
       <Modal visible={sharePickerOpen} transparent animationType="fade" onRequestClose={() => setSharePickerOpen(false)}>
-        <Pressable style={styles.shareScrim} onPress={() => setSharePickerOpen(false)}>
+        <View style={styles.shareOverlay}>
+          <Pressable
+            style={styles.shareScrim}
+            onPress={() => setSharePickerOpen(false)}
+          />
           <View style={[styles.shareSheet, { backgroundColor: theme.surface }]}>
             <View style={styles.shareGrabberRow}>
               <View style={[styles.shareGrabber, { backgroundColor: theme.inset }]} />
@@ -557,7 +561,7 @@ export default function LogsScreen() {
               </View>
             </ScrollView>
           </View>
-        </Pressable>
+        </View>
       </Modal>
 
       {selected && (
@@ -635,10 +639,17 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     overflow: 'hidden',
   },
-  shareScrim: {
+  shareOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
+  },
+  shareScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   shareSheet: {
     borderTopLeftRadius: 24,
