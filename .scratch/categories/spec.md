@@ -17,3 +17,4 @@ Category as "drawn from the user's own history" — a managed list revisits that
 - engine `categoryList(managed, sessions, limit?)`: managed first, then history MRU, case-insensitive dedupe
 - Settings Categories card; sheet suggestions, Home quick row, and Logs filter all consume the union
 - clear-all-data removes categories (user content, like blocks); copy updated both languages
+- First-launch setup offers optional starter categories (the empty-chips pain for brand-new users, from issue 01's repro)

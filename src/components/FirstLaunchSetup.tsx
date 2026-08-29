@@ -12,18 +12,21 @@ import { useI18n, type StringKey } from '@/ui/i18n';
 
 /**
  * One-time setup shown on first launch: week-start day + weekly target +
- * optional hourly rate. Skippable — defaults (Sunday, 40h, no rate) apply and
- * everything is changeable in Settings.
+ * optional hourly rate + optional starter categories. Skippable — defaults
+ * (Sunday, 40h, no rate, no categories) apply; everything is changeable in Settings.
  */
 export function FirstLaunchSetup() {
   const theme = useTheme();
   const { t } = useI18n();
-  const { ready, settings, saveSettings, setCurrentRate } = useLogbook();
+  const { ready, settings, saveSettings, setCurrentRate, addCategory } = useLogbook();
   const [weekStartDay, setWeekStartDay] = useState<Weekday>(0);
   const target = useValidatedHours('40', validateWeeklyTarget);
   // Empty commits as 0 = unset; a value becomes a rate record effective today.
   const rate = useValidatedHours('', validateHourlyRate, undefined, 0);
   const [busy, setBusy] = useState(false);
+  // Optional starter categories — chips added here, saved on Start.
+  const [chips, setChips] = useState<string[]>([]);
+  const [chipDraft, setChipDraft] = useState('');
 
   // Don't flash the modal before settings have loaded.
   if (!ready || settings.setupCompleted) return null;
@@ -44,6 +47,18 @@ export function FirstLaunchSetup() {
     if (rateValue === null) return;
     await finish({ weekStartDay, weeklyTargetHours: hours });
     if (rateValue > 0) await setCurrentRate(rateValue);
+    for (const chip of chips) await addCategory(chip);
+  };
+
+  const addChip = () => {
+    const trimmed = chipDraft.trim();
+    if (trimmed.length === 0) return;
+    if (chips.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
+      setChipDraft('');
+      return;
+    }
+    setChips((prev) => [...prev, trimmed]);
+    setChipDraft('');
   };
 
   return (
@@ -82,6 +97,36 @@ export function FirstLaunchSetup() {
           placeholderTextColor={theme.muted}
         />
         {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
+
+        <Text style={[styles.label, { color: theme.muted }]}>{t('workCategoriesQ')}</Text>
+        {chips.length > 0 && (
+          <View style={styles.chipRow}>
+            {chips.map((chip) => (
+              <Pressable
+                key={chip}
+                style={[styles.chip, { backgroundColor: theme.inset }]}
+                onPress={() => setChips((prev) => prev.filter((c) => c !== chip))}>
+                <Text style={{ color: theme.text, fontSize: 13 }}>
+                  {chip} <Text style={{ color: theme.muted }}>×</Text>
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+        <View style={styles.chipEntry}>
+          <TextInput
+            style={[styles.input, { color: theme.text, backgroundColor: theme.inset, flex: 1 }]}
+            value={chipDraft}
+            onChangeText={setChipDraft}
+            onSubmitEditing={addChip}
+            placeholder={t('categoryPlaceholderAdd')}
+            placeholderTextColor={theme.muted}
+            autoCapitalize="none"
+          />
+          <Pressable hitSlop={8} onPress={addChip}>
+            <Text style={{ color: theme.accent, fontSize: 14, fontWeight: '600' }}>+</Text>
+          </Pressable>
+        </View>
 
         <Pressable
           style={[styles.primaryButton, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
@@ -136,6 +181,21 @@ const styles = StyleSheet.create({
   },
   error: {
     fontSize: 14,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   primaryButton: {
     borderRadius: RADIUS.card,
