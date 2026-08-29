@@ -28,6 +28,7 @@ import { syncNotifications } from '@/notifications/reminders';
 import { deleteEvent, editEvent, reminderDecision, type ReminderEvent } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
 import { currentRate, type RateRecord } from '@/engine/money';
+import { categoryNameConflicts } from '@/engine/sessions';
 import {
   insertCategory,
   listCategories,
@@ -315,8 +316,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   const addCategory = useCallback(
     async (name: string): Promise<boolean> => {
       const trimmed = name.trim();
-      if (trimmed.length === 0) return false;
-      if (categories.some((c) => c.toLowerCase() === trimmed.toLowerCase())) return false;
+      if (categoryNameConflicts(categories, trimmed)) return false;
       await insertCategory(trimmed);
       await refresh();
       return true;
@@ -328,8 +328,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     async (oldName: string, newName: string): Promise<boolean> => {
       const trimmed = newName.trim();
       if (trimmed === oldName) return true; // no-op
-      if (trimmed.length === 0) return false;
-      if (categories.some((c) => c !== oldName && c.toLowerCase() === trimmed.toLowerCase())) {
+      if (categoryNameConflicts(categories.filter((c) => c !== oldName), trimmed)) {
         return false;
       }
       await renameCategoryEverywhere(oldName, trimmed);

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { at, session } from './test-support';
 
-import { categoryList, sessionDurationSeconds, newSessionDraft, NEW_SESSION_ID } from './sessions';
+import { categoryList, categoryNameConflicts, sessionDurationSeconds, newSessionDraft, NEW_SESSION_ID } from './sessions';
 import { validateSessionTimes } from './validation';
 
 // Local-time constructors keep these examples independent of the machine's timezone:
@@ -74,5 +74,20 @@ describe('categoryList', () => {
   it('applies the limit across the union; empty labels never appear', () => {
     const sessions = [s(''), s('A')];
     expect(categoryList(['M1', 'M2'], sessions, 2)).toEqual(['M1', 'M2']);
+  });
+});
+
+describe('categoryNameConflicts', () => {
+  it('is case-insensitive and rejects empty names', () => {
+    expect(categoryNameConflicts(['Deep work'], 'deep work')).toBe(true);
+    expect(categoryNameConflicts(['Deep work'], 'DEEP WORK')).toBe(true);
+    expect(categoryNameConflicts(['Deep work'], 'meetings')).toBe(false);
+    expect(categoryNameConflicts([], '')).toBe(true); // empty never valid
+    expect(categoryNameConflicts([], '  ')).toBe(true);
+  });
+
+  it('trims the candidate before comparing', () => {
+    expect(categoryNameConflicts(['Deep work'], '  Deep work  ')).toBe(true);
+    expect(categoryNameConflicts([], '  Meetings ')).toBe(false);
   });
 });

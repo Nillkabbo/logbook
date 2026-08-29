@@ -30,6 +30,17 @@ export function categorySuggestions(sessions: Session[], limit?: number): string
 }
 
 /**
+ * The one uniqueness rule for category names: case-insensitive. Serves the
+ * persisted list (store verbs) and local buffers (setup chips) alike — the
+ * db's UNIQUE constraint is a case-sensitive backstop only.
+ */
+export function categoryNameConflicts(existing: readonly string[], candidate: string): boolean {
+  const key = candidate.trim().toLowerCase();
+  if (key.length === 0) return true; // empty is never a valid name
+  return existing.some((name) => name.toLowerCase() === key);
+}
+
+/**
  * The effective chip list everywhere categories are offered: the user's managed
  * categories first (insertion order), then history-only labels (MRU). Dedupe is
  * case-insensitive with the managed label winning — "deep work" in history

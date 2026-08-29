@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CategoryPickerModal } from '@/components/CategoryPickerModal';
 import { KeyboardSafeScrollView } from '@/components/KeyboardSafe';
+import { categoryNameConflicts } from '@/engine/sessions';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { validateHourlyRate, validateWeeklyTarget } from '@/engine/validation';
@@ -47,16 +48,17 @@ export function FirstLaunchSetup() {
     if (hours === null) return;
     const rateValue = rate.commitNow();
     if (rateValue === null) return;
-    await finish({ weekStartDay, weeklyTargetHours: hours });
     if (rateValue > 0) await setCurrentRate(rateValue);
     for (const chip of chips) await addCategory(chip);
+    // Last: setupCompleted flips only once everything has landed, so a crash
+    // mid-commit re-shows setup instead of stranding a half-configured app.
+    await finish({ weekStartDay, weeklyTargetHours: hours });
   };
 
   const addChip = (raw: string): Promise<boolean> => {
-    const trimmed = raw.trim();
-    const dup = trimmed.length === 0 || chips.some((c) => c.toLowerCase() === trimmed.toLowerCase());
-    if (!dup) setChips((prev) => [...prev, trimmed]);
-    return Promise.resolve(!dup);
+    if (categoryNameConflicts(chips, raw)) return Promise.resolve(false);
+    setChips((prev) => [...prev, raw.trim()]);
+    return Promise.resolve(true);
   };
 
   return (
@@ -64,7 +66,7 @@ export function FirstLaunchSetup() {
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.canvas }} edges={['top', 'bottom']}>
       <KeyboardSafeScrollView
         style={{ backgroundColor: theme.canvas }}
-        contentContainerStyle={[styles.container, { paddingBottom: 48 }]}>
+        contentContainerStyle={styles.container}>
         <Text style={[styles.title, { color: theme.text }]}>{t('welcome')}</Text>
         <Text style={[styles.intro, { color: theme.muted }]}>
           {t('welcomeIntro')}
@@ -143,10 +145,11 @@ export function FirstLaunchSetup() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    // Top-anchored: centered content clipped both ends on small screens
+    // once the fourth question arrived.
     paddingHorizontal: 24,
+    paddingTop: 32,
     paddingBottom: 48,
-    justifyContent: 'center',
     gap: 12,
   },
   title: {

@@ -54,6 +54,8 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
       start_minute INTEGER NOT NULL,
       end_minute INTEGER NOT NULL
     );
+    -- UNIQUE is a case-SENSITIVE backstop only; the domain rule
+    -- (case-insensitive uniqueness) lives in engine categoryNameConflicts.
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE
