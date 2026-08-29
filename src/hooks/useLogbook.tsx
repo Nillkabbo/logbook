@@ -26,6 +26,8 @@ import {
 import { syncNotifications } from '@/notifications/reminders';
 import { deleteEvent, editEvent, reminderDecision, type ReminderEvent } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
+import type { RateRecord } from '@/engine/money';
+import { listRateHistory, insertRate, deleteRate } from '@/db/database';
 import { parseSessionsCsv, sessionsToCsv, type CsvImportResult } from '@/engine/csv';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
 import type { Session, SessionPatch, Settings, Weekday } from '@/engine/types';
@@ -58,6 +60,12 @@ interface Logbook {
   importCsv: (csv: string) => Promise<CsvImportResult>;
   /** Dev-only: populates sample data; returns the count loaded. weeks=8 for 2mo, 52 for 1yr. */
   loadSampleData: (weeks?: number) => Promise<number>;
+  /** Rate history, oldest first. */
+  rateHistory: RateRecord[];
+  /** Adds a rate change (inserts to db; updates settings.hourlyRate if it's the latest). */
+  addRateChange: (rate: number, effectiveFrom: Date) => Promise<void>;
+  /** Removes a rate record. */
+  removeRate: (id: number) => Promise<void>;
   /** Deletes all sessions, blocks, and settings (after confirmation). */
   clearAllData: () => Promise<void>;
 }
@@ -68,18 +76,21 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [blocks, setBlocks] = useState<WorkBlock[]>([]);
+  const [rateHistory, setRateHistory] = useState<RateRecord[]>([]);
   const [now, setNow] = useState(() => new Date());
   const [ready, setReady] = useState(false);
 
   const refresh = useCallback(async () => {
-    const [nextSessions, nextSettings, nextBlocks] = await Promise.all([
+    const [nextSessions, nextSettings, nextBlocks, nextRates] = await Promise.all([
       listSessions(),
       getSettings(),
       listBlocks(),
+      listRateHistory(),
     ]);
     setSessions(nextSessions);
     setSettings(nextSettings);
     setBlocks(nextBlocks);
+    setRateHistory(nextRates);
     setReady(true);
   }, []);
 
@@ -377,6 +388,25 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     [refresh, syncAfter],
   );
 
+  const addRateChange = useCallback(async (rate: number, effectiveFrom: Date) => {
+    await insertRate(rate, effectiveFrom);
+    // Sync settings.hourlyRate if this is the latest rate
+    const all = await listRateHistory();
+    const latest = all[all.length - 1];
+    if (latest && latest.id === (await listRateHistory()).find((r) => r.rate === rate)?.id) {
+      await updateSettingsInDb({ hourlyRate: rate });
+    }
+    await refresh();
+  }, [refresh]);
+
+  const removeRate = useCallback(async (id: number) => {
+    await deleteRate(id);
+    const all = await listRateHistory();
+    const latest = all[all.length - 1];
+    await updateSettingsInDb({ hourlyRate: latest?.rate ?? 0 });
+    await refresh();
+  }, [refresh]);
+
   // Memoised: consumers depend on this identity for effects (focus refresh).
   const value = useMemo<Logbook>(
     () => ({
@@ -398,6 +428,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       importCsv,
       loadSampleData,
       clearAllData,
+      rateHistory,
+      addRateChange,
+      removeRate,
     }),
     [
       sessions,

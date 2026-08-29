@@ -14,6 +14,7 @@ import {
 } from '@/engine/validation';
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useI18n, type LanguageSetting, type StringKey, type ThemeSetting } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
@@ -21,8 +22,11 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const hour12 = useHour12();
-  const { t, weekdayShortName } = useI18n();
-  const { refresh, settings, saveSettings, blocks } = useLogbook();
+  const { t, locale, weekdayShortName } = useI18n();
+  const { refresh, settings, saveSettings, blocks, rateHistory, addRateChange, removeRate } = useLogbook();
+  const [showAddRate, setShowAddRate] = useState(false);
+  const [newRateValue, setNewRateValue] = useState('');
+  const [newRateDate, setNewRateDate] = useState(() => new Date());
 
   const target = useValidatedHours(
     String(settings.weeklyTargetHours),
@@ -111,6 +115,72 @@ export default function SettingsScreen() {
       <View style={[styles.card, styles.cardTight, cardStyle(theme)]}>
         {labeledInput(t('hourlyRate'), rate.value, rate.onChangeText, rate.onBlur, t('rateHint'))}
         {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
+
+        {/* Rate history */}
+        {rateHistory.length > 0 && (
+          <View style={styles.rateHistoryList}>
+            <Text style={[styles.rateHistoryTitle, { color: theme.muted }]}>{t('rateHistory')}</Text>
+            {rateHistory.map((record) => (
+              <View key={record.id} style={styles.rateRow}>
+                <Text style={[styles.rateValue, { color: theme.text }]}>
+                  ${record.rate.toFixed(2)}
+                </Text>
+                <Text style={[styles.rateDate, { color: theme.muted }]}>
+                  {t('from_date', { date: record.effectiveFrom.toLocaleDateString(locale) })}
+                </Text>
+                <Pressable hitSlop={8} onPress={() => removeRate(record.id)}>
+                  <Text style={[styles.rateRemove, { color: theme.stop }]}>×</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Add rate change */}
+        {showAddRate ? (
+          <View style={styles.addRateForm}>
+            <Text style={[styles.rowLabel, { color: theme.text }]}>{t('effectiveFrom')}</Text>
+            <DateTimePicker
+              value={newRateDate}
+              mode="date"
+              onChange={(_e, selected) => selected && setNewRateDate(selected)}
+            />
+            <Text style={[styles.rowLabel, { color: theme.text }]}>{t('hourlyRate')}</Text>
+            <TextInput
+              style={[styles.input, insetInput(theme), { color: theme.text }]}
+              value={newRateValue}
+              onChangeText={setNewRateValue}
+              keyboardType="decimal-pad"
+              placeholder="0.00"
+              placeholderTextColor={theme.muted}
+            />
+            <View style={styles.addRateButtons}>
+              <Pressable
+                style={[styles.addRateCancel, insetInput(theme)]}
+                onPress={() => setShowAddRate(false)}>
+                <Text style={{ color: theme.text, fontSize: 14 }}>{t('cancel')}</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.addRateConfirm, { backgroundColor: theme.accent }]}
+                onPress={async () => {
+                  const value = parseFloat(newRateValue);
+                  if (isNaN(value) || value <= 0) return;
+                  await addRateChange(value, newRateDate);
+                  setNewRateValue('');
+                  setShowAddRate(false);
+                }}>
+                <Text style={{ color: theme.onAccent, fontSize: 14, fontWeight: '600' }}>{t('save')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            android_ripple={{ color: theme.inset }}
+            style={styles.addRateButton}
+            onPress={() => setShowAddRate(true)}>
+            <Text style={{ color: theme.accent, fontSize: 14, fontWeight: '500' }}>+ {t('addRateChange')}</Text>
+          </Pressable>
+        )}
       </View>
 
       <View style={[styles.card, cardStyle(theme)]}>
@@ -206,6 +276,59 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
+  },
+  rateHistoryList: {
+    gap: 8,
+    marginTop: 16,
+  },
+  rateHistoryTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  rateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  rateValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  rateDate: {
+    fontSize: 13,
+    flex: 1,
+  },
+  rateRemove: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  addRateButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginTop: 8,
+  },
+  addRateForm: {
+    gap: 8,
+    marginTop: 16,
+  },
+  addRateButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  addRateCancel: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  addRateConfirm: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
   },
   navDivider: {
     height: StyleSheet.hairlineWidth,

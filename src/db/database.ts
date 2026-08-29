@@ -52,6 +52,11 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
       start_minute INTEGER NOT NULL,
       end_minute INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS rate_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      rate REAL NOT NULL,
+      effective_from_utc TEXT NOT NULL
+    );
     INSERT OR IGNORE INTO settings (id) VALUES (1);
   `);
   // Migrations for databases created before a column existed.
@@ -61,6 +66,18 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
   await addColumnIfMissing(db, 'settings', 'off_weeks', "TEXT NOT NULL DEFAULT ''");
   await addColumnIfMissing(db, 'settings', 'theme_preference', "TEXT NOT NULL DEFAULT 'system'");
   await addColumnIfMissing(db, 'settings', 'language', "TEXT NOT NULL DEFAULT 'system'");
+  // Migrate a flat hourlyRate into the rate history (one record, effective from epoch)
+  const rateRows = await db.getAllAsync<{ count: number }>('SELECT COUNT(*) as count FROM rate_history');
+  if ((rateRows[0]?.count ?? 0) === 0) {
+    const settingsRow = await db.getFirstAsync<{ hourly_rate: number }>('SELECT hourly_rate FROM settings WHERE id = 1');
+    if (settingsRow && settingsRow.hourly_rate > 0) {
+      await db.runAsync(
+        'INSERT INTO rate_history (rate, effective_from_utc) VALUES (?, ?)',
+        settingsRow.hourly_rate,
+        '2000-01-01T00:00:00.000Z', // covers all history
+      );
+    }
+  }
   return db;
 }
 
@@ -225,4 +242,38 @@ export async function insertBlock(weekdays: Weekday[], startMinute: number, endM
 export async function deleteBlock(id: number): Promise<void> {
   const db = await getDb();
   await db.runAsync('DELETE FROM blocks WHERE id = ?', id);
+}
+
+import type { RateRecord } from '@/engine/money';
+
+interface RateRow {
+  id: number;
+  rate: number;
+  effective_from_utc: string;
+}
+
+function rowToRate(row: RateRow): RateRecord {
+  return { id: row.id, rate: row.rate, effectiveFrom: new Date(row.effective_from_utc) };
+}
+
+export async function listRateHistory(): Promise<RateRecord[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<RateRow>(
+    'SELECT id, rate, effective_from_utc FROM rate_history ORDER BY effective_from_utc ASC',
+  );
+  return rows.map(rowToRate);
+}
+
+export async function insertRate(rate: number, effectiveFrom: Date): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT INTO rate_history (rate, effective_from_utc) VALUES (?, ?)',
+    rate,
+    effectiveFrom.toISOString(),
+  );
+}
+
+export async function deleteRate(id: number): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM rate_history WHERE id = ?', id);
 }
