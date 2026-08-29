@@ -47,7 +47,7 @@ export default function HomeScreen() {
   );
 
   // The store's `now` ticks every second while a session runs, re-driving this model.
-  const model = homeModel(sessions, settings, now);
+  const model = homeModel(sessions, settings, now, rateHistory);
   const nextBlock = nextBlockOccurrence(blocks, now);
   const runningUncategorised = model.running !== null && model.running.category === '';
 

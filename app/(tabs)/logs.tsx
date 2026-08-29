@@ -175,7 +175,7 @@ export default function LogsScreen() {
     category: categoryFilter ?? undefined,
     dateRange: selectedDay !== null ? 'all' : dateRange,
     query: query.trim().length > 0 ? query : undefined,
-  }, locale);
+  }, locale, rateHistory);
   const suggestions = categorySuggestions(sessions);
   const monthGroups = useMemo(
     () => groupByMonth(weeks, locale, settings.hourlyRate),

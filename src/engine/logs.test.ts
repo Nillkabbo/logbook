@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { logsModel } from './logs';
 import { DEFAULT_SETTINGS, type Session } from './types';
 
+const RATE_30 = [{ id: 1, rate: 30, effectiveFrom: new Date(2000, 0, 1) }];
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
   new Date(y, mo, d, h, mi, s);
 
@@ -124,6 +125,10 @@ describe('logsModel', () => {
     const result = logsModel(
       [early, late], // week A total 2:15
       { ...THURSDAY, hourlyRate: 25 },
+      NOW,
+      undefined,
+      'en-US',
+      [{ id: 1, rate: 25, effectiveFrom: new Date(2000, 0, 1) }],
     );
     expect(result.weeks[0].earningsLabel).toBe('$56.25');
     expect(result.weeks[0].targetLabel).toBe('40:00');

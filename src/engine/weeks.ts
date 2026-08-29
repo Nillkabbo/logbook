@@ -87,13 +87,13 @@ export function weekSummary(
   totalSeconds: number,
   targetSeconds: number,
   off: boolean,
-  hourlyRate: number,
+  totalEarnings: number | null,
 ): WeekSummary {
   const judged = off ? { progress: 0, overTarget: false } : weekProgress(totalSeconds, targetSeconds);
   return {
     progress: judged.progress,
     overTarget: judged.overTarget,
     overByLabel: judged.overTarget ? formatDuration(totalSeconds - targetSeconds) : null,
-    earningsLabel: hourlyRate > 0 ? formatMoney((totalSeconds / 3600) * hourlyRate) : null,
+    earningsLabel: totalEarnings !== null && totalEarnings > 0 ? formatMoney(totalEarnings) : null,
   };
 }

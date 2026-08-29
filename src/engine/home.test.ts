@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { homeModel } from './home';
 import { DEFAULT_SETTINGS, type Session } from './types';
 
+const RATE_25 = [{ id: 1, rate: 25, effectiveFrom: new Date(2000, 0, 1) }];
 const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
   new Date(y, mo, d, h, mi, s);
 
@@ -121,13 +122,13 @@ describe('homeModel week-to-date', () => {
       SESSIONS,
       { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25, offWeeks: ['2026-08-27'] },
       NOW,
-    );
+    , RATE_25);
     expect(off.off).toBe(true);
     expect(off.overTarget).toBe(false);
     expect(off.overByLabel).toBeNull();
     expect(off.weekToDateLabel).toBe('2:15'); // totals still show
     expect(off.earningsLabel).toBe('$56.25'); // money is still real
-    const judged = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25 }, NOW);
+    const judged = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25 }, NOW, RATE_25);
     expect(judged.off).toBe(false);
   });
 
@@ -136,7 +137,7 @@ describe('homeModel week-to-date', () => {
       SESSIONS,
       { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25 },
       NOW,
-    );
+    , RATE_25);
     // 2:15 completed × $25/h = 2.25h × 25 = $56.25
     expect(withRate.earningsLabel).toBe('$56.25');
     const withoutRate = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);

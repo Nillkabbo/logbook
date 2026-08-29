@@ -100,20 +100,20 @@ describe('weekProgress', () => {
   });
 
   it('weekSummary owns the display judgments: progress, overage, earnings, off', () => {
-    expect(weekSummary(8100, 7200, false, 25)).toEqual({
+    expect(weekSummary(8100, 7200, false, 56.25)).toEqual({
       progress: 8100 / 7200,
       overTarget: true,
       overByLabel: '0:15',
       earningsLabel: '$56.25',
     });
-    expect(weekSummary(8100, 144000, false, 0)).toEqual({
+    expect(weekSummary(8100, 144000, false, null)).toEqual({
       progress: 8100 / 144000,
       overTarget: false,
       overByLabel: null,
       earningsLabel: null,
     });
     // Off week: judgment suspended, earnings still real
-    expect(weekSummary(8100, 7200, true, 25)).toEqual({
+    expect(weekSummary(8100, 7200, true, 56.25)).toEqual({
       progress: 0,
       overTarget: false,
       overByLabel: null,

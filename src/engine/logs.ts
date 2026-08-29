@@ -1,4 +1,5 @@
 import { formatDuration } from './time';
+import { sessionEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import {
@@ -98,6 +99,7 @@ export function logsModel(
   now: Date = new Date(),
   filter?: LogsFilter,
   locale = 'en-US',
+  rateHistory: RateRecord[] = [],
 ): LogsResult {
   let effective = sessions;
   if (filter?.category !== undefined) {
@@ -152,7 +154,18 @@ export function logsModel(
   const groupedWeeks = weeks.map(({ range, sessions }) => {
     const totalSeconds = sumCompletedSessions(sessions);
     const off = settings.offWeeks.includes(weekKey(range.start));
-    const summary = weekSummary(totalSeconds, targetSeconds, off, settings.hourlyRate);
+    // Per-session earnings: each session uses the rate at its check-in date
+    const weekEarnings = sessions
+      .filter((s) => s.checkOut !== null)
+      .reduce((sum, s) => {
+        const e = sessionEarnings(
+          (s.checkOut!.getTime() - s.checkIn.getTime()) / 1000,
+          s.checkIn,
+          rateHistory,
+        );
+        return sum + (e ?? 0);
+      }, 0);
+    const summary = weekSummary(totalSeconds, targetSeconds, off, weekEarnings > 0 ? weekEarnings : null);
 
     const byCategory = new Map<string, number>();
     for (const session of sessions) {

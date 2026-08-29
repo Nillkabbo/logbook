@@ -1,4 +1,5 @@
 import { formatDuration, formatElapsed } from './time';
+import { sessionEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { localDayKey, weekKey, weekRange, weekSummary } from './weeks';
@@ -49,7 +50,7 @@ function isSameLocalDay(a: Date, b: Date): boolean {
  * running-session state, today grouping, and week-to-date against the target,
  * with weeks bounded by the configured week-start day.
  */
-export function homeModel(sessions: Session[], settings: Settings, now: Date): HomeModel {
+export function homeModel(sessions: Session[], settings: Settings, now: Date, rateHistory: RateRecord[] = []): HomeModel {
   const running = sessions.find((s) => s.checkOut === null) ?? null;
   const elapsedSeconds = running ? sessionDurationSeconds(running, now) : null;
   // The running session always sits first — it's the live activity the user
@@ -74,7 +75,22 @@ export function homeModel(sessions: Session[], settings: Settings, now: Date): H
   );
   const weeklyTargetSeconds = Math.round(settings.weeklyTargetHours * 3600);
   const off = settings.offWeeks.includes(weekKey(week.start));
-  const summary = weekSummary(weekToDateSeconds, weeklyTargetSeconds, off, settings.hourlyRate);
+  // Per-session earnings: each session uses the rate at its check-in date
+  const weekEarnings = sessions
+    .filter((s) =>
+      s.checkOut !== null &&
+      s.checkIn.getTime() >= week.start.getTime() &&
+      s.checkIn.getTime() < week.end.getTime(),
+    )
+    .reduce((sum, s) => {
+      const e = sessionEarnings(
+        (s.checkOut!.getTime() - s.checkIn.getTime()) / 1000,
+        s.checkIn,
+        rateHistory,
+      );
+      return sum + (e ?? 0);
+    }, 0);
+  const summary = weekSummary(weekToDateSeconds, weeklyTargetSeconds, off, weekEarnings > 0 ? weekEarnings : null);
 
   // Seven bars from the week's start day, scaled to the busiest day.
   const secondsByDayKey = new Map<string, number>();
