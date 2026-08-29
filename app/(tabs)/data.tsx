@@ -100,6 +100,8 @@ export default function DataScreen() {
       </View>
 
       <View style={[styles.card, cardStyle(theme)]}>
+        {/* Dev-only: sample data lives in Expo Go / dev builds (__DEV__), never in release. */}
+        {__DEV__ && (
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Pressable
             android_ripple={{ color: theme.muted, borderless: false }}
@@ -136,6 +138,7 @@ export default function DataScreen() {
             <Text style={[styles.secondaryText, { color: theme.accent }]}>{t('loadSampleLong')}</Text>
           </Pressable>
         </View>
+        )}
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
           style={[styles.secondary, insetInput(theme), clearing && styles.disabled]}
