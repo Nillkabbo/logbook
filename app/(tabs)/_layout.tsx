@@ -65,6 +65,19 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="insights"
+        options={{
+          title: t('insights'),
+          tabBarIcon: ({ color }) => (
+            <SymbolView
+              name={{ ios: 'chart.bar', android: 'insights', web: 'insights' }}
+              tintColor={color}
+              size={24}
+            />
+          ),
+        }}
+      />
       {/* Pushed sub-screens: hidden from the tab bar, but inside the group so the bar stays. */}
       <Tabs.Screen name="schedule" options={{ href: null, title: t('schedule') }} />
       <Tabs.Screen name="data" options={{ href: null, title: t('data') }} />
