@@ -36,6 +36,8 @@ export interface LogsFilter {
   dateRange?: 'week' | 'month' | 'all';
   /** Case-insensitive substring match on note and category. */
   query?: string;
+  /** Exact check-in day, as a `YYYY-MM-DD` localDayKey (a calendar tap). */
+  day?: string;
 }
 
 /** Summary of the filtered set — shown when any filter is active. */
@@ -86,14 +88,9 @@ function localMidnight(date: Date): Date {
 }
 
 /**
- * Full history grouped newest-first: weeks (bounded by the configured week-start
- * day, labeled by date range) containing days (check-in-day ownership) containing
- * sessions (oldest first). Totals count completed sessions only.
- */
-/**
- * Full history grouped newest-first. Filters (category, date range, search)
- * recompute every number over the matching sessions only; weeks without
- * matches hide. The summary aggregates the filtered set for the totals bar.
+ * Full history grouped newest-first. Filters (category, date range, search,
+ * calendar day) recompute every number over the matching sessions only; weeks
+ * without matches hide. The summary aggregates the filtered set for the totals bar.
  */
 export function logsModel(
   sessions: Session[],
@@ -339,6 +336,155 @@ export function monthDayEarnings(
     }
   }
   return earnings;
+}
+
+// ── The Logs list model — the screen's single engine call ─────────────────────
+
+/** One flattened FlatList row: a month header, week card, day header, session card, or collapsed week. */
+export type LogsRow =
+  | { kind: 'month'; key: string; label: string; totalLabel: string; earningsLabel: string | null; weekCount: number }
+  | { kind: 'week'; key: string; week: LogWeek }
+  | { kind: 'day'; key: string; day: LogDay }
+  | { kind: 'session'; key: string; session: Session }
+  | { kind: 'collapsed'; key: string; week: LogWeek };
+
+/** Everything `logsListModel` needs. Expansion overrides are data (per-visit, screen-owned); the model applies the defaults. */
+export interface LogsListInput {
+  sessions: Session[];
+  settings: Settings;
+  now: Date;
+  filter?: LogsFilter;
+  locale?: string;
+  rateHistory?: RateRecord[];
+  /** When set, the calendar's day maps are computed for this month (from ALL sessions — the calendar ignores the day filter). */
+  calendarMonth?: Date;
+  /** Per-visit week-expansion overrides keyed by week key; `?? defaultExpanded` when absent. */
+  expanded?: Record<string, boolean>;
+  /** Per-visit month-expansion overrides keyed by `YYYY-M`; absent = expanded. */
+  monthsExpanded?: Record<string, boolean>;
+}
+
+/** One category's share of the filtered set's completed time; `label` '' = uncategorised. */
+export interface LogCategoryShare {
+  label: string;
+  seconds: number;
+}
+
+/** The Logs screen's whole view: flattened rows plus every strip the screen renders. */
+export interface LogsListViewModel {
+  rows: LogsRow[];
+  /** The model's weeks, newest-first — the share picker's list. */
+  weeks: LogWeek[];
+  /** The day/category/query-filtered session list — the filtered CSV export's input. */
+  filtered: Session[];
+  /** The filtered-set summary; null when no filter is active. */
+  summary: FilteredSummary | null;
+  grandSessionCount: number;
+  grandTotalLabel: string;
+  /** Formatted money when any covered earnings exist, else null. */
+  grandEarningsLabel: string | null;
+  /** Completed seconds under the filters — the category bar's denominator. */
+  filteredSeconds: number;
+  categoryShares: LogCategoryShare[];
+  /** Present only when `calendarMonth` was given. */
+  dayTotals?: Map<number, number>;
+  dayEarnings?: Map<number, number>;
+}
+
+/**
+ * The deep module behind the Logs screen: weeks, month headers, expansion,
+ * day filtering, summary strip, category bar, and calendar data — one call,
+ * one view-model. The screen keeps interaction state and rendering only.
+ */
+export function logsListModel(input: LogsListInput): LogsListViewModel {
+  const { sessions, settings, now } = input;
+  const locale = input.locale ?? 'en-US';
+  const rateHistory = input.rateHistory ?? [];
+
+  // The calendar-day filter narrows every number, like the other filter axes.
+  const dayFiltered =
+    input.filter?.day !== undefined
+      ? sessions.filter((s) => localDayKey(s.checkIn) === input.filter!.day)
+      : sessions;
+
+  const { weeks, summary } = logsModel(
+    dayFiltered,
+    settings,
+    now,
+    {
+      category: input.filter?.category,
+      dateRange: input.filter?.dateRange,
+      query: input.filter?.query,
+    },
+    locale,
+    rateHistory,
+  );
+  const monthGroups = groupSessionsByMonth(dayFiltered, settings, rateHistory, locale);
+
+  const rows: LogsRow[] = [];
+  let lastMonthKey = '';
+  for (const week of weeks) {
+    const monthStart = new Date(week.range.start.getFullYear(), week.range.start.getMonth(), 1);
+    const monthKey = `${monthStart.getFullYear()}-${monthStart.getMonth()}`;
+    if (monthKey !== lastMonthKey) {
+      const group = monthGroups.find((g) => g.key === monthKey);
+      if (group) {
+        rows.push({
+          kind: 'month',
+          key: `m-${monthKey}`,
+          label: group.label,
+          totalLabel: formatDuration(group.totalSeconds),
+          // Compact dollars for a section header; exact money lives on the week cards.
+          earningsLabel: group.earnings > 0 ? `$${group.earnings.toFixed(0)}` : null,
+          weekCount: group.weekCount,
+        });
+      }
+      lastMonthKey = monthKey;
+    }
+    if (!(input.monthsExpanded?.[monthKey] ?? true)) continue;
+    const isExpanded = input.expanded?.[week.key] ?? week.defaultExpanded;
+    if (!isExpanded) {
+      rows.push({ kind: 'collapsed', key: `w-${week.key}`, week });
+      continue;
+    }
+    rows.push({ kind: 'week', key: `w-${week.key}`, week });
+    for (const day of week.days) {
+      rows.push({ kind: 'day', key: `d-${day.key}`, day });
+      for (const session of day.sessions) {
+        rows.push({ kind: 'session', key: `s-${session.id}`, session });
+      }
+    }
+  }
+
+  const grandSeconds = sumCompletedSessions(dayFiltered);
+  const grandEarnings = sumEarnings(dayFiltered, rateHistory);
+
+  // Category bar shares over the filtered set, completed time only.
+  const catSeconds = new Map<string, number>();
+  for (const session of dayFiltered) {
+    if (session.checkOut === null) continue;
+    const cat = session.category || '';
+    catSeconds.set(cat, (catSeconds.get(cat) ?? 0) + sessionDurationSeconds(session));
+  }
+  const categoryShares: LogCategoryShare[] = [...catSeconds.entries()]
+    .map(([label, seconds]) => ({ label, seconds }))
+    .sort((a, b) => b.seconds - a.seconds);
+
+  return {
+    rows,
+    weeks,
+    filtered: dayFiltered,
+    summary,
+    grandSessionCount: dayFiltered.filter((s) => s.checkOut !== null).length,
+    grandTotalLabel: formatDuration(grandSeconds),
+    grandEarningsLabel: grandEarnings > 0 ? formatMoney(grandEarnings) : null,
+    filteredSeconds: grandSeconds,
+    categoryShares,
+    ...(input.calendarMonth !== undefined && {
+      dayTotals: monthDayTotals(sessions, input.calendarMonth.getFullYear(), input.calendarMonth.getMonth()),
+      dayEarnings: monthDayEarnings(sessions, input.calendarMonth.getFullYear(), input.calendarMonth.getMonth(), rateHistory),
+    }),
+  };
 }
 
 /** A share-ready text summary of one week — formatted for messaging apps. */

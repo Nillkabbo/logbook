@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { groupSessionsByMonth, logsModel, monthDayEarnings } from './logs';
+import { groupSessionsByMonth, logsListModel, logsModel, monthDayEarnings, type LogsRow } from './logs';
 import { DEFAULT_SETTINGS, type Session } from './types';
 
 const RATE_30 = [{ id: 1, rate: 30, effectiveFrom: new Date(2000, 0, 1) }];
@@ -332,5 +332,76 @@ describe('cross-surface month consistency (ADR-0002)', () => {
     expect(calJuly).toBe(julyEarnings);
     expect(calAugust).toBe(augustEarnings);
     expect(weekEarnings).toBe(julyEarnings + augustEarnings);
+  });
+});
+
+describe('logsListModel — the screen\'s single engine call', () => {
+  const SETTINGS = { ...DEFAULT_SETTINGS, weekStartDay: 0 as const };
+  const RATE_10 = [{ id: 1, rate: 10, effectiveFrom: new Date(2000, 0, 1, 0, 0) }];
+  // Two completed sessions on Mon Jul 27 2026 (one categorised) + one the prior week.
+  const jul27a = session(1, at(2026, 6, 27, 9, 0), at(2026, 6, 27, 11, 0), '', 'Deep work');
+  const jul27b = session(2, at(2026, 6, 27, 13, 0), at(2026, 6, 27, 14, 0), '', '');
+  const lastWeek = session(3, at(2026, 6, 20, 9, 0), at(2026, 6, 20, 10, 0), '', 'Deep work');
+  const SESSIONS = [jul27a, jul27b, lastWeek];
+  const NOW = at(2026, 6, 28, 12, 0); // Tuesday — Jul 27's week is current, Jul 20's is not
+
+  const base = (overrides: Partial<Parameters<typeof logsListModel>[0]> = {}) =>
+    logsListModel({ sessions: SESSIONS, settings: SETTINGS, now: NOW, rateHistory: RATE_10, ...overrides });
+
+  it('flattens to month header → week card → day header → session rows, newest week first', () => {
+    const m = base();
+    // Both weeks are July-owned — one month header covers both.
+    expect(m.rows.map((r) => r.kind)).toEqual([
+      'month', 'week', 'day', 'session', 'session', // Jul 26 week (current, expanded by default)
+      'collapsed', // Jul 20 week: not current, not over target → collapsed
+    ]);
+    const month = m.rows[0] as Extract<LogsRow, { kind: 'month' }>;
+    expect(month.label).toBe('July 2026');
+    expect(month.totalLabel).toBe('4:00'); // all three sessions are July-owned by check-in day
+    expect(month.earningsLabel).toBe('$40'); // 4h × $10, compact
+    expect(month.weekCount).toBe(2);
+  });
+
+  it('expansion overrides are data: a record flips weeks and months the model would not choose', () => {
+    const m = base({ expanded: { [m0()]: true } });
+    function m0() {
+      return '2026-07-19'; // the Jul 20 week's key (week starts Sunday)
+    }
+    // The old week now renders expanded: day + session rows replace the collapsed row.
+    const kinds = m.rows.map((r) => r.kind);
+    expect(kinds).toContain('week');
+    expect(kinds.filter((k) => k === 'collapsed')).toHaveLength(0);
+    expect(m.rows.at(-1)?.kind).toBe('session');
+
+    // Month keys are `YYYY-M` with 0-based M: July 2026 = '2026-6'.
+    const collapsedMonth = base({ monthsExpanded: { '2026-6': false } });
+    expect(collapsedMonth.rows.map((r) => r.kind)).toEqual(['month']); // header only
+  });
+
+  it('the day filter narrows rows, summary, and grand totals to one check-in day', () => {
+    const m = base({ filter: { day: '2026-07-27' } });
+    expect(m.filtered).toEqual([jul27a, jul27b]);
+    expect(m.grandSessionCount).toBe(2);
+    expect(m.grandTotalLabel).toBe('3:00');
+    expect(m.grandEarningsLabel).toBe('$30.00');
+    expect(m.rows.filter((r) => r.kind === 'session')).toHaveLength(2);
+  });
+
+  it('grand labels hide when nothing is covered; shares sort desc with empty label last', () => {
+    const m = base({ rateHistory: [] });
+    expect(m.grandEarningsLabel).toBeNull();
+    const shares = m.categoryShares;
+    expect(shares.map((c) => c.label)).toEqual(['Deep work', '']);
+    expect(shares[0].seconds).toBeGreaterThanOrEqual(shares[1].seconds);
+  });
+
+  it('calendar data only computes when a month is given — and ignores the day filter', () => {
+    const closed = base();
+    expect(closed.dayTotals).toBeUndefined();
+    expect(closed.dayEarnings).toBeUndefined();
+
+    const open = base({ calendarMonth: new Date(2026, 6, 1), filter: { day: '2026-07-27' } });
+    expect(open.dayTotals?.get(20)).toBe(3600); // last week's session still shows in the calendar
+    expect(open.dayEarnings?.get(27)).toBeCloseTo(30, 5);
   });
 });

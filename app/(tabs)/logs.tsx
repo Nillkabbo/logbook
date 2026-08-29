@@ -7,10 +7,10 @@ import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
-import { categorySuggestions, newSessionDraft, sumCompletedSessions } from '@/engine/sessions';
+import { categorySuggestions, newSessionDraft } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
-import { formatWeekShareText, groupSessionsByMonth, logsModel, monthDayEarnings, monthDayTotals, type LogDay, type LogWeek, type MonthGroup } from '@/engine/logs';
-import { formatMoney, sumEarnings } from '@/engine/money';
+import { formatWeekShareText, logsListModel, type LogDay, type LogWeek, type LogsRow } from '@/engine/logs';
+import { localDayKey } from '@/engine/weeks';
 import { sessionsToCsv } from '@/engine/csv';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
 import type { Session } from '@/engine/types';
@@ -18,62 +18,11 @@ import { CalendarView } from '@/components/CalendarView';
 import { ChipRow } from '@/components/ChipRow';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
 
-/** One virtualized row: a month header, week card, day header, session card, or collapsed week. */
-type Row =
-  | { kind: 'month'; key: string; label: string; totalLabel: string; earningsLabel: string | null; weekCount: number }
-  | { kind: 'week'; key: string; week: LogWeek }
-  | { kind: 'day'; key: string; day: LogDay }
-  | { kind: 'session'; key: string; session: Session }
-  | { kind: 'collapsed'; key: string; week: LogWeek };
+/** The screen renders the engine's rows; only interaction state lives here. */
+type Row = LogsRow;
 
-/** Flattens the grouped model newest-first into FlatList rows with month headers. */
-function buildRows(
-  weeks: LogWeek[],
-  isExpanded: (week: LogWeek) => boolean,
-  monthGroups: MonthGroup[],
-  isMonthExpanded: (key: string) => boolean,
-): Row[] {
-  const rows: Row[] = [];
-  let lastMonthKey = '';
-  for (const week of weeks) {
-    const monthStart = new Date(week.range.start.getFullYear(), week.range.start.getMonth(), 1);
-    const monthKey = `${monthStart.getFullYear()}-${monthStart.getMonth()}`;
-
-    // Insert a month header when the month changes
-    if (monthKey !== lastMonthKey) {
-      const group = monthGroups.find((g) => g.key === monthKey);
-      if (group) {
-        const hours = Math.floor(group.totalSeconds / 3600);
-        const mins = Math.floor((group.totalSeconds % 3600) / 60);
-        rows.push({
-          kind: 'month',
-          key: `m-${monthKey}`,
-          label: group.label,
-          totalLabel: `${hours}:${String(mins).padStart(2, '0')}`,
-          earningsLabel: group.earnings > 0 ? `$${group.earnings.toFixed(0)}` : null,
-          weekCount: group.weekCount,
-        });
-      }
-      lastMonthKey = monthKey;
-    }
-
-    // Skip weeks in collapsed months
-    if (!isMonthExpanded(monthKey)) continue;
-
-    if (!isExpanded(week)) {
-      rows.push({ kind: 'collapsed', key: `w-${week.key}`, week });
-      continue;
-    }
-    rows.push({ kind: 'week', key: `w-${week.key}`, week });
-    for (const day of week.days) {
-      rows.push({ kind: 'day', key: `d-${day.key}`, day });
-      for (const session of day.sessions) {
-        rows.push({ kind: 'session', key: `s-${session.id}`, session });
-      }
-    }
-  }
-  return rows;
-}
+/** Calendar props are non-optional; the closed calendar passes empties. */
+const EMPTY_DAY_MAP: Map<number, number> = new Map();
 
 export default function LogsScreen() {
   const insets = useSafeAreaInsets();
@@ -133,52 +82,46 @@ export default function LogsScreen() {
     }, [refresh]),
   );
 
-  // When a calendar day is selected, filter sessions to that day's check-ins.
-  const dayFiltered =
-    selectedDay !== null ? sessions.filter((s) => {
-      const d = s.checkIn;
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === selectedDay;
-    }) : sessions;
-
-  const { weeks, summary } = logsModel(dayFiltered, settings, now, {
-    category: categoryFilter ?? undefined,
-    dateRange: selectedDay !== null ? 'all' : dateRange,
-    query: query.trim().length > 0 ? query : undefined,
-  }, locale, rateHistory);
+  // One engine call produces every number the screen renders. The memo keys on
+  // a coarse day-granular `now` (the model is day-sensitive, never second-sensitive)
+  // so the running-session ticker never regroups history.
+  const model = useMemo(
+    () =>
+      logsListModel({
+        sessions,
+        settings,
+        now,
+        filter: {
+          category: categoryFilter ?? undefined,
+          dateRange: selectedDay !== null ? 'all' : dateRange,
+          query: query.trim().length > 0 ? query : undefined,
+          day: selectedDay ?? undefined,
+        },
+        locale,
+        rateHistory,
+        calendarMonth: calendarOpen ? calMonth : undefined,
+        expanded,
+        monthsExpanded,
+      }),
+    [
+      sessions,
+      settings,
+      localDayKey(now),
+      locale,
+      rateHistory,
+      categoryFilter,
+      dateRange,
+      query,
+      selectedDay,
+      calendarOpen ? calMonth.getTime() : 0,
+      expanded,
+      monthsExpanded,
+    ],
+  );
+  const { rows, weeks, summary } = model;
   const suggestions = categorySuggestions(sessions);
-  // Month headers bucket by check-in month (engine), so they agree with the
-  // calendar and Insights even when a week straddles a month boundary.
-  const monthGroups = groupSessionsByMonth(dayFiltered, settings, rateHistory, locale);
-  const rows = buildRows(weeks, isExpanded, monthGroups, isMonthExpanded);
   const hasActiveFilter =
     categoryFilter !== null || dateRange !== 'all' || query.trim().length > 0 || selectedDay !== null;
-
-  // Grand total for the summary strip when no filter is active
-  const grandTotalSeconds = useMemo(() => sumCompletedSessions(dayFiltered), [dayFiltered]);
-  const grandEarningsValue = useMemo(
-    () => sumEarnings(dayFiltered, rateHistory),
-    [dayFiltered, rateHistory],
-  );
-  const grandEarnings = grandEarningsValue > 0 ? formatMoney(grandEarningsValue) : null;
-  const formatSecs = (secs: number) => {
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    return `${h}:${String(m).padStart(2, '0')}`;
-  };
-
-  // Calendar data
-  const dayTotals = monthDayTotals(sessions, calMonth.getFullYear(), calMonth.getMonth());
-  const dayEarnings = monthDayEarnings(sessions, calMonth.getFullYear(), calMonth.getMonth(), rateHistory);
-
-  // Category distribution (stacked bar)
-  const totalFilteredSeconds = sumCompletedSessions(dayFiltered);
-  const categoryShares = new Map<string, number>();
-  for (const session of dayFiltered) {
-    if (session.checkOut === null) continue;
-    const cat = session.category || '__none__';
-    const dur = (session.checkOut.getTime() - session.checkIn.getTime()) / 1000;
-    categoryShares.set(cat, (categoryShares.get(cat) ?? 0) + dur);
-  }
 
   const shareWeekText = (week: LogWeek) =>
     Share.share({ message: formatWeekShareText(week, locale) }).catch(() => {});
@@ -363,12 +306,12 @@ export default function LogsScreen() {
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={t('exportFiltered', { n: dayFiltered.length })}
+            accessibilityLabel={t('exportFiltered', { n: model.filtered.length })}
             android_ripple={{ color: theme.muted, borderless: true, radius: 18 }}
             hitSlop={8}
             style={[styles.toolbarButton, { backgroundColor: theme.inset }]}
             onPress={async () => {
-              const shared = await exportCsvViaShareSheet(sessionsToCsv(dayFiltered, rateHistory));
+              const shared = await exportCsvViaShareSheet(sessionsToCsv(model.filtered, rateHistory));
               if (!shared) {
                 Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
               }
@@ -396,8 +339,8 @@ export default function LogsScreen() {
           <CalendarView
             year={calMonth.getFullYear()}
             month={calMonth.getMonth()}
-            dayTotals={dayTotals}
-            dayEarnings={dayEarnings}
+            dayTotals={model.dayTotals ?? EMPTY_DAY_MAP}
+            dayEarnings={model.dayEarnings ?? EMPTY_DAY_MAP}
             selectedDay={
               selectedDay !== null && selectedDay.startsWith(
                 `${calMonth.getFullYear()}-${String(calMonth.getMonth() + 1).padStart(2, '0')}`
@@ -469,24 +412,22 @@ export default function LogsScreen() {
           <Text style={[styles.summaryText, { color: theme.muted }]}>
             {hasActiveFilter && summary
               ? `${t('nSessions', { n: summary.sessionCount })} · ${summary.totalLabel}${summary.earningsLabel ? ` · ${summary.earningsLabel}` : ''}`
-              : `${t('nSessions', { n: dayFiltered.filter((x) => x.checkOut !== null).length })} · ${formatSecs(grandTotalSeconds)}${grandEarnings ? ` · ${grandEarnings}` : ''}`}
+              : `${t('nSessions', { n: model.grandSessionCount })} · ${model.grandTotalLabel}${model.grandEarningsLabel ? ` · ${model.grandEarningsLabel}` : ''}`}
           </Text>
         </View>
-        {totalFilteredSeconds > 0 && categoryShares.size > 1 && (
+        {model.filteredSeconds > 0 && model.categoryShares.length > 1 && (
           <View style={styles.categoryBar}>
-            {[...categoryShares.entries()]
-              .sort((a, b) => b[1] - a[1])
-              .map(([cat, seconds]) => (
-                <View
-                  key={cat}
-                  style={{
-                    flex: seconds / totalFilteredSeconds,
-                    height: 6,
-                    backgroundColor: cat === '__none__' ? theme.inset : theme.accent,
-                    opacity: cat === '__none__' ? 0.4 : 0.5 + 0.5 * (seconds / totalFilteredSeconds),
-                  }}
-                />
-              ))}
+            {model.categoryShares.map(({ label, seconds }) => (
+              <View
+                key={label || '__none__'}
+                style={{
+                  flex: seconds / model.filteredSeconds,
+                  height: 6,
+                  backgroundColor: label === '' ? theme.inset : theme.accent,
+                  opacity: label === '' ? 0.4 : 0.5 + 0.5 * (seconds / model.filteredSeconds),
+                }}
+              />
+            ))}
           </View>
         )}
       </View>
