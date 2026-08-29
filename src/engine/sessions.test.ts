@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
+import { at } from './test-support';
+
 import { sessionDurationSeconds, newSessionDraft, NEW_SESSION_ID } from './sessions';
 import { validateSessionTimes } from './validation';
 
 // Local-time constructors keep these examples independent of the machine's timezone:
 // the engine only ever compares Date objects, so instants are what matter.
-const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
-  new Date(y, mo, d, h, mi, s);
-
 describe('sessionDurationSeconds', () => {
   it('completed session: checkout minus check-in', () => {
     // 09:00 → 11:47 = 2h 47m = 10020s
@@ -28,9 +27,6 @@ describe('sessionDurationSeconds', () => {
 });
 
 describe('newSessionDraft', () => {
-  const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
-    new Date(y, mo, d, h, mi, s);
-
   it('spans exactly the last hour on 15-minute boundaries with zeroed seconds', () => {
     const draft = newSessionDraft(at(2026, 7, 27, 14, 37, 12));
     expect(draft.checkOut!.getTime() - draft.checkIn.getTime()).toBe(60 * 60 * 1000);

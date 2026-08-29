@@ -1,25 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
+import { at, session } from './test-support';
+
 import { insightsModel } from './insights';
 import { DEFAULT_SETTINGS, type Session } from './types';
-
-const at = (y: number, mo: number, d: number, h: number, mi: number) =>
-  new Date(y, mo, d, h, mi);
-const session = (id: number, checkIn: Date, checkOut: Date, cat = ''): Session => ({
-  id,
-  checkIn,
-  checkOut,
-  note: '',
-  category: cat,
-});
-
 describe('insightsModel', () => {
   const NOW = at(2026, 7, 28, 15, 0); // Friday Aug 28
   const SETTINGS = DEFAULT_SETTINGS;
 
   it('computes all-time totals from completed sessions only', () => {
-    const a = session(1, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0), 'Deep work');
-    const b = session(2, at(2026, 7, 28, 9, 0), at(2026, 7, 28, 11, 0), 'Meetings');
+    const a = session(1, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0), '', 'Deep work');
+    const b = session(2, at(2026, 7, 28, 9, 0), at(2026, 7, 28, 11, 0), '', 'Meetings');
     const running = { ...session(3, at(2026, 7, 28, 14, 0), at(2026, 7, 28, 15, 0)), checkOut: null as unknown as Date };
     const m = insightsModel([a, b, running], SETTINGS, NOW);
     expect(m.totalSessions).toBe(2); // running excluded
@@ -37,8 +28,8 @@ describe('insightsModel', () => {
   });
 
   it('computes category shares as percentages', () => {
-    const a = session(1, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 13, 0), 'Deep work'); // 4h
-    const b = session(2, at(2026, 7, 26, 9, 0), at(2026, 7, 26, 11, 0), 'Meetings'); // 2h
+    const a = session(1, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 13, 0), '', 'Deep work'); // 4h
+    const b = session(2, at(2026, 7, 26, 9, 0), at(2026, 7, 26, 11, 0), '', 'Meetings'); // 2h
     const m = insightsModel([a, b], SETTINGS, NOW);
     expect(m.categoryShares[0].label).toBe('Deep work');
     expect(m.categoryShares[0].percentage).toBeCloseTo(66.67, 1);
@@ -139,8 +130,8 @@ describe('insightsModel categoryEarnings', () => {
   it('sums per category at each session\'s own rate, largest first', () => {
     const m = insightsModel(
       [
-        session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), 'Deep work'), // 2h × $25
-        session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0), 'Meetings'), // 3h × $30
+        session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), '', 'Deep work'), // 2h × $25
+        session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0), '', 'Meetings'), // 3h × $30
       ],
       DEFAULT_SETTINGS,
       NOW,
@@ -157,8 +148,8 @@ describe('insightsModel categoryEarnings', () => {
   it('accumulates mixed rate eras inside one category', () => {
     const m = insightsModel(
       [
-        session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), 'Deep work'), // $50
-        session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0), 'Deep work'), // $90
+        session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), '', 'Deep work'), // $50
+        session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0), '', 'Deep work'), // $90
       ],
       DEFAULT_SETTINGS,
       NOW,
@@ -178,8 +169,8 @@ describe('insightsModel categoryEarnings', () => {
     ];
     const m = insightsModel(
       [
-        session(1, at(2026, 2, 12, 9, 0), at(2026, 2, 12, 10, 0), 'A'), // 1h × $50 = $50
-        session(2, at(2026, 4, 13, 9, 0), at(2026, 4, 13, 19, 0), 'B'), // 10h × $5 = $50
+        session(1, at(2026, 2, 12, 9, 0), at(2026, 2, 12, 10, 0), '', 'A'), // 1h × $50 = $50
+        session(2, at(2026, 4, 13, 9, 0), at(2026, 4, 13, 19, 0), '', 'B'), // 10h × $5 = $50
       ],
       DEFAULT_SETTINGS,
       NOW,
@@ -207,15 +198,15 @@ describe('insightsModel categoryEarnings', () => {
 
   it('empty when no rate covers anything; uncovered categories are absent, not $0', () => {
     const m = insightsModel(
-      [session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), 'Deep work')],
+      [session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), '', 'Deep work')],
       DEFAULT_SETTINGS,
       NOW,
     );
     expect(m.categoryEarnings).toEqual([]);
     const late = insightsModel(
       [
-        session(1, at(2025, 11, 31, 9, 0), at(2025, 11, 31, 10, 0), 'Old'), // before any rate
-        session(2, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), 'New'), // $50
+        session(1, at(2025, 11, 31, 9, 0), at(2025, 11, 31, 10, 0), '', 'Old'), // before any rate
+        session(2, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), '', 'New'), // $50
       ],
       DEFAULT_SETTINGS,
       NOW,

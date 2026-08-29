@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import { at } from './test-support';
+
 import { deleteEvent, editEvent, reminderDecision } from './reminders';
 import { DEFAULT_SETTINGS, type Session } from './types';
-
-const at = (y: number, mo: number, d: number, h: number, mi: number) =>
-  new Date(y, mo, d, h, mi);
 
 // NOW = Thursday Aug 27 2026, 12:00 local. Threshold default 10h.
 const NOW = at(2026, 7, 27, 12, 0);

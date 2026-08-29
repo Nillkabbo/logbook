@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { dateLocale, formatDayLabel, weekProgress, weekRange, weekRangeLabel, weekSummary } from './weeks';
+import { at } from './test-support';
 
-const at = (y: number, mo: number, d: number, h = 0, mi = 0, s = 0) => new Date(y, mo, d, h, mi, s);
+import { dateLocale, formatDayLabel, weekProgress, weekRange, weekRangeLabel, weekSummary } from './weeks';
 
 // Reference facts (worked examples from the spec): in August 2026,
 // Aug 20 is a Thursday, Aug 27 is a Thursday, Aug 23 is a Sunday.

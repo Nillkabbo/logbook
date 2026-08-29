@@ -1,26 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import { at, session } from './test-support';
+
 import { groupSessionsByMonth, logsListModel, logsModel, monthDayEarnings, type LogsRow } from './logs';
-import { DEFAULT_SETTINGS, type Session } from './types';
+import { DEFAULT_SETTINGS } from './types';
 
 const RATE_30 = [{ id: 1, rate: 30, effectiveFrom: new Date(2000, 0, 1) }];
-const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
-  new Date(y, mo, d, h, mi, s);
-
-const session = (
-  id: number,
-  checkIn: Date,
-  checkOut: Date | null,
-  note = '',
-  category = '',
-): Session => ({
-  id,
-  checkIn,
-  checkOut,
-  note,
-  category,
-});
-
 describe('logsModel', () => {
   // Thursday-start result.weeks. Week A = Thu Aug 27 – Wed Sep 2 2026 (current),
   // week B = Thu Aug 20 – Wed Aug 26 (previous).

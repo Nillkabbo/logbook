@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import { at } from './test-support';
+
 import { formatDateTime, formatDuration, formatDurationWords, formatElapsed, formatTimeOfDay,
 } from './time';
-
-const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
-  new Date(y, mo, d, h, mi, s);
 
 describe('formatDuration', () => {
   // Worked examples: clock-style H:MM, minutes zero-padded, seconds floored away.

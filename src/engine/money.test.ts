@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { at } from './test-support';
+
 import { formatMoney, rateForDate, sessionEarnings, sumEarnings, type RateRecord } from './money';
 
 describe('formatMoney', () => {
@@ -14,7 +16,6 @@ describe('formatMoney', () => {
 });
 
 describe('rateForDate', () => {
-  const at = (y: number, mo: number, d: number, h = 0, mi = 0) => new Date(y, mo, d, h, mi, 0);
   // Unsorted on purpose: lookups must not depend on input order.
   const history: RateRecord[] = [
     { id: 2, rate: 30, effectiveFrom: at(2026, 3, 1, 0, 0) },
@@ -50,7 +51,6 @@ describe('sessionEarnings', () => {
 });
 
 describe('sumEarnings', () => {
-  const at = (y: number, mo: number, d: number, h = 0, mi = 0) => new Date(y, mo, d, h, mi, 0);
   const history = [
     { id: 1, rate: 25, effectiveFrom: at(2026, 0, 1) },
     { id: 2, rate: 30, effectiveFrom: at(2026, 6, 1) },

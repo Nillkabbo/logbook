@@ -1,26 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import { at, session } from './test-support';
+
 import { homeModel } from './home';
-import { DEFAULT_SETTINGS, type Session } from './types';
+import { DEFAULT_SETTINGS } from './types';
 
 const RATE_25 = [{ id: 1, rate: 25, effectiveFrom: new Date(2000, 0, 1) }];
-const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
-  new Date(y, mo, d, h, mi, s);
-
-const session = (
-  id: number,
-  checkIn: Date,
-  checkOut: Date | null,
-  note = '',
-  category = '',
-): Session => ({
-  id,
-  checkIn,
-  checkOut,
-  note,
-  category,
-});
-
 describe('homeModel', () => {
   // Scenario: "today" is Thu Aug 27 2026, 12:00 local.
   // s2: today 09:00–09:45 (2700s), s3: today 10:00–11:30 (5400s),

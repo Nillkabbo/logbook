@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { at } from './test-support';
+
 import {
   validateHourlyRate,
   validateRateChange,
@@ -7,9 +9,6 @@ import {
   validateSessionTimes,
   validateWeeklyTarget,
 } from './validation';
-
-const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
-  new Date(y, mo, d, h, mi, s);
 
 // NOW = Thu Aug 27 2026, 12:00 local.
 const NOW = at(2026, 7, 27, 12, 0);

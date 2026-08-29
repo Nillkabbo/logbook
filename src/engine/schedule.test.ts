@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { at } from './test-support';
+
 import { blockOccurring, blockRangeLabel, blockTriggers, nextBlockOccurrence, validateBlockTimes } from './schedule';
 import type { WorkBlock } from './schedule';
 import type { Weekday } from './types';
-
-const at = (y: number, mo: number, d: number, h: number, mi: number) =>
-  new Date(y, mo, d, h, mi);
 
 // Calendar facts: Aug 27 2026 is a Thursday; Aug 30 is a Sunday; Sep 3 is the next Thursday.
 const THURSDAY = 4 as Weekday;
