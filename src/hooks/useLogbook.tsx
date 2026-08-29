@@ -188,6 +188,11 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       await insertBlock([1, 2, 3, 4, 5], 540, 1020); // Mon–Fri 9:00–17:00
       await insertBlock([6], 600, 840); // Sat 10:00–14:00
 
+      // ── Rate history: $28 from Jan, $30 from Apr, $32.50 from Aug ──
+      await insertRate(28, new Date(now.getFullYear(), 0, 1));
+      await insertRate(30, new Date(now.getFullYear(), 3, 1));
+      await insertRate(32.5, new Date(now.getFullYear(), 7, 1));
+
       // ── Compute week boundaries relative to this week's Sunday ──
       const thisSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
 
