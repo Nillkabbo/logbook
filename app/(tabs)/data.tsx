@@ -7,10 +7,15 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 
 import { SubScreenHeader } from '@/components/SubScreenHeader';
-import { loadSampleData } from '@/dev/sampleData';
 import { useLogbook } from '@/hooks/useLogbook';
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useI18n } from '@/ui/i18n';
+
+/** Dev-only seeder, required behind __DEV__ so Metro drops it from release bundles. */
+let loadSampleData: ((weeks?: number) => Promise<number>) | undefined;
+if (__DEV__) {
+  loadSampleData = require('@/dev/sampleData').loadSampleData;
+}
 
 /** The Data sub-screen: CSV export and import, split out of Settings. */
 export default function DataScreen() {
@@ -102,7 +107,7 @@ export default function DataScreen() {
 
       <View style={[styles.card, cardStyle(theme)]}>
         {/* Dev-only: sample data lives in Expo Go / dev builds (__DEV__), never in release. */}
-        {__DEV__ && (
+        {__DEV__ && loadSampleData && (
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Pressable
             android_ripple={{ color: theme.muted, borderless: false }}
@@ -112,7 +117,7 @@ export default function DataScreen() {
               if (loading) return;
               setLoading(true);
               try {
-                const count = await loadSampleData(8);
+                const count = await loadSampleData!(8);
                 await refresh();
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
                 Alert.alert(t('data'), t('sampleLoaded', { n: count }));
@@ -130,7 +135,7 @@ export default function DataScreen() {
               if (loading) return;
               setLoading(true);
               try {
-                const count = await loadSampleData(52);
+                const count = await loadSampleData!(52);
                 await refresh();
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
                 Alert.alert(t('data'), t('sampleLoaded', { n: count }));
