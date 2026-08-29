@@ -19,10 +19,10 @@ Strict layering — dependencies point downward only:
 
 1. **`src/engine/`** — pure domain logic. **No React Native imports** — these files run in vitest's node environment, which is why the engine stays pure. Every module has a colocated `<name>.test.ts`; new domain logic goes here with tests. Key modules:
    - `home.ts` — Home's view model: running session, elapsed timer, today's sessions (running first, then newest-first), week-to-date with progress/earnings/off state, date caption, weekDayBars (the 7-bar shape), weekSummary
-   - `logs.ts` — Logs' view model: `logsModel(sessions, settings, now, filter?, locale)` returns `LogsResult { weeks, summary }` where filter is a `LogsFilter { category?, dateRange?, query? }` (AND-combined). Weeks collapse by default (`defaultExpanded`: current ∨ over-target). Also exports `monthDayTotals` (calendar data) and `formatWeekShareText` (share text). Sessions within each day are newest-first
+   - `logs.ts` — Logs' view model: `logsModel(sessions, settings, now, filter?, locale?, rateHistory?)` returns `LogsResult { weeks, summary }` where filter is a `LogsFilter { category?, dateRange?, query? }` (AND-combined). Weeks collapse by default (`defaultExpanded`: current ∨ over-target). Also exports `monthDayTotals`/`monthDayEarnings` (calendar data) and `formatWeekShareText` (share text). Sessions within each day are newest-first
    - `schedule.ts` — work blocks: `blockRangeLabel` (consecutive-day compression: "Sun–Thu"), validation, occurrence checks
    - `time.ts` — `formatDuration` (H:MM), `formatElapsed` (H:MM:SS), `formatDurationWords` ("3h 28m"), `formatDateTime`
-   - `money.ts` — `formatMoney` ("$980.00", no space)
+   - `money.ts` — `formatMoney` ("$980.00", no space) plus the rate history: `RateRecord`, `rateForDate`/`sessionEarnings`/`sumEarnings` (temporal lookups — see ADR-0002)
    - `insights.ts` — Insights' view model: averages (week/session), best weekday with distribution, category shares, current + longest streaks, week/month deltas, all-time totals, `monthlyTrends` (12-month totals), `yearlyHeatmap` (day-level intensity), `categoryTrends` (per-month category breakdowns)
    - `strings.ts` (in `src/ui/`) — pure bilingual dictionary + `interpolate`
 2. **`src/db/database.ts`** — the only module that touches expo-sqlite. Stores/returns plain objects; timestamps as UTC ISO strings. `withTransaction` wraps batch writes atomically. Schema lives in `open()`; `addColumnIfMissing` for migrations.
@@ -44,6 +44,7 @@ The recurring pattern: **the engine decides, adapters execute**. Keep decisions 
 Domain rules that aren't obvious from the code:
 
 - **Sessions belong to their check-in day** — never split across midnight (ADR-0001, `docs/adr/`).
+- **Earnings are temporal** — a session earns at the rate active on its check-in date, never restated at the current rate (ADR-0002). `settings.hourlyRate` is a mirror of the latest rate record, not a source of truth; every earnings surface computes from `rateHistory`.
 - A running session is shown live but never counted in totals.
 - Work blocks prompt a check-in; they never clock one in.
 - Sessions are newest-first everywhere (running session sorts above completed on Home).

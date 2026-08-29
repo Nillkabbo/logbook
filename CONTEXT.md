@@ -57,8 +57,16 @@ A short free-form label marking the kind of work a Session belongs to. Optional;
 _Avoid_: tag, project, client
 
 **Rate**:
-The configurable dollars earned per worked hour; the basis of a week's earnings. Optional — unset means earnings are not shown.
+The configurable dollars earned per worked hour. Rates change over time — each session earns at the rate active on its check-in date. Optional — no rate means earnings are not shown.
 _Avoid_: salary, wage
+
+**Rate record**:
+One entry in the Rate history: a rate plus the date it takes effect from. At most one per effective date.
+_Avoid_: rate entry, rate change log
+
+**Rate history**:
+The ordered set of Rate records. A session's earnings look up the latest record effective at or before its check-in; current earnings reflect the latest record overall.
+_Avoid_: rate schedule, pay scale
 
 **Work block**:
 A recurring weekly commitment — chosen weekdays plus a start and end time. Prompts a check-in; never clocks one in.

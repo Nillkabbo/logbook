@@ -281,7 +281,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       // ── Settings ──
       const offSunday = weekStart(OFF_WEEK);
       const offKey = `${offSunday.getFullYear()}-${String(offSunday.getMonth() + 1).padStart(2, '0')}-${String(offSunday.getDate()).padStart(2, '0')}`;
-      await updateSettingsInDb({ hourlyRate: 30, offWeeks: [offKey] });
+      await updateSettingsInDb({ hourlyRate: 32.5, offWeeks: [offKey] });
 
       await refresh();
       return count;
