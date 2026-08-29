@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, Modal, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
@@ -533,27 +533,29 @@ export default function LogsScreen() {
               <View style={[styles.shareGrabber, { backgroundColor: theme.inset }]} />
             </View>
             <Text style={[styles.shareTitle, { color: theme.text }]}>{t('shareWeek')}</Text>
-            <View style={styles.shareList}>
-              {weeks.map((week) => (
-                <Pressable
-                  key={week.key}
-                  android_ripple={{ color: theme.inset }}
-                  style={styles.shareRow}
-                  onPress={() => {
-                    setSharePickerOpen(false);
-                    shareWeekText(week);
-                  }}>
-                  <View style={styles.shareRowText}>
-                    <Text style={[styles.shareRowLabel, { color: theme.text }]}>{week.label}</Text>
-                    <Text style={[styles.shareRowSub, { color: theme.muted }]}>
-                      {week.totalLabel} / {week.targetLabel}
-                      {week.earningsLabel ? ` · ${week.earningsLabel}` : ''}
-                    </Text>
-                  </View>
-                  <Text style={[styles.shareRowChevron, { color: theme.muted }]}>›</Text>
-                </Pressable>
-              ))}
-            </View>
+            <ScrollView style={styles.shareScroll} nestedScrollEnabled>
+              <View style={styles.shareList}>
+                {weeks.map((week) => (
+                  <Pressable
+                    key={week.key}
+                    android_ripple={{ color: theme.inset }}
+                    style={styles.shareRow}
+                    onPress={() => {
+                      setSharePickerOpen(false);
+                      shareWeekText(week);
+                    }}>
+                    <View style={styles.shareRowText}>
+                      <Text style={[styles.shareRowLabel, { color: theme.text }]}>{week.label}</Text>
+                      <Text style={[styles.shareRowSub, { color: theme.muted }]}>
+                        {week.totalLabel} / {week.targetLabel}
+                        {week.earningsLabel ? ` · ${week.earningsLabel}` : ''}
+                      </Text>
+                    </View>
+                    <Text style={[styles.shareRowChevron, { color: theme.muted }]}>›</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>
@@ -660,8 +662,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingBottom: 12,
   },
+  shareScroll: {
+    flex: 1,
+  },
   shareList: {
     paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   shareRow: {
     flexDirection: 'row',
