@@ -266,6 +266,54 @@ export function monthDayTotals(
   return totals;
 }
 
+/** Calendar-month grouping for the Logs list: totals bucket by check-in month. */
+export interface MonthGroup {
+  /** Month identity for list keys: `YYYY-M` (0-based M, matching Date). */
+  key: string;
+  label: string;
+  totalSeconds: number;
+  /** Calendar-month earnings at each session's own rate. */
+  earnings: number;
+  /** Distinct weeks with at least one session in this month. */
+  weekCount: number;
+}
+
+/**
+ * Groups sessions into calendar months, newest first. Totals bucket by the
+ * session's check-in month (matching the calendar and Insights) — a week
+ * straddling a month boundary contributes to both months' headers, even
+ * though its card renders under the month the week starts in.
+ */
+export function groupSessionsByMonth(
+  sessions: Session[],
+  settings: Settings,
+  rateHistory: RateRecord[],
+  locale = 'en-US',
+): MonthGroup[] {
+  const byMonth = new Map<
+    string,
+    { start: Date; sessions: Session[]; weeks: Set<string> }
+  >();
+  for (const session of sessions) {
+    if (session.checkOut === null) continue;
+    const start = new Date(session.checkIn.getFullYear(), session.checkIn.getMonth(), 1);
+    const key = `${start.getFullYear()}-${start.getMonth()}`;
+    const bucket = byMonth.get(key) ?? { start, sessions: [], weeks: new Set<string>() };
+    bucket.sessions.push(session);
+    bucket.weeks.add(weekKey(weekRange(session.checkIn, settings.weekStartDay).start));
+    byMonth.set(key, bucket);
+  }
+  return [...byMonth.values()]
+    .sort((a, b) => b.start.getTime() - a.start.getTime())
+    .map(({ start, sessions, weeks }) => ({
+      key: `${start.getFullYear()}-${start.getMonth()}`,
+      label: start.toLocaleDateString(locale, { month: 'long', year: 'numeric' }),
+      totalSeconds: sumCompletedSessions(sessions),
+      earnings: sumEarnings(sessions, rateHistory),
+      weekCount: weeks.size,
+    }));
+}
+
 /** Day-of-month → earnings at each session's own rate, for the calendar cells. */
 export function monthDayEarnings(
   sessions: Session[],

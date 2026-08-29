@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { logsModel, monthDayEarnings } from './logs';
+import { groupSessionsByMonth, logsModel, monthDayEarnings } from './logs';
 import { DEFAULT_SETTINGS, type Session } from './types';
 
 const RATE_30 = [{ id: 1, rate: 30, effectiveFrom: new Date(2000, 0, 1) }];
@@ -289,5 +289,48 @@ describe('monthDayEarnings', () => {
   it('empty map when no rate covers any session', () => {
     const sessions = [session(1, at(2026, 7, 10, 9, 0), at(2026, 7, 10, 13, 0))];
     expect(monthDayEarnings(sessions, 2026, 7, []).size).toBe(0);
+  });
+});
+
+describe('cross-surface month consistency (ADR-0002)', () => {
+  // Sunday-start weeks: Jul 26 – Aug 1 2026 is one week straddling the month
+  // boundary. Two sessions in it — one July-owned, one August-owned — at $10/h.
+  const SETTINGS = { ...DEFAULT_SETTINGS, weekStartDay: 0 as const };
+  const HISTORY = [{ id: 1, rate: 10, effectiveFrom: new Date(2000, 0, 1, 0, 0) }];
+  const sessions = [
+    session(1, at(2026, 6, 27, 9, 0), at(2026, 6, 27, 11, 0)), // Mon Jul 27, 2h → July
+    session(2, at(2026, 7, 1, 9, 0), at(2026, 7, 1, 12, 0)), // Sat Aug 1, 3h → August
+  ];
+
+  it('month headers bucket by check-in month, not by the week card they render under', () => {
+    const groups = groupSessionsByMonth(sessions, SETTINGS, HISTORY, 'en-US');
+    const july = groups.find((g) => g.key === '2026-6');
+    const august = groups.find((g) => g.key === '2026-7');
+    expect(groups.map((g) => g.key)).toEqual(['2026-7', '2026-6']); // newest first
+    expect(july?.totalSeconds).toBe(7200);
+    expect(july?.earnings).toBe(20);
+    expect(august?.totalSeconds).toBe(10800);
+    expect(august?.earnings).toBe(30);
+    // One straddling week counts for both months it touches.
+    expect(july?.weekCount).toBe(1);
+    expect(august?.weekCount).toBe(1);
+  });
+
+  it('the same month earns the same number on every surface', () => {
+    const groups = groupSessionsByMonth(sessions, SETTINGS, HISTORY, 'en-US');
+    const julyEarnings = groups.find((g) => g.key === '2026-6')?.earnings ?? 0;
+    const augustEarnings = groups.find((g) => g.key === '2026-7')?.earnings ?? 0;
+
+    // Calendar: per-day earnings summed per month
+    const calJuly = [...monthDayEarnings(sessions, 2026, 6, HISTORY).values()].reduce((a, b) => a + b, 0);
+    const calAugust = [...monthDayEarnings(sessions, 2026, 7, HISTORY).values()].reduce((a, b) => a + b, 0);
+
+    // Week cards: both sessions live in the one boundary week
+    const { weeks } = logsModel(sessions, SETTINGS, at(2026, 7, 2, 9, 0), undefined, 'en-US', HISTORY);
+    const weekEarnings = weeks[0]?.totalEarnings ?? 0;
+
+    expect(calJuly).toBe(julyEarnings);
+    expect(calAugust).toBe(augustEarnings);
+    expect(weekEarnings).toBe(julyEarnings + augustEarnings);
   });
 });

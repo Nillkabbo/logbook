@@ -9,7 +9,7 @@ import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { categorySuggestions, sumCompletedSessions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
-import { formatWeekShareText, logsModel, monthDayEarnings, monthDayTotals, type LogDay, type LogWeek } from '@/engine/logs';
+import { formatWeekShareText, groupSessionsByMonth, logsModel, monthDayEarnings, monthDayTotals, type LogDay, type LogWeek, type MonthGroup } from '@/engine/logs';
 import { formatMoney, sumEarnings } from '@/engine/money';
 import { sessionsToCsv } from '@/engine/csv';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
@@ -25,38 +25,6 @@ type Row =
   | { kind: 'day'; key: string; day: LogDay }
   | { kind: 'session'; key: string; session: Session }
   | { kind: 'collapsed'; key: string; week: LogWeek };
-
-/** Groups weeks by calendar month and computes month totals from real seconds. */
-interface MonthGroup {
-  key: string;
-  label: string;
-  totalSeconds: number;
-  earnings: number;
-  weekCount: number;
-}
-
-function groupByMonth(weeks: LogWeek[], locale: string): MonthGroup[] {
-  const groups = new Map<string, MonthGroup>();
-  for (const week of weeks) {
-    const monthStart = new Date(week.range.start.getFullYear(), week.range.start.getMonth(), 1);
-    const key = `${monthStart.getFullYear()}-${monthStart.getMonth()}`;
-    let g = groups.get(key);
-    if (!g) {
-      g = {
-        key,
-        label: monthStart.toLocaleDateString(locale, { month: 'long', year: 'numeric' }),
-        totalSeconds: 0,
-        earnings: 0,
-        weekCount: 0,
-      };
-      groups.set(key, g);
-    }
-    g.totalSeconds += week.totalSeconds;
-    g.weekCount++;
-    g.earnings += week.totalEarnings;
-  }
-  return [...groups.values()];
-}
 
 /** Flattens the grouped model newest-first into FlatList rows with month headers. */
 function buildRows(
@@ -176,10 +144,9 @@ export default function LogsScreen() {
     query: query.trim().length > 0 ? query : undefined,
   }, locale, rateHistory);
   const suggestions = categorySuggestions(sessions);
-  const monthGroups = useMemo(
-    () => groupByMonth(weeks, locale),
-    [weeks, locale],
-  );
+  // Month headers bucket by check-in month (engine), so they agree with the
+  // calendar and Insights even when a week straddles a month boundary.
+  const monthGroups = groupSessionsByMonth(dayFiltered, settings, rateHistory, locale);
   const rows = buildRows(weeks, isExpanded, monthGroups, isMonthExpanded);
   const hasActiveFilter =
     categoryFilter !== null || dateRange !== 'all' || query.trim().length > 0 || selectedDay !== null;
