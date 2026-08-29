@@ -25,7 +25,7 @@ export default function HomeScreen() {
   const theme = useTheme();
   const { t, locale } = useI18n();
   const hour12 = useHour12();
-  const { refresh, checkIn, checkOut, sessions, settings, now, saveSession, removeSession, blocks } =
+  const { refresh, checkIn, checkOut, sessions, settings, now, saveSession, removeSession, blocks, rateHistory } =
     useLogbook();
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<Session | null>(null);
