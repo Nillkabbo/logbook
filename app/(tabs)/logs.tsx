@@ -112,7 +112,7 @@ export default function LogsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale, weekdayShortName } = useI18n();
-  const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings } =
+  const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings, rateHistory } =
     useLogbook();
 
   const toggleOff = (key: string, currentlyOff: boolean) => {
@@ -331,7 +331,7 @@ export default function LogsScreen() {
             android_ripple={{ color: theme.inset, foreground: true }}
             style={({ pressed }) => [styles.rowWrap, pressed && { opacity: 0.8 }]}
             onPress={() => setSelected(item.session)}>
-            <SessionRow session={item.session} now={now} accentRunning hourlyRate={settings.hourlyRate} />
+            <SessionRow session={item.session} now={now} accentRunning rateHistory={rateHistory} />
           </Pressable>
         );
       case 'collapsed':

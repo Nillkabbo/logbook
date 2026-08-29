@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatDuration, formatTimeOfDay } from '@/engine/time';
-import { formatMoney } from '@/engine/money';
+import { formatMoney, sessionEarnings, type RateRecord } from '@/engine/money';
 import { sessionDurationSeconds } from '@/engine/sessions';
 import type { Session } from '@/engine/types';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
@@ -10,7 +10,7 @@ import { useHour12 } from '@/ui/clock';
 import { useI18n } from '@/ui/i18n';
 
 /** One session row as rendered on Home and Logs: time range, duration, optional note. */
-function SessionRowImpl({ session, now, accentRunning = false, hourlyRate = 0 }: { session: Session; now: Date; accentRunning?: boolean; hourlyRate?: number }) {
+function SessionRowImpl({ session, now, accentRunning = false, rateHistory = [] }: { session: Session; now: Date; accentRunning?: boolean; rateHistory?: RateRecord[] }) {
   const theme = useTheme();
   const hour12 = useHour12();
   const { t } = useI18n();
@@ -30,13 +30,14 @@ function SessionRowImpl({ session, now, accentRunning = false, hourlyRate = 0 }:
           {session.checkOut ? formatTimeOfDay(session.checkOut, hour12) : t('now')}
         </Text>
         <View style={styles.durationWrap}>
-          {hourlyRate > 0 && !running && (
-            <Text style={[styles.rowEarnings, { color: theme.accent }]}>
-              {formatMoney(
-                (sessionDurationSeconds(session) / 3600) * hourlyRate,
-              )}
-            </Text>
-          )}
+          {!running && (() => {
+            const earnings = sessionEarnings(sessionDurationSeconds(session), session.checkIn, rateHistory);
+            return earnings !== null ? (
+              <Text style={[styles.rowEarnings, { color: theme.accent }]}>
+                {formatMoney(earnings)}
+              </Text>
+            ) : null;
+          })()}
           {running && <View style={[styles.liveDot, { backgroundColor: theme.accent, boxShadow: theme.dotGlow }]} />}
           <Text
             style={[
@@ -135,6 +136,6 @@ export const SessionRow = memo(
     prev.session.note === next.session.note &&
     prev.session.category === next.session.category &&
     prev.accentRunning === next.accentRunning &&
-    prev.hourlyRate === next.hourlyRate &&
+    prev.rateHistory === next.rateHistory &&
     (next.session.checkOut !== null || prev.now.getTime() === next.now.getTime()),
 );

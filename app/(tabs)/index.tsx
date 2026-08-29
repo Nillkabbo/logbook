@@ -200,7 +200,7 @@ export default function HomeScreen() {
             onPress={() => setSelected(session)}>
             {({ pressed }) => (
               <View style={pressed && styles.rowPressed}>
-                <SessionRow session={session} now={now} hourlyRate={settings.hourlyRate} />
+                <SessionRow session={session} now={now} rateHistory={rateHistory} />
               </View>
             )}
           </Pressable>
