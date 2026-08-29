@@ -23,9 +23,10 @@ Strict layering — dependencies point downward only:
    - `schedule.ts` — work blocks: `blockRangeLabel` (consecutive-day compression: "Sun–Thu"), validation, occurrence checks
    - `time.ts` — `formatDuration` (H:MM), `formatElapsed` (H:MM:SS), `formatDurationWords` ("3h 28m"), `formatDateTime`
    - `money.ts` — `formatMoney` ("$980.00", no space)
+   - `insights.ts` — Insights' view model: averages (week/session), best weekday with distribution, category shares, current + longest streaks, week/month deltas, all-time totals, `monthlyTrends` (12-month totals), `yearlyHeatmap` (day-level intensity), `categoryTrends` (per-month category breakdowns)
    - `strings.ts` (in `src/ui/`) — pure bilingual dictionary + `interpolate`
 2. **`src/db/database.ts`** — the only module that touches expo-sqlite. Stores/returns plain objects; timestamps as UTC ISO strings. `withTransaction` wraps batch writes atomically. Schema lives in `open()`; `addColumnIfMissing` for migrations.
-3. **`src/hooks/useLogbook.tsx`** — `LogbookProvider`, the app-wide store. Every mutation funnels through `syncAfter` (the single notification-rebuild epilogue — it re-reads truth from the db, never render-scope state). Contains a dev-only dummy-data seeder (~2 months, deterministic PRNG, runs when DB is empty + `__DEV__`). The theme preference (`Appearance.setColorScheme`) is applied here too.
+3. **`src/hooks/useLogbook.tsx`** — `LogbookProvider`, the app-wide store. Every mutation funnels through `syncAfter` (the single notification-rebuild epilogue — it re-reads truth from the db, never render-scope state). Contains a dev-only sample-data seeder (2 months or 1 year, deterministic PRNG, triggered from the Data sub-screen). The theme preference (`Appearance.setColorScheme`) is applied here too.
 4. **Adapters/UI** — notifications adapter, CSV export, components:
    - `src/components/CheckInToggle` — the hero circle; timer renders inside when running
    - `src/components/SessionRow` — memoised with a tick-aware comparator (completed rows don't re-render on the clock)
@@ -34,8 +35,9 @@ Strict layering — dependencies point downward only:
    - `src/components/ChipRow` — shared pill row (empty options renders nothing)
    - `src/components/DateTimeField` — owns the iOS/Android picker platform branch
    - `src/components/SessionDetailSheet` — bottom sheet with drag-to-dismiss, dirty-tracking + discard confirm
+   - `src/components/YearHeatmap` — compact 3×4 grid of 12 mini-months with day-level intensity
    - `src/theme.ts` — dual light/dark palettes + factories (`cardStyle`, `softPill`, `insetInput`)
-5. **`app/`** — expo-router routes: tab group `(tabs)` (Home, Logs, Settings) plus hidden pushed sub-screens (`schedule`, `data`). Home's scrollable area uses FlatList (virtualized). Logs uses FlatList with typed rows (week card, day header, session, collapsed week).
+5. **`app/`** — expo-router routes: tab group `(tabs)` (Home, Logs, Insights, Settings) plus hidden pushed sub-screens (`schedule`, `data`). Home's scrollable area uses FlatList (virtualized). Logs uses FlatList with typed rows (month header, week card, day header, session, collapsed week).
 
 The recurring pattern: **the engine decides, adapters execute**. Keep decisions pure and push side effects to the edges.
 
