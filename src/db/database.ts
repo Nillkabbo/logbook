@@ -54,6 +54,10 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
       start_minute INTEGER NOT NULL,
       end_minute INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE
+    );
     CREATE TABLE IF NOT EXISTS rate_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       rate REAL NOT NULL,
@@ -270,6 +274,41 @@ export async function insertBlock(weekdays: Weekday[], startMinute: number, endM
 export async function deleteBlock(id: number): Promise<void> {
   const db = await getDb();
   await db.runAsync('DELETE FROM blocks WHERE id = ?', id);
+}
+
+
+// ── Categories: the user's managed list (sessions keep their own label) ──────
+
+export async function listCategories(): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ name: string }>('SELECT name FROM categories ORDER BY id ASC');
+  return rows.map((r) => r.name);
+}
+
+export async function insertCategory(name: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('INSERT INTO categories (name) VALUES (?)', name);
+}
+
+/**
+ * Renames a category everywhere in one transaction: the managed list and every
+ * Session carrying the old label. The destination must not already exist.
+ */
+export async function renameCategoryEverywhere(oldName: string, newName: string): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('UPDATE categories SET name = ? WHERE name = ?', newName, oldName);
+    await db.runAsync('UPDATE sessions SET category = ? WHERE category = ?', newName, oldName);
+  });
+}
+
+/** Removes a category from the list; its Sessions become uncategorised (label ''). */
+export async function removeCategoryEverywhere(name: string): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM categories WHERE name = ?', name);
+    await db.runAsync("UPDATE sessions SET category = '' WHERE category = ?", name);
+  });
 }
 
 import type { RateRecord } from '@/engine/money';

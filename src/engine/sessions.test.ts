@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { at } from './test-support';
+import { at, session } from './test-support';
 
-import { sessionDurationSeconds, newSessionDraft, NEW_SESSION_ID } from './sessions';
+import { categoryList, sessionDurationSeconds, newSessionDraft, NEW_SESSION_ID } from './sessions';
 import { validateSessionTimes } from './validation';
 
 // Local-time constructors keep these examples independent of the machine's timezone:
@@ -49,5 +49,30 @@ describe('newSessionDraft', () => {
     expect(draft.id).toBe(NEW_SESSION_ID);
     expect(draft.note).toBe('');
     expect(draft.category).toBe('');
+  });
+});
+
+describe('categoryList', () => {
+  const s = (category: string) => session(1, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 10, 0), '', category);
+
+  it('managed categories come first, then history-only labels in MRU order', () => {
+    const sessions = [s('History A'), s('Deep work'), s('History B')]; // MRU: B, Deep work, A
+    const list = categoryList(['Mine', 'Deep work'], sessions);
+    expect(list).toEqual(['Mine', 'Deep work', 'History B', 'History A']);
+  });
+
+  it('dedupe is case-insensitive and the managed label wins', () => {
+    const sessions = [s('deep work')]; // history spelling differs
+    expect(categoryList(['Deep work'], sessions)).toEqual(['Deep work']);
+  });
+
+  it('empty managed list falls back to pure history (current behavior)', () => {
+    const sessions = [s('A'), s('B')];
+    expect(categoryList([], sessions)).toEqual(['B', 'A']);
+  });
+
+  it('applies the limit across the union; empty labels never appear', () => {
+    const sessions = [s(''), s('A')];
+    expect(categoryList(['M1', 'M2'], sessions, 2)).toEqual(['M1', 'M2']);
   });
 });

@@ -38,6 +38,7 @@ Strict layering — dependencies point downward only:
    - `src/components/SessionDetailSheet` — bottom sheet with drag-to-dismiss, dirty-tracking + discard confirm
    - `src/components/YearHeatmap` — compact 3×4 grid of 12 mini-months with day-level intensity
    - `src/components/RateSection` — the Earnings card (current-rate input, rate history list, add-rate form); props-in, policy in the engine/store
+   - `src/components/CategorySection` — the Categories card (add/rename/remove; rename and remove propagate across Sessions transactionally); chip lists come from the engine's `categoryList` (managed ∪ history, case-insensitive dedupe)
    - `src/theme.ts` — dual light/dark palettes + factories (`cardStyle`, `softPill`, `insetInput`)
 5. **`app/`** — expo-router routes: tab group `(tabs)` (Home, Logs, Insights, Settings) plus hidden pushed sub-screens (`schedule`, `data`). Home's scrollable area uses FlatList (virtualized). Logs uses FlatList with typed rows (month header, week card, day header, session, collapsed week).
 

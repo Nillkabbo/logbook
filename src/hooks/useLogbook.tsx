@@ -28,7 +28,15 @@ import { syncNotifications } from '@/notifications/reminders';
 import { deleteEvent, editEvent, reminderDecision, type ReminderEvent } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
 import { currentRate, type RateRecord } from '@/engine/money';
-import { listRateHistory, insertRate, deleteRate } from '@/db/database';
+import {
+  insertCategory,
+  listCategories,
+  listRateHistory,
+  insertRate,
+  deleteRate,
+  removeCategoryEverywhere,
+  renameCategoryEverywhere,
+} from '@/db/database';
 import { parseSessionsCsv, type CsvImportResult } from '@/engine/csv';
 import { exportSessionsCsv } from '@/export/csvExport';
 import type { Session, SessionPatch, Settings, Weekday } from '@/engine/types';
@@ -61,6 +69,14 @@ interface Logbook {
   removeBlock: (id: number) => Promise<void>;
   /** Merges an exported CSV into the log; returns the counts for reporting. */
   importCsv: (csv: string) => Promise<CsvImportResult>;
+/** The user's managed category list, insertion order. */
+  categories: string[];
+  /** Pins a category (trimmed); false when empty or already present (case-insensitive). */
+  addCategory: (name: string) => Promise<boolean>;
+  /** Renames a category across the list and every Session; false on clash/empty. */
+  renameCategory: (oldName: string, newName: string) => Promise<boolean>;
+  /** Removes a category; its Sessions become uncategorised. */
+  removeCategory: (name: string) => Promise<void>;
   /** Rate history, oldest first. */
   rateHistory: RateRecord[];
   /** Adds a rate change (replaces any record with the same effective date). */
@@ -80,20 +96,23 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [blocks, setBlocks] = useState<WorkBlock[]>([]);
   const [rateHistory, setRateHistory] = useState<RateRecord[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [now, setNow] = useState(() => new Date());
   const [ready, setReady] = useState(false);
 
   const refresh = useCallback(async () => {
-    const [nextSessions, nextSettings, nextBlocks, nextRates] = await Promise.all([
+    const [nextSessions, nextSettings, nextBlocks, nextRates, nextCategories] = await Promise.all([
       listSessions(),
       getSettings(),
       listBlocks(),
       listRateHistory(),
+      listCategories(),
     ]);
     setSessions(nextSessions);
     setSettings(nextSettings);
     setBlocks(nextBlocks);
     setRateHistory(nextRates);
+    setCategories(nextCategories);
     setReady(true);
   }, []);
 
@@ -163,6 +182,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     }
     for (const record of await listRateHistory()) {
       await deleteRate(record.id);
+    }
+    for (const name of await listCategories()) {
+      await removeCategoryEverywhere(name);
     }
     await updateSettingsInDb({
       hourlyRate: 0,
@@ -289,6 +311,41 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     [refresh, syncAfter],
   );
 
+  // Uniqueness is case-insensitive so "deep work" and "Deep work" can't coexist.
+  const addCategory = useCallback(
+    async (name: string): Promise<boolean> => {
+      const trimmed = name.trim();
+      if (trimmed.length === 0) return false;
+      if (categories.some((c) => c.toLowerCase() === trimmed.toLowerCase())) return false;
+      await insertCategory(trimmed);
+      await refresh();
+      return true;
+    },
+    [categories, refresh],
+  );
+
+  const renameCategory = useCallback(
+    async (oldName: string, newName: string): Promise<boolean> => {
+      const trimmed = newName.trim();
+      if (trimmed.length === 0 || trimmed === oldName) return trimmed !== oldName ? false : true;
+      if (categories.some((c) => c !== oldName && c.toLowerCase() === trimmed.toLowerCase())) {
+        return false;
+      }
+      await renameCategoryEverywhere(oldName, trimmed);
+      await refresh();
+      return true;
+    },
+    [categories, refresh],
+  );
+
+  const removeCategory = useCallback(
+    async (name: string): Promise<void> => {
+      await removeCategoryEverywhere(name);
+      await refresh();
+    },
+    [refresh],
+  );
+
   const addRateChange = useCallback(async (rate: number, effectiveFrom: Date) => {
     // One record per effective date — re-adding the same date replaces it.
     const before = await listRateHistory();
@@ -349,6 +406,10 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       removeBlock,
       importCsv,
       clearAllData,
+      categories,
+      addCategory,
+      renameCategory,
+      removeCategory,
       rateHistory,
       addRateChange,
       removeRate,

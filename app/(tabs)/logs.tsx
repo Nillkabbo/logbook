@@ -7,7 +7,7 @@ import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
-import { categorySuggestions, newSessionDraft } from '@/engine/sessions';
+import { categoryList, newSessionDraft } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
 import { formatWeekShareText, logsListModel, type LogDay, type LogWeek, type LogsRow } from '@/engine/logs';
 import { localDayKey } from '@/engine/weeks';
@@ -27,7 +27,7 @@ export default function LogsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale, weekdayShortName } = useI18n();
-  const { refresh, sessions, settings, now, saveSession, removeSession, createSession, saveSettings, rateHistory } =
+  const { refresh, sessions, settings, now, saveSession, removeSession, createSession, saveSettings, rateHistory, categories } =
     useLogbook();
 
   const toggleOff = (key: string, currentlyOff: boolean) => {
@@ -119,7 +119,7 @@ export default function LogsScreen() {
     ],
   );
   const { rows, weeks, summary } = model;
-  const suggestions = categorySuggestions(sessions);
+  const suggestions = categoryList(categories, sessions);
   const hasActiveFilter =
     categoryFilter !== null || dateRange !== 'all' || query.trim().length > 0 || selectedDay !== null;
 

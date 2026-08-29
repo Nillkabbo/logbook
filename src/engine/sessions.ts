@@ -29,6 +29,26 @@ export function categorySuggestions(sessions: Session[], limit?: number): string
   return limit === undefined ? ordered : ordered.slice(0, limit);
 }
 
+/**
+ * The effective chip list everywhere categories are offered: the user's managed
+ * categories first (insertion order), then history-only labels (MRU). Dedupe is
+ * case-insensitive with the managed label winning — "deep work" in history
+ * never splits the chips when "Deep work" is managed.
+ */
+export function categoryList(managed: string[], sessions: Session[], limit?: number): string[] {
+  const taken = new Set<string>();
+  const result: string[] = [];
+  const push = (label: string) => {
+    const key = label.toLowerCase();
+    if (label.length === 0 || taken.has(key)) return;
+    taken.add(key);
+    result.push(label);
+  };
+  for (const label of managed) push(label);
+  for (const label of categorySuggestions(sessions)) push(label);
+  return limit === undefined ? result : result.slice(0, limit);
+}
+
 /** List id for a session that doesn't exist yet — quick-add drafts only, never persisted. */
 export const NEW_SESSION_ID = -1;
 

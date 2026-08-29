@@ -13,7 +13,7 @@ import { useLogbook } from '@/hooks/useLogbook';
 import { homeModel } from '@/engine/home';
 import { formatDurationWords, formatTimeOfDay } from '@/engine/time';
 import { formatDayLabel } from '@/engine/weeks';
-import { categorySuggestions, newSessionDraft } from '@/engine/sessions';
+import { categoryList, newSessionDraft } from '@/engine/sessions';
 import { nextBlockOccurrence } from '@/engine/schedule';
 import type { Session } from '@/engine/types';
 import { useHour12 } from '@/ui/clock';
@@ -25,7 +25,7 @@ export default function HomeScreen() {
   const theme = useTheme();
   const { t, locale } = useI18n();
   const hour12 = useHour12();
-  const { refresh, checkIn, checkOut, sessions, settings, now, saveSession, removeSession, createSession, blocks, rateHistory } =
+  const { refresh, checkIn, checkOut, sessions, settings, now, saveSession, removeSession, createSession, blocks, rateHistory, categories } =
     useLogbook();
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<Session | null>(null);
@@ -122,7 +122,7 @@ export default function HomeScreen() {
 
       {runningUncategorised && (
         <QuickCategoryRow
-          categories={categorySuggestions(sessions, 4)}
+          categories={categoryList(categories, sessions, 4)}
           onPick={setRunningCategory}
           onMore={() => setSelected(model.running)}
         />
@@ -243,7 +243,7 @@ export default function HomeScreen() {
       {selected && (
         <SessionDetailSheet
           session={selected}
-          suggestions={categorySuggestions(sessions)}
+          suggestions={categoryList(categories, sessions)}
           onSave={(patch) => saveSession(selected.id, patch)}
           onDelete={removeSession}
           onClose={() => setSelected(null)}
@@ -253,7 +253,7 @@ export default function HomeScreen() {
         <SessionDetailSheet
           session={draft}
           isNew
-          suggestions={categorySuggestions(sessions)}
+          suggestions={categoryList(categories, sessions)}
           onSave={createSession}
           onDelete={removeSession}
           onClose={() => setDraft(null)}

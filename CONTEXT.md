@@ -61,7 +61,7 @@ The rule that a reminder exists if and only if a Running session exists, maintai
 _Avoid_: notification rules, reminder logic
 
 **Category**:
-A short free-form label marking the kind of work a Session belongs to. Optional; drawn from the user's own history.
+A short free-form label marking the kind of work a Session belongs to. Optional. Chip lists show the user's managed Categories first (insertion order), then history-only labels; dedupe is case-insensitive. Sessions keep their own label — renaming or removing a Category rewrites it across every Session in one transaction.
 _Avoid_: tag, project, client
 
 **Rate**:

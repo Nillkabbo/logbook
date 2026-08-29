@@ -1,4 +1,4 @@
-Status: open
+Status: done (2026-08-29)
 
 ## What's wrong
 

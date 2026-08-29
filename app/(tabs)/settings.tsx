@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 
 import { ChipRow } from '@/components/ChipRow';
 import { DateTimeField } from '@/components/DateTimeField';
+import { CategorySection } from '@/components/CategorySection';
 import { RateSection } from '@/components/RateSection';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
@@ -25,7 +26,7 @@ export default function SettingsScreen() {
   const theme = useTheme();
   const hour12 = useHour12();
   const { t, locale, weekdayShortName } = useI18n();
-  const { refresh, settings, saveSettings, blocks, rateHistory, addRateChange, removeRate, setCurrentRate } = useLogbook();
+  const { refresh, settings, saveSettings, blocks, rateHistory, addRateChange, removeRate, setCurrentRate, categories, addCategory, renameCategory, removeCategory } = useLogbook();
 
   const target = useValidatedHours(
     String(settings.weeklyTargetHours),
@@ -171,6 +172,13 @@ export default function SettingsScreen() {
           <Text style={[styles.chevron, { color: theme.muted }]}>›</Text>
         </Pressable>
       </View>
+
+      <CategorySection
+        categories={categories}
+        onAdd={addCategory}
+        onRename={renameCategory}
+        onRemove={removeCategory}
+      />
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('theme')}</Text>
       <View style={[styles.card, cardStyle(theme)]}>
