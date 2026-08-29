@@ -431,6 +431,7 @@ export default function LogsScreen() {
               } else {
                 const key = `${calMonth.getFullYear()}-${String(calMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 setSelectedDay((prev) => (prev === key ? null : key));
+                setCalendarOpen(false); // close the calendar after picking
               }
             }}
             onMonthChange={(delta) =>

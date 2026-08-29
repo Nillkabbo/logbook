@@ -6,7 +6,7 @@ import { WeekdayPicker } from '@/components/settings-entry';
 import { useHour12 } from '@/ui/clock';
 import { blockRangeLabel, validateBlockTimes, type WorkBlock } from '@/engine/schedule';
 import type { Weekday } from '@/engine/types';
-import { cardStyle, RADIUS, useTheme } from '@/theme';
+import { cardStyle, useTheme } from '@/theme';
 import { useI18n, type StringKey } from '@/ui/i18n';
 
 const minutesOfDay = (date: Date) => date.getHours() * 60 + date.getMinutes();

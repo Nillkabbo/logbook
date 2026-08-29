@@ -46,6 +46,16 @@ export default function InsightsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.container}>
 
+        {/* Period summary strip */}
+        <View style={[styles.periodStrip, { backgroundColor: theme.inset }]}>
+          <Text style={[styles.periodText, { color: theme.muted }]}>
+            {m.totalSessions} {t('sessions')} · {m.totalHoursLabel}
+            {settings.hourlyRate > 0 && m.totalHours > 0
+              ? ` · $${((m.totalHours) * settings.hourlyRate).toFixed(0)}`
+              : ''}
+          </Text>
+        </View>
+
         {/* Hero: average week + delta */}
         <View style={[styles.heroCard, cardStyle(theme)]}>
           <Text style={[styles.heroLabel, { color: theme.muted }]}>{t('avgWeek')}</Text>
@@ -238,6 +248,17 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
     gap: 12,
+  },
+  periodStrip: {
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  periodText: {
+    fontSize: 13,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
   },
   heroCard: {
     borderRadius: RADIUS.card,
