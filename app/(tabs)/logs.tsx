@@ -11,8 +11,7 @@ import { categorySuggestions, newSessionDraft } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
 import { formatWeekShareText, logsListModel, type LogDay, type LogWeek, type LogsRow } from '@/engine/logs';
 import { localDayKey } from '@/engine/weeks';
-import { sessionsToCsv } from '@/engine/csv';
-import { exportCsvViaShareSheet } from '@/export/csvExport';
+import { exportSessionsCsv } from '@/export/csvExport';
 import type { Session } from '@/engine/types';
 import { CalendarView } from '@/components/CalendarView';
 import { ChipRow } from '@/components/ChipRow';
@@ -57,6 +56,7 @@ export default function LogsScreen() {
   const [calMonth, setCalMonth] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [sharePickerOpen, setSharePickerOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   // Per-visit expansion overrides on top of the model's defaults — never persisted.
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   // Months expanded by default; tap a month header to collapse its weeks
@@ -311,9 +311,15 @@ export default function LogsScreen() {
             hitSlop={8}
             style={[styles.toolbarButton, { backgroundColor: theme.inset }]}
             onPress={async () => {
-              const shared = await exportCsvViaShareSheet(sessionsToCsv(model.filtered, rateHistory));
-              if (!shared) {
-                Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
+              if (exporting) return;
+              setExporting(true);
+              try {
+                const shared = await exportSessionsCsv(model.filtered, rateHistory, 'filtered');
+                if (!shared) {
+                  Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
+                }
+              } finally {
+                setExporting(false);
               }
             }}>
             <Text style={{ fontSize: 16 }}>⬇</Text>

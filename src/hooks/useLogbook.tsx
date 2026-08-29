@@ -29,8 +29,8 @@ import { deleteEvent, editEvent, reminderDecision, type ReminderEvent } from '@/
 import type { WorkBlock } from '@/engine/schedule';
 import type { RateRecord } from '@/engine/money';
 import { listRateHistory, insertRate, deleteRate } from '@/db/database';
-import { parseSessionsCsv, sessionsToCsv, type CsvImportResult } from '@/engine/csv';
-import { exportCsvViaShareSheet } from '@/export/csvExport';
+import { parseSessionsCsv, type CsvImportResult } from '@/engine/csv';
+import { exportSessionsCsv } from '@/export/csvExport';
 import type { Session, SessionPatch, Settings, Weekday } from '@/engine/types';
 import { DEFAULT_SETTINGS } from '@/engine/types';
 
@@ -364,7 +364,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   );
 
   const exportBackup = useCallback(async (): Promise<boolean> => {
-    const shared = await exportCsvViaShareSheet(sessionsToCsv(sessions, rateHistory));
+    const shared = await exportSessionsCsv(sessions, rateHistory, 'backup');
     if (shared) {
       await updateSettingsInDb({ lastExportAt: Date.now() });
       await refresh();

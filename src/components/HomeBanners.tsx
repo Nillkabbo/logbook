@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useLogbook } from '@/hooks/useLogbook';
 import { isBackupDue } from '@/engine/backup';
@@ -22,9 +22,14 @@ export function BackupBanner() {
     if (exporting) return;
     setExporting(true);
     try {
-      if (await exportBackup()) {
+      const shared = await exportBackup();
+      if (shared) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      } else {
+        Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
       }
+    } catch (error) {
+      Alert.alert(t('exportFailed'), String(error));
     } finally {
       setExporting(false);
     }
