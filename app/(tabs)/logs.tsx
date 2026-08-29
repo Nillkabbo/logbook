@@ -15,17 +15,84 @@ import { CalendarView } from '@/components/CalendarView';
 import { ChipRow } from '@/components/ChipRow';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
 
-/** One virtualized row: a week's summary card, a day header, a session card, or a collapsed week. */
+/** One virtualized row: a month header, week card, day header, session card, or collapsed week. */
 type Row =
+  | { kind: 'month'; key: string; label: string; totalLabel: string; earningsLabel: string | null; weekCount: number }
   | { kind: 'week'; key: string; week: LogWeek }
   | { kind: 'day'; key: string; day: LogDay }
   | { kind: 'session'; key: string; session: Session }
   | { kind: 'collapsed'; key: string; week: LogWeek };
 
-/** Flattens the grouped model newest-first into FlatList rows; expanded weeks contribute their days and sessions. */
-function buildRows(weeks: LogWeek[], isExpanded: (week: LogWeek) => boolean): Row[] {
-  const rows: Row[] = [];
+/** Groups weeks by calendar month and computes month totals. */
+interface MonthGroup {
+  key: string;
+  label: string;
+  totalSeconds: number;
+  earnings: number;
+  weekCount: number;
+}
+
+function groupByMonth(weeks: LogWeek[], locale: string, hourlyRate: number): MonthGroup[] {
+  const groups = new Map<string, MonthGroup>();
   for (const week of weeks) {
+    const monthStart = new Date(week.range.start.getFullYear(), week.range.start.getMonth(), 1);
+    const key = `${monthStart.getFullYear()}-${monthStart.getMonth()}`;
+    let g = groups.get(key);
+    if (!g) {
+      g = {
+        key,
+        label: monthStart.toLocaleDateString(locale, { month: 'long', year: 'numeric' }),
+        totalSeconds: 0,
+        earnings: 0,
+        weekCount: 0,
+      };
+      groups.set(key, g);
+    }
+    // Parse the total back from the label (H:MM format)
+    const [h, m] = week.totalLabel.split(':').map(Number);
+    g.totalSeconds += (h || 0) * 3600 + (m || 0) * 60;
+    g.weekCount++;
+    if (week.earningsLabel) {
+      g.earnings += parseFloat(week.earningsLabel.replace(/[$,]/g, ''));
+    }
+  }
+  return [...groups.values()];
+}
+
+/** Flattens the grouped model newest-first into FlatList rows with month headers. */
+function buildRows(
+  weeks: LogWeek[],
+  isExpanded: (week: LogWeek) => boolean,
+  monthGroups: MonthGroup[],
+  isMonthExpanded: (key: string) => boolean,
+): Row[] {
+  const rows: Row[] = [];
+  let lastMonthKey = '';
+  for (const week of weeks) {
+    const monthStart = new Date(week.range.start.getFullYear(), week.range.start.getMonth(), 1);
+    const monthKey = `${monthStart.getFullYear()}-${monthStart.getMonth()}`;
+
+    // Insert a month header when the month changes
+    if (monthKey !== lastMonthKey) {
+      const group = monthGroups.find((g) => g.key === monthKey);
+      if (group) {
+        const hours = Math.floor(group.totalSeconds / 3600);
+        const mins = Math.floor((group.totalSeconds % 3600) / 60);
+        rows.push({
+          kind: 'month',
+          key: `m-${monthKey}`,
+          label: group.label,
+          totalLabel: `${hours}:${String(mins).padStart(2, '0')}`,
+          earningsLabel: group.earnings > 0 ? `$${group.earnings.toFixed(0)}` : null,
+          weekCount: group.weekCount,
+        });
+      }
+      lastMonthKey = monthKey;
+    }
+
+    // Skip weeks in collapsed months
+    if (!isMonthExpanded(monthKey)) continue;
+
     if (!isExpanded(week)) {
       rows.push({ kind: 'collapsed', key: `w-${week.key}`, week });
       continue;
@@ -64,10 +131,15 @@ export default function LogsScreen() {
   const [sharePickerOpen, setSharePickerOpen] = useState(false);
   // Per-visit expansion overrides on top of the model's defaults — never persisted.
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  // Months expanded by default; tap a month header to collapse its weeks
+  const [monthsExpanded, setMonthsExpanded] = useState<Record<string, boolean>>({});
   const isExpanded = (week: LogWeek) => expanded[week.key] ?? week.defaultExpanded;
   // Toggle from the *effective* state, so a default-expanded week collapses on first tap.
   const toggleWeek = (week: LogWeek) =>
     setExpanded((prev) => ({ ...prev, [week.key]: !(prev[week.key] ?? week.defaultExpanded) }));
+  const isMonthExpanded = (key: string) => monthsExpanded[key] ?? true;
+  const toggleMonth = (key: string) =>
+    setMonthsExpanded((prev) => ({ ...prev, [key]: !(prev[key] ?? true) }));
 
   useFocusEffect(
     useCallback(() => {
@@ -78,6 +150,7 @@ export default function LogsScreen() {
       setSelectedDay(null);
       setCalendarOpen(false);
       setExpanded({}); // expansion overrides are per-visit too
+      setMonthsExpanded({});
     }, [refresh]),
   );
 
@@ -94,7 +167,8 @@ export default function LogsScreen() {
     query: query.trim().length > 0 ? query : undefined,
   }, locale);
   const suggestions = categorySuggestions(sessions);
-  const rows = buildRows(weeks, isExpanded);
+  const monthGroups = groupByMonth(weeks, locale, settings.hourlyRate);
+  const rows = buildRows(weeks, isExpanded, monthGroups, isMonthExpanded);
   const hasActiveFilter =
     categoryFilter !== null || dateRange !== 'all' || query.trim().length > 0 || selectedDay !== null;
 
@@ -197,6 +271,25 @@ export default function LogsScreen() {
 
   const renderItem = ({ item }: { item: Row }) => {
     switch (item.kind) {
+      case 'month':
+        return (
+          <Pressable
+            style={[styles.monthHeader, { backgroundColor: theme.surface }, theme.cardShadow]}
+            accessibilityRole="button"
+            accessibilityLabel={item.label}
+            onPress={() => toggleMonth(item.key.replace('m-', ''))}>
+            <View style={styles.monthHeaderText}>
+              <Text style={[styles.monthLabel, { color: theme.text }]}>{item.label}</Text>
+              <Text style={[styles.monthSub, { color: theme.muted }]}>
+                {t('weeksInMonth', { n: item.weekCount })} · {item.totalLabel}
+                {item.earningsLabel ? ` · ${item.earningsLabel}` : ''}
+              </Text>
+            </View>
+            <Text style={[styles.monthChevron, { color: theme.muted }]}>
+              {isMonthExpanded(item.key.replace('m-', '')) ? '⌄' : '›'}
+            </Text>
+          </Pressable>
+        );
       case 'week':
         return renderWeekCard(item.week);
       case 'day':
@@ -568,6 +661,30 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     fontVariant: ['tabular-nums'],
+  },
+  monthHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderRadius: RADIUS.card,
+    padding: 16,
+    marginTop: 8,
+  },
+  monthHeaderText: {
+    flex: 1,
+    gap: 2,
+  },
+  monthLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  monthSub: {
+    fontSize: 13,
+    fontVariant: ['tabular-nums'],
+  },
+  monthChevron: {
+    fontSize: 18,
+    fontWeight: '600',
   },
   weekCard: {
     borderRadius: RADIUS.card,
