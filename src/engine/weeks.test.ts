@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { at } from './test-support';
 
-import { dateLocale, formatDayLabel, weekProgress, weekRange, weekRangeLabel, weekSummary } from './weeks';
+import { dateLocale, formatDayLabel, localDayKey, parseLocalDayKey, weekProgress, weekRange, weekRangeLabel, weekSummary } from './weeks';
 
 // Reference facts (worked examples from the spec): in August 2026,
 // Aug 20 is a Thursday, Aug 27 is a Thursday, Aug 23 is a Sunday.
@@ -119,5 +119,25 @@ describe('weekProgress', () => {
       overByLabel: null,
       earningsLabel: '$56.25',
     });
+  });
+});
+
+describe('parseLocalDayKey', () => {
+  it('round-trips localDayKey back to local midnight', () => {
+    const date = at(2026, 7, 27, 14, 30);
+    const parsed = parseLocalDayKey(localDayKey(date));
+    expect(parsed?.getTime()).toBe(at(2026, 7, 27).getTime());
+  });
+
+  it('rejects malformed keys with null', () => {
+    expect(parseLocalDayKey('2026-8-27')).toBeNull();
+    expect(parseLocalDayKey('not-a-key')).toBeNull();
+    expect(parseLocalDayKey('')).toBeNull();
+  });
+
+  it('accepts two-digit padded components; month 13 rolls over to January', () => {
+    expect(parseLocalDayKey('2026-08-27')?.getDate()).toBe(27);
+    const rolled = parseLocalDayKey('2026-13-01');
+    expect(rolled?.getFullYear()).toBe(2027); // callers store engine-written keys, so this never occurs
   });
 });

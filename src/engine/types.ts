@@ -29,6 +29,9 @@ export const WEEKDAY_NAMES = [
   'Saturday',
 ] as const;
 
+/** Pay-period rollup for paycheck-style totals; 'none' hides every period surface. */
+export type PayPeriodType = 'none' | 'weekly' | 'biweekly';
+
 export interface Settings {
   weekStartDay: Weekday;
   weeklyTargetHours: number;
@@ -39,6 +42,10 @@ export interface Settings {
   lastExportAt: number | null;
   /** Week-start keys (YYYY-MM-DD) marked as Off weeks — target judgment suspended. */
   offWeeks: string[];
+  /** Pay-period grouping; 'none' (default) hides the feature. */
+  payPeriodType: PayPeriodType;
+  /** localDayKey (YYYY-MM-DD) of the first biweekly period's week-start; null when unset. */
+  payPeriodAnchor: string | null;
   /** UI language; 'system' follows the device. */
   language: LanguageSetting;
   /** UI theme; 'system' follows the device. */
@@ -53,6 +60,8 @@ export const DEFAULT_SETTINGS: Settings = {
   hourlyRate: 0,
   lastExportAt: null,
   offWeeks: [],
+  payPeriodType: 'none',
+  payPeriodAnchor: null,
   language: 'system',
   themePreference: 'system',
   setupCompleted: false,

@@ -42,6 +42,8 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
       hourly_rate REAL NOT NULL DEFAULT 0,
       last_export_at INTEGER,
       off_weeks TEXT NOT NULL DEFAULT '',
+      pay_period_type TEXT NOT NULL DEFAULT 'none',
+      pay_period_anchor TEXT,
       language TEXT NOT NULL DEFAULT 'system',
       theme_preference TEXT NOT NULL DEFAULT 'system',
       setup_completed INTEGER NOT NULL DEFAULT 0
@@ -64,6 +66,8 @@ async function open(): Promise<SQLite.SQLiteDatabase> {
   await addColumnIfMissing(db, 'settings', 'hourly_rate', 'REAL NOT NULL DEFAULT 0');
   await addColumnIfMissing(db, 'settings', 'last_export_at', 'INTEGER');
   await addColumnIfMissing(db, 'settings', 'off_weeks', "TEXT NOT NULL DEFAULT ''");
+  await addColumnIfMissing(db, 'settings', 'pay_period_type', "TEXT NOT NULL DEFAULT 'none'");
+  await addColumnIfMissing(db, 'settings', 'pay_period_anchor', 'TEXT');
   await addColumnIfMissing(db, 'settings', 'theme_preference', "TEXT NOT NULL DEFAULT 'system'");
   await addColumnIfMissing(db, 'settings', 'language', "TEXT NOT NULL DEFAULT 'system'");
   // Migrate a flat hourlyRate into the rate history (one record, effective from epoch)
@@ -185,10 +189,12 @@ export async function getSettings(): Promise<Settings> {
     hourly_rate: number;
     last_export_at: number | null;
     off_weeks: string;
+    pay_period_type: string;
+    pay_period_anchor: string | null;
     language: string;
     theme_preference: string;
     setup_completed: number;
-  }>('SELECT week_start_day, weekly_target_hours, reminder_threshold_hours, hourly_rate, last_export_at, off_weeks, language, theme_preference, setup_completed FROM settings WHERE id = 1');
+  }>('SELECT week_start_day, weekly_target_hours, reminder_threshold_hours, hourly_rate, last_export_at, off_weeks, pay_period_type, pay_period_anchor, language, theme_preference, setup_completed FROM settings WHERE id = 1');
   if (!row) {
     return DEFAULT_SETTINGS;
   }
@@ -199,6 +205,8 @@ export async function getSettings(): Promise<Settings> {
     hourlyRate: row.hourly_rate,
     lastExportAt: row.last_export_at ?? null,
     offWeeks: row.off_weeks ? row.off_weeks.split(',').filter(Boolean) : [],
+    payPeriodType: row.pay_period_type === 'weekly' || row.pay_period_type === 'biweekly' ? row.pay_period_type : 'none',
+    payPeriodAnchor: row.pay_period_anchor ?? null,
     language: row.language === 'en' || row.language === 'bn' ? row.language : 'system',
     themePreference: row.theme_preference === 'light' || row.theme_preference === 'dark' ? row.theme_preference : 'system',
     setupCompleted: row.setup_completed === 1,
@@ -210,13 +218,15 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   const current = await getSettings();
   const next = { ...current, ...patch };
   await db.runAsync(
-    `UPDATE settings SET week_start_day = ?, weekly_target_hours = ?, reminder_threshold_hours = ?, hourly_rate = ?, last_export_at = ?, off_weeks = ?, language = ?, theme_preference = ?, setup_completed = ? WHERE id = 1`,
+    `UPDATE settings SET week_start_day = ?, weekly_target_hours = ?, reminder_threshold_hours = ?, hourly_rate = ?, last_export_at = ?, off_weeks = ?, pay_period_type = ?, pay_period_anchor = ?, language = ?, theme_preference = ?, setup_completed = ? WHERE id = 1`,
     next.weekStartDay,
     next.weeklyTargetHours,
     next.reminderThresholdHours,
     next.hourlyRate,
     next.lastExportAt,
     next.offWeeks.join(','),
+    next.payPeriodType,
+    next.payPeriodAnchor,
     next.language,
     next.themePreference,
     next.setupCompleted ? 1 : 0,

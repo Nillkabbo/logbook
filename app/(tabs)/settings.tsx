@@ -4,10 +4,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ChipRow } from '@/components/ChipRow';
+import { DateTimeField } from '@/components/DateTimeField';
 import { RateSection } from '@/components/RateSection';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { blockRangeLabel } from '@/engine/schedule';
+import { defaultPayPeriodAnchor } from '@/engine/periods';
+import { localDayKey, parseLocalDayKey } from '@/engine/weeks';
 import {
   validateReminderThreshold,
   validateWeeklyTarget,
@@ -15,7 +18,7 @@ import {
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
 import { useI18n, type LanguageSetting, type StringKey, type ThemeSetting } from '@/ui/i18n';
-import type { Weekday } from '@/engine/types';
+import type { Settings, Weekday } from '@/engine/types';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -97,6 +100,41 @@ export default function SettingsScreen() {
         {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
         {labeledInput(t('reminderThreshold'), threshold.value, threshold.onChangeText, threshold.onBlur, t('reminderHint'))}
         {threshold.error && <Text style={[styles.error, { color: theme.stop }]}>{t(threshold.error as StringKey)}</Text>}
+
+        <Text style={[styles.rowLabel, { color: theme.text }]}>{t('payPeriod')}</Text>
+        <ChipRow
+          size="lg"
+          accessibilityLabel={t('payPeriod')}
+          options={['none', 'weekly', 'biweekly']}
+          isSelected={(option) => settings.payPeriodType === option}
+          onSelect={(option) =>
+            saveSettings(
+              option === 'biweekly'
+                ? {
+                    payPeriodType: 'biweekly',
+                    // Never biweekly-without-anchor: default the anchor in the same patch.
+                    payPeriodAnchor:
+                      settings.payPeriodAnchor ?? defaultPayPeriodAnchor(settings.weekStartDay, new Date()),
+                  }
+                : { payPeriodType: option as Settings['payPeriodType'] },
+            )
+          }
+          labelOf={(option) =>
+            option === 'none' ? t('payPeriodNone') : option === 'weekly' ? t('payWeekly') : t('payBiweekly')
+          }
+        />
+        {settings.payPeriodType === 'biweekly' && (
+          <View style={styles.fieldStack}>
+            <DateTimeField
+              label={t('firstPeriodStartedOn')}
+              value={parseLocalDayKey(settings.payPeriodAnchor ?? '') ?? new Date()}
+              onChange={(date) => saveSettings({ payPeriodAnchor: localDayKey(date) })}
+              mode="date"
+              variant="inset"
+            />
+            <Text style={[styles.hint, { color: theme.muted }]}>{t('payPeriodHint')}</Text>
+          </View>
+        )}
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('earnings')}</Text>

@@ -36,6 +36,14 @@ _Avoid_: week beginning, first day
 The configurable number of hours a week aims for. Default 40.
 _Avoid_: goal, quota, limit
 
+**Pay period**:
+A weekly or biweekly span that rolls hours and earnings up like a paycheck. A weekly pay period is a Week; a biweekly pay period is two consecutive whole Weeks. Hidden until configured.
+_Avoid_: pay cycle, paycheck period, fortnight, semi-monthly
+
+**Pay-period anchor**:
+The week-start day of the first biweekly Pay period; periods tile forward and backward from it in 14-day steps. Defaults to the most recent week-start.
+_Avoid_: start date, reference date, baseline week
+
 **Week-to-date**:
 The sum of day totals across the days of the current week so far.
 _Avoid_: weekly hours, week total (use "week total" only for a finished week)

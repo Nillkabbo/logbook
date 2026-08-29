@@ -1,9 +1,11 @@
+import { currentPeriod, payPeriodActive, periodRange, type PeriodSummary } from './periods';
 import { formatDuration } from './time';
 import { formatMoney, sessionEarnings, sumEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import {
   localDayKey,
+  parseLocalDayKey,
   weekKey,
   weekRange,
   weekRangeLabel,
@@ -32,8 +34,8 @@ export interface DayBar {
 export interface LogsFilter {
   /** Exact category match. */
   category?: string;
-  /** 'week' = current week only; 'month' = trailing 30 days; 'all' = everything. */
-  dateRange?: 'week' | 'month' | 'all';
+  /** 'week' = current week; 'month' = trailing 30 days; 'period' = the pay period containing `now` (requires a configured pay period — degrades to no filtering); 'all' = everything. */
+  dateRange?: 'week' | 'month' | 'period' | 'all';
   /** Case-insensitive substring match on note and category. */
   query?: string;
   /** Exact check-in day, as a `YYYY-MM-DD` localDayKey (a calendar tap). */
@@ -112,6 +114,12 @@ export function logsModel(
   } else if (filter?.dateRange === 'month') {
     const cutoff = now.getTime() - 30 * 24 * 3600 * 1000;
     effective = effective.filter((s) => s.checkIn.getTime() >= cutoff);
+  } else if (filter?.dateRange === 'period' && payPeriodActive(settings)) {
+    const anchor = parseLocalDayKey(settings.payPeriodAnchor ?? '') ?? now;
+    const period = periodRange(now, settings.payPeriodType as 'weekly' | 'biweekly', anchor, settings.weekStartDay);
+    effective = effective.filter(
+      (s) => s.checkIn.getTime() >= period.start.getTime() && s.checkIn.getTime() < period.end.getTime(),
+    );
   }
   if (filter?.query && filter.query.trim().length > 0) {
     const q = filter.query.trim().toLowerCase();
@@ -389,6 +397,8 @@ export interface LogsListViewModel {
   /** Present only when `calendarMonth` was given. */
   dayTotals?: Map<number, number>;
   dayEarnings?: Map<number, number>;
+  /** The current pay period's paycheck summary; null when the feature is off. */
+  payPeriod: PeriodSummary | null;
 }
 
 /**
@@ -484,6 +494,7 @@ export function logsListModel(input: LogsListInput): LogsListViewModel {
       dayTotals: monthDayTotals(sessions, input.calendarMonth.getFullYear(), input.calendarMonth.getMonth()),
       dayEarnings: monthDayEarnings(sessions, input.calendarMonth.getFullYear(), input.calendarMonth.getMonth(), rateHistory),
     }),
+    payPeriod: currentPeriod(sessions, settings, now, locale, rateHistory),
   };
 }
 

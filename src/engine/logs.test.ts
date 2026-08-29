@@ -390,3 +390,46 @@ describe('logsListModel — the screen\'s single engine call', () => {
     expect(open.dayEarnings?.get(27)).toBeCloseTo(30, 5);
   });
 });
+
+describe("logsModel 'period' date-range filter", () => {
+  const SETTINGS = {
+    ...DEFAULT_SETTINGS,
+    weekStartDay: 4 as const, // Thursday
+    payPeriodType: 'biweekly' as const,
+    payPeriodAnchor: '2026-08-20',
+  };
+  const NOW = at(2026, 7, 28, 12, 0); // inside Aug 20 – Sep 2
+  const inPeriod = [
+    session(1, at(2026, 7, 21, 9, 0), at(2026, 7, 21, 10, 0)), // first member week
+    session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 10, 0)), // second member week
+  ];
+  const outOfPeriod = session(3, at(2026, 7, 13, 9, 0), at(2026, 7, 13, 10, 0)); // Aug 13
+
+  it('keeps exactly the two member weeks of the current pay period', () => {
+    const r = logsModel([...inPeriod, outOfPeriod], SETTINGS, NOW, { dateRange: 'period' });
+    expect(r.weeks.map((w) => w.key)).toEqual(['2026-08-27', '2026-08-20']);
+    expect(r.summary?.sessionCount).toBe(2);
+  });
+
+  it('weekly configured: the period filter equals the week filter', () => {
+    const weekly = { ...SETTINGS, payPeriodType: 'weekly' as const };
+    const byWeek = logsModel([...inPeriod, outOfPeriod], weekly, NOW, { dateRange: 'week' });
+    const byPeriod = logsModel([...inPeriod, outOfPeriod], weekly, NOW, { dateRange: 'period' });
+    expect(byPeriod.weeks.map((w) => w.key)).toEqual(byWeek.weeks.map((w) => w.key));
+  });
+
+  it("unconfigured 'period' degrades to 'all' — never an empty list", () => {
+    const r = logsModel([...inPeriod, outOfPeriod], DEFAULT_SETTINGS, NOW, { dateRange: 'period' });
+    expect(r.weeks).toHaveLength(3);
+  });
+
+  it('logsListModel.payPeriod: null when off; coherent with the period filter when on', () => {
+    const off = logsListModel({ sessions: inPeriod, settings: DEFAULT_SETTINGS, now: NOW });
+    expect(off.payPeriod).toBeNull();
+
+    const on = logsListModel({ sessions: [...inPeriod, outOfPeriod], settings: SETTINGS, now: NOW, filter: { dateRange: 'period' } });
+    expect(on.payPeriod?.key).toBe('2026-08-20');
+    expect(on.payPeriod?.sessionCount).toBe(on.summary?.sessionCount); // strip ≡ filtered set
+    expect(on.payPeriod?.targetSeconds).toBe(80 * 3600); // 2 × 40h weekly target
+  });
+});

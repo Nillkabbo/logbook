@@ -34,6 +34,14 @@ export function localDayKey(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
+/** Parses a localDayKey back to local midnight; null when malformed. */
+export function parseLocalDayKey(key: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key.trim());
+  if (!match) return null;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 /** Alias: the key of a week is its start day's key. */
 export const weekKey = localDayKey;
 

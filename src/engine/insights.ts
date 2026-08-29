@@ -2,6 +2,7 @@ import { formatDuration } from './time';
 import { sessionEarnings, sumEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
+import { payPeriodActive, periodsModel, type PeriodSummary } from './periods';
 import { weekRange } from './weeks';
 
 /** One weekday's total worked hours, for the distribution card. */
@@ -79,6 +80,8 @@ export interface InsightsModel {
   totalHoursLabel: string;
   /** All-time earnings at each session's own rate; null when no rate covers any. */
   totalEarnings: number | null;
+  /** Earnings/hours per pay period, newest-first, up to 12; null when the feature is off. */
+  payPeriods: PeriodSummary[] | null;
 }
 
 function isSameLocalDay(a: Date, b: Date): boolean {
@@ -276,6 +279,7 @@ export function insightsModel(
     totalHours: totalSeconds / 3600,
     totalHoursLabel: formatDuration(Math.round(totalSeconds)),
     totalEarnings: allTimeEarnings > 0 ? allTimeEarnings : null,
+    payPeriods: payPeriodActive(settings) ? periodsModel(sessions, settings, now, locale, rateHistory).periods : null,
   };
 }
 

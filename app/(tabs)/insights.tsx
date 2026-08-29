@@ -184,6 +184,28 @@ export default function InsightsScreen() {
           </View>
         )}
 
+        {/* Earnings by pay period — the paycheck view */}
+        {m.payPeriods && m.payPeriods.some((p) => p.earnings > 0 || p.totalSeconds > 0) && (
+          <View style={[styles.card, cardStyle(theme)]}>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>{t('earningsByPeriod')}</Text>
+            {m.payPeriods.slice(0, 6).map((p) => (
+              <View key={p.key} style={styles.shareRow}>
+                <View
+                  style={[styles.shareDot, { backgroundColor: p.isCurrent ? theme.accent : theme.inset }]}
+                />
+                <Text
+                  style={[styles.shareLabel, { color: p.isCurrent ? theme.text : theme.muted }]}
+                  numberOfLines={1}>
+                  {p.label}
+                </Text>
+                <Text style={[styles.shareValue, { color: theme.text }]}>
+                  {p.earningsLabel ?? '—'} · {fmtHours(p.totalSeconds / 3600)}h
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Monthly trends */}
         <View style={[styles.card, cardStyle(theme)]}>
           <Text style={[styles.cardTitle, { color: theme.text }]}>{t('monthlyTrends')}</Text>

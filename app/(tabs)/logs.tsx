@@ -50,7 +50,7 @@ export default function LogsScreen() {
   // Quick-add draft, snapshotted once at open — the ticking `now` must never re-seed the form.
   const [draft, setDraft] = useState<Session | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<'week' | 'month' | 'all'>('all');
+  const [dateRange, setDateRange] = useState<'week' | 'month' | 'period' | 'all'>('all');
   const [query, setQuery] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calMonth, setCalMonth] = useState(() => new Date());
@@ -383,7 +383,7 @@ export default function LogsScreen() {
           </Pressable>
         ) : (
           <View style={styles.dateRangeRow}>
-            {(['week', 'month', 'all'] as const).map((range) => (
+            {(model.payPeriod ? (['period', 'week', 'month', 'all'] as const) : (['week', 'month', 'all'] as const)).map((range) => (
               <Pressable
                 key={range}
                 accessibilityRole="button"
@@ -399,7 +399,13 @@ export default function LogsScreen() {
                     styles.dateRangeText,
                     { color: dateRange === range ? theme.surface : theme.text },
                   ]}>
-                  {range === 'week' ? t('thisWeek') : range === 'month' ? t('month') : t('all')}
+                  {range === 'period'
+                    ? t('thisPayPeriod')
+                    : range === 'week'
+                      ? t('thisWeek')
+                      : range === 'month'
+                        ? t('month')
+                        : t('all')}
                 </Text>
               </Pressable>
             ))}
@@ -414,6 +420,23 @@ export default function LogsScreen() {
           autoCapitalize="none"
           autoCorrect={false}
         />
+        {dateRange === 'period' && selectedDay === null && model.payPeriod ? (
+          <View style={[styles.summaryStrip, styles.paycheckStrip, { backgroundColor: theme.inset }]}>
+            <View style={styles.paycheckHead}>
+              <Text style={[styles.paycheckEyebrow, { color: theme.accent }]}>{t('currentPeriod')}</Text>
+              {model.payPeriod.overTarget && (
+                <View style={[styles.statusPill, { backgroundColor: theme.stopSoft }]}>
+                  <Text style={[styles.statusText, { color: theme.stopOnSoft }]}>{t('overLabel')}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={[styles.paycheckLabel, { color: theme.text }]}>{model.payPeriod.label}</Text>
+            <Text style={[styles.summaryText, { color: theme.muted }]}>
+              {t('nSessions', { n: model.payPeriod.sessionCount })} · {model.payPeriod.totalLabel} / {model.payPeriod.targetLabel}
+              {model.payPeriod.earningsLabel ? ` · ${model.payPeriod.earningsLabel}` : ''}
+            </Text>
+          </View>
+        ) : (
         <View style={[styles.summaryStrip, { backgroundColor: theme.inset }]}>
           <Text style={[styles.summaryText, { color: theme.muted }]}>
             {hasActiveFilter && summary
@@ -421,6 +444,7 @@ export default function LogsScreen() {
               : `${t('nSessions', { n: model.grandSessionCount })} · ${model.grandTotalLabel}${model.grandEarningsLabel ? ` · ${model.grandEarningsLabel}` : ''}`}
           </Text>
         </View>
+        )}
         {model.filteredSeconds > 0 && model.categoryShares.length > 1 && (
           <View style={styles.categoryBar}>
             {model.categoryShares.map(({ label, seconds }) => (
@@ -650,6 +674,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     fontSize: 14,
+  },
+  paycheckStrip: {
+    alignItems: 'flex-start',
+    gap: 2,
+  },
+  paycheckHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  paycheckEyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  paycheckLabel: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   summaryStrip: {
     borderRadius: 12,

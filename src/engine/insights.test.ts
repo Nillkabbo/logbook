@@ -216,3 +216,42 @@ describe('insightsModel categoryEarnings', () => {
     expect(late.categoryEarnings.map((c) => c.label)).toEqual(['New']);
   });
 });
+
+describe('insightsModel payPeriods', () => {
+  const NOW = at(2026, 7, 28, 12, 0);
+  const SETTINGS = {
+    ...DEFAULT_SETTINGS,
+    weekStartDay: 4 as const,
+    payPeriodType: 'biweekly' as const,
+    payPeriodAnchor: '2026-08-20',
+  };
+  const HISTORY = [
+    { id: 1, rate: 25, effectiveFrom: at(2000, 0, 1, 0, 0) },
+    { id: 2, rate: 30, effectiveFrom: at(2026, 7, 25, 0, 0) },
+  ];
+
+  it('null when the feature is off', () => {
+    const m = insightsModel([session(1, NOW, at(2026, 7, 28, 13, 0))], DEFAULT_SETTINGS, NOW);
+    expect(m.payPeriods).toBeNull();
+  });
+
+  it('delegates to periodsModel: 12 newest-first, one current, temporal earnings, running excluded', () => {
+    const m = insightsModel(
+      [
+        session(1, at(2026, 7, 21, 9, 0), at(2026, 7, 21, 13, 0)), // 4h × $25
+        session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 13, 0)), // 4h × $30
+        session(3, at(2026, 7, 27, 14, 0), null), // running
+      ],
+      SETTINGS,
+      NOW,
+      'en-US',
+      HISTORY,
+    );
+    const periods = m.payPeriods!;
+    expect(periods).toHaveLength(12);
+    expect(periods[0].isCurrent).toBe(true);
+    expect(periods.filter((p) => p.isCurrent)).toHaveLength(1);
+    expect(periods[0].earnings).toBe(4 * 25 + 4 * 30);
+    expect(periods[0].sessionCount).toBe(2);
+  });
+});
