@@ -8,9 +8,10 @@ import { useHour12 } from '@/ui/clock';
 import { useI18n } from '@/ui/i18n';
 
 /**
- * A labelled date-time field with the platform branch owned once: iOS renders
+ * A labelled date/time field with the platform branch owned once: iOS renders
  * the compact inline picker; Android opens a dialog from a tappable card.
- * `variant` picks the card treatment — surface (sheet) or inset (Schedule).
+ * `variant` picks the card treatment — surface (sheet) or inset (Schedule,
+ * rate history). Inset renders its own label; card callers label themselves.
  */
 export function DateTimeField({
   label,
@@ -24,7 +25,7 @@ export function DateTimeField({
   value: Date | null;
   onChange: (date: Date) => void;
   disabled?: boolean;
-  mode?: 'datetime' | 'time';
+  mode?: 'datetime' | 'date' | 'time';
   variant?: 'card' | 'inset';
 }) {
   const theme = useTheme();
@@ -35,7 +36,13 @@ export function DateTimeField({
   const display =
     mode === 'time'
       ? formatTimeOfDay(value ?? new Date(), hour12)
-      : formatDateTime(value ?? new Date(), locale, hour12);
+      : mode === 'date'
+        ? (value ?? new Date()).toLocaleDateString(locale, {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })
+        : formatDateTime(value ?? new Date(), locale, hour12);
 
   const onPick = (_event: DateTimePickerEvent, selected?: Date) => {
     if (selected) onChange(selected);
@@ -50,9 +57,10 @@ export function DateTimeField({
 
   if (Platform.OS === 'ios') {
     // iOS: the compact picker is the control itself; a running session has no checkout to edit.
-    // Labels render on Android/Web only — iOS callers (the sheet) provide their own.
+    // Card callers (the sheet) provide their own labels; inset fields carry theirs.
     return (
       <View style={styles.group}>
+        {variant === 'inset' && labelRow}
         {disabled ? (
           <Text style={[styles.value, { color: theme.text }]}>—</Text>
         ) : (

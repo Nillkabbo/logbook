@@ -57,3 +57,14 @@ export function validateHourlyRate(rate: number): string | null {
   }
   return null;
 }
+
+/** A rate-history change must be a positive finite number — zero would earn nothing forever. */
+export function validateRateChange(rate: number): string | null {
+  if (!Number.isFinite(rate)) {
+    return 'errRateNumber';
+  }
+  if (rate <= 0) {
+    return 'errRatePositive';
+  }
+  return null;
+}

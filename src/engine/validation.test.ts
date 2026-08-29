@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   validateHourlyRate,
+  validateRateChange,
   validateReminderThreshold,
   validateSessionTimes,
   validateWeeklyTarget,
@@ -74,5 +75,18 @@ describe('validateHourlyRate', () => {
   it('rejects negatives and non-numbers', () => {
     expect(validateHourlyRate(-1)).toBe('errRateNegative');
     expect(validateHourlyRate(Number.NaN)).toBe('errRateNumber');
+  });
+});
+
+describe('validateRateChange', () => {
+  it('accepts positive rates', () => {
+    expect(validateRateChange(25)).toBeNull();
+    expect(validateRateChange(32.5)).toBeNull();
+  });
+
+  it('rejects zero and negatives — a history record must earn', () => {
+    expect(validateRateChange(0)).toBe('errRatePositive');
+    expect(validateRateChange(-5)).toBe('errRatePositive');
+    expect(validateRateChange(Number.NaN)).toBe('errRateNumber');
   });
 });

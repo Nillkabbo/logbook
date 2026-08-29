@@ -8,13 +8,15 @@ import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { blockRangeLabel } from '@/engine/schedule';
 import {
+  parseHoursInput,
   validateHourlyRate,
+  validateRateChange,
   validateReminderThreshold,
   validateWeeklyTarget,
 } from '@/engine/validation';
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { DateTimeField } from '@/components/DateTimeField';
 import { useI18n, type LanguageSetting, type StringKey, type ThemeSetting } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
@@ -27,6 +29,7 @@ export default function SettingsScreen() {
   const [showAddRate, setShowAddRate] = useState(false);
   const [newRateValue, setNewRateValue] = useState('');
   const [newRateDate, setNewRateDate] = useState(() => new Date());
+  const [rateError, setRateError] = useState<StringKey | null>(null);
 
   const target = useValidatedHours(
     String(settings.weeklyTargetHours),
@@ -122,53 +125,79 @@ export default function SettingsScreen() {
         {rateHistory.length > 0 && (
           <View style={styles.rateHistoryList}>
             <Text style={[styles.rateHistoryTitle, { color: theme.muted }]}>{t('rateHistory')}</Text>
-            {rateHistory.map((record) => (
-              <View key={record.id} style={styles.rateRow}>
-                <Text style={[styles.rateValue, { color: theme.text }]}>
-                  ${record.rate.toFixed(2)}
-                </Text>
-                <Text style={[styles.rateDate, { color: theme.muted }]}>
-                  {t('from_date', { date: record.effectiveFrom.toLocaleDateString(locale) })}
-                </Text>
-                <Pressable hitSlop={8} onPress={() => removeRate(record.id)}>
-                  <Text style={[styles.rateRemove, { color: theme.stop }]}>×</Text>
-                </Pressable>
-              </View>
-            ))}
+            {rateHistory.map((record, index) => {
+              const isLatest = index === rateHistory.length - 1; // list is oldest-first
+              return (
+                <View key={record.id} style={styles.rateRow}>
+                  <View style={styles.rateValueStack}>
+                    <View style={styles.rateValueRow}>
+                      <Text style={[styles.rateValue, { color: theme.text }]}>
+                        ${record.rate.toFixed(2)}
+                      </Text>
+                      {isLatest && (
+                        <View style={[styles.currentBadge, { backgroundColor: theme.accentSoft }]}>
+                          <Text style={[styles.currentBadgeText, { color: theme.accent }]}>
+                            {t('currentRate')}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={[styles.rateDate, { color: theme.muted }]}>
+                      {t('from_date', { date: record.effectiveFrom.toLocaleDateString(locale) })}
+                    </Text>
+                  </View>
+                  <Pressable hitSlop={8} onPress={() => removeRate(record.id)}>
+                    <Text style={[styles.rateRemove, { color: theme.stop }]}>×</Text>
+                  </Pressable>
+                </View>
+              );
+            })}
           </View>
         )}
 
         {/* Add rate change */}
         {showAddRate ? (
           <View style={styles.addRateForm}>
-            <Text style={[styles.rowLabel, { color: theme.text }]}>{t('effectiveFrom')}</Text>
-            <DateTimePicker
+            <DateTimeField
+              label={t('effectiveFrom')}
               value={newRateDate}
+              onChange={setNewRateDate}
               mode="date"
-              onChange={(_e, selected) => selected && setNewRateDate(selected)}
+              variant="inset"
             />
             <Text style={[styles.rowLabel, { color: theme.text }]}>{t('hourlyRate')}</Text>
             <TextInput
               style={[styles.input, insetInput(theme), { color: theme.text }]}
               value={newRateValue}
-              onChangeText={setNewRateValue}
+              onChangeText={(next) => {
+                setNewRateValue(next);
+                setRateError(null);
+              }}
               keyboardType="decimal-pad"
               placeholder="0.00"
               placeholderTextColor={theme.muted}
             />
+            {rateError && <Text style={[styles.error, { color: theme.stop }]}>{t(rateError)}</Text>}
             <View style={styles.addRateButtons}>
               <Pressable
                 style={[styles.addRateCancel, insetInput(theme)]}
-                onPress={() => setShowAddRate(false)}>
+                onPress={() => {
+                  setShowAddRate(false);
+                  setRateError(null);
+                }}>
                 <Text style={{ color: theme.text, fontSize: 14 }}>{t('cancel')}</Text>
               </Pressable>
               <Pressable
                 style={[styles.addRateConfirm, { backgroundColor: theme.accent }]}
                 onPress={async () => {
-                  const value = parseFloat(newRateValue);
-                  if (isNaN(value) || value <= 0) return;
-                  await addRateChange(value, newRateDate);
+                  const error = validateRateChange(parseHoursInput(newRateValue));
+                  if (error) {
+                    setRateError(error as StringKey);
+                    return;
+                  }
+                  await addRateChange(parseHoursInput(newRateValue), newRateDate);
                   setNewRateValue('');
+                  setRateError(null);
                   setShowAddRate(false);
                 }}>
                 <Text style={{ color: theme.onAccent, fontSize: 14, fontWeight: '600' }}>{t('save')}</Text>
@@ -294,14 +323,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  rateValueStack: {
+    flex: 1,
+    gap: 2,
+  },
+  rateValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   rateValue: {
     fontSize: 15,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
+  currentBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  currentBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
   rateDate: {
     fontSize: 13,
-    flex: 1,
   },
   rateRemove: {
     fontSize: 18,
