@@ -18,7 +18,19 @@ export interface CategoryShare {
 }
 
 /** Everything the Insights screen renders, computed from the full session list. */
+/** One month's total for the trends chart. */
+export interface MonthlyTotal {
+  /** Year-month key, e.g. '2026-08'. */
+  key: string;
+  /** Short month label, e.g. 'Aug'. */
+  label: string;
+  hours: number;
+  earnings: number | null;
+}
+
 export interface InsightsModel {
+  /** Monthly totals for the trends chart, oldest first, up to 12 months. */
+  monthlyTrends: MonthlyTotal[];
   /** Average hours per week, over weeks that have at least one session. */
   averageWeekHours: number;
   averageWeekLabel: string;
@@ -179,7 +191,27 @@ export function insightsModel(
   // ── Average session ──
   const averageSessionMinutes = completed.length > 0 ? totalSeconds / 60 / completed.length : 0;
 
+  // ── Monthly trends (last 12 calendar months, oldest first) ──
+  const monthlyTrends: MonthlyTotal[] = [];
+  const nowMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  for (let i = 11; i >= 0; i--) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+    const monthSeconds = sumCompletedSessions(
+      completed.filter(
+        (s) => s.checkIn.getTime() >= monthStart.getTime() && s.checkIn.getTime() < monthEnd.getTime(),
+      ),
+    );
+    monthlyTrends.push({
+      key: `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}`,
+      label: monthStart.toLocaleDateString(locale, { month: 'short' }),
+      hours: monthSeconds / 3600,
+      earnings: settings.hourlyRate > 0 ? ((monthSeconds / 3600) * settings.hourlyRate) : null,
+    });
+  }
+
   return {
+    monthlyTrends,
     averageWeekHours,
     averageWeekLabel: formatDuration(Math.round(averageWeekHours * 3600)),
     averageSessionMinutes,

@@ -134,6 +134,40 @@ export default function InsightsScreen() {
           </View>
         )}
 
+        {/* Monthly trends */}
+        <View style={[styles.card, cardStyle(theme)]}>
+          <Text style={[styles.cardTitle, { color: theme.text }]}>{t('monthlyTrends')}</Text>
+          <View style={styles.trendChart}>
+            {m.monthlyTrends.map((mo) => {
+              const maxHours = Math.max(...m.monthlyTrends.map((x) => x.hours), 1);
+              const h = Math.max(4, (mo.hours / maxHours) * 64);
+              const isCurrent = mo.key === `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+              return (
+                <View key={mo.key} style={styles.trendCol}>
+                  <Text style={[styles.trendValue, { color: theme.muted }]}>
+                    {mo.hours > 0 ? Math.round(mo.hours) : ''}
+                  </Text>
+                  <View
+                    style={[
+                      styles.trendBar,
+                      {
+                        height: h,
+                        backgroundColor: isCurrent ? theme.accent : mo.hours > 0 ? theme.inset : 'transparent',
+                        borderWidth: mo.hours === 0 ? StyleSheet.hairlineWidth : 0,
+                        borderColor: theme.inset,
+                        opacity: mo.hours > 0 && !isCurrent ? 0.6 : 1,
+                      },
+                    ]}
+                  />
+                  <Text style={[styles.trendLabel, { color: isCurrent ? theme.accent : theme.muted }]}>
+                    {mo.label}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
         {/* Streaks */}
         <View style={styles.compareRow}>
           {statCard(t('streak'), `${m.currentStreak}`, `${m.currentStreak === 1 ? '1 day' : `${m.currentStreak} ${t('days')}`}`)}
@@ -266,5 +300,29 @@ const styles = StyleSheet.create({
   shareValue: {
     fontSize: 13,
     fontVariant: ['tabular-nums'],
+  },
+  trendChart: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'flex-end',
+    height: 100,
+    marginTop: 8,
+  },
+  trendCol: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 3,
+  },
+  trendValue: {
+    fontSize: 9,
+    fontVariant: ['tabular-nums'],
+  },
+  trendBar: {
+    width: '100%',
+    borderRadius: 3,
+  },
+  trendLabel: {
+    fontSize: 9,
+    fontWeight: '500',
   },
 });
