@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CategoryPickerModal } from '@/components/CategoryPickerModal';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { validateHourlyRate, validateWeeklyTarget } from '@/engine/validation';
@@ -24,9 +25,9 @@ export function FirstLaunchSetup() {
   // Empty commits as 0 = unset; a value becomes a rate record effective today.
   const rate = useValidatedHours('', validateHourlyRate, undefined, 0);
   const [busy, setBusy] = useState(false);
-  // Optional starter categories — chips added here, saved on Start.
+  // Optional starter categories — chips added via the picker modal, saved on Start.
   const [chips, setChips] = useState<string[]>([]);
-  const [chipDraft, setChipDraft] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Don't flash the modal before settings have loaded.
   if (!ready || settings.setupCompleted) return null;
@@ -50,15 +51,11 @@ export function FirstLaunchSetup() {
     for (const chip of chips) await addCategory(chip);
   };
 
-  const addChip = () => {
-    const trimmed = chipDraft.trim();
-    if (trimmed.length === 0) return;
-    if (chips.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
-      setChipDraft('');
-      return;
-    }
-    setChips((prev) => [...prev, trimmed]);
-    setChipDraft('');
+  const addChip = (raw: string): Promise<boolean> => {
+    const trimmed = raw.trim();
+    const dup = trimmed.length === 0 || chips.some((c) => c.toLowerCase() === trimmed.toLowerCase());
+    if (!dup) setChips((prev) => [...prev, trimmed]);
+    return Promise.resolve(!dup);
   };
 
   return (
@@ -113,20 +110,19 @@ export function FirstLaunchSetup() {
             ))}
           </View>
         )}
-        <View style={styles.chipEntry}>
-          <TextInput
-            style={[styles.input, { color: theme.text, backgroundColor: theme.inset, flex: 1 }]}
-            value={chipDraft}
-            onChangeText={setChipDraft}
-            onSubmitEditing={addChip}
-            placeholder={t('categoryPlaceholderAdd')}
-            placeholderTextColor={theme.muted}
-            autoCapitalize="none"
-          />
-          <Pressable hitSlop={8} onPress={addChip}>
-            <Text style={{ color: theme.accent, fontSize: 14, fontWeight: '600' }}>+</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          style={[styles.chipAdd, { backgroundColor: theme.inset }]}
+          onPress={() => setPickerOpen(true)}>
+          <Text style={{ color: theme.accent, fontSize: 14, fontWeight: '500' }}>
+            + {t('addCategory')}
+          </Text>
+        </Pressable>
+        <CategoryPickerModal
+          visible={pickerOpen}
+          title={t('addCategory')}
+          onSave={addChip}
+          onClose={() => setPickerOpen(false)}
+        />
 
         <Pressable
           style={[styles.primaryButton, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
@@ -192,10 +188,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  chipEntry: {
-    flexDirection: 'row',
+  chipAdd: {
+    borderRadius: RADIUS.control,
+    paddingVertical: 12,
     alignItems: 'center',
-    gap: 12,
   },
   primaryButton: {
     borderRadius: RADIUS.card,
