@@ -122,6 +122,7 @@ describe('logsModel', () => {
   });
 
   it('result.weeks show earnings when a rate is set, per completed total', () => {
+    const NOW = at(2026, 7, 27, 12, 0);
     const result = logsModel(
       [early, late], // week A total 2:15
       { ...THURSDAY, hourlyRate: 25 },
