@@ -5,6 +5,22 @@ architecture refactor (Logs screen rewired behind logsListModel), pay periods.
 Engine is test-covered; this pass verifies screen wiring and numbers.
 
 ## Setup
+
+## FAST PASS — the 8 checks that carry the real risk (≈3 minutes)
+
+Everything else below is engine math already covered by 189 tests; these eight
+verify screen wiring only tests can't. If only three minutes exist, do these.
+
+1. [ ] **Logs renders** — month headers + week cards + filters all present (the whole screen was rewired behind logsListModel today)
+2. [ ] **Paycheck end-to-end** — Settings → Pay period → Every 2 weeks → Logs shows a 4th chip → "This period" → paycheck strip over exactly two week cards
+3. [ ] **Quick-add saves** — Home "＋" → sheet titled "New session" → Save → appears in today's list
+4. [ ] **Rate rows** — Settings → Earnings: three rows ($28/$30/$32.50), Current badge on $32.50, input reads 32.5
+5. [ ] **Insights cards** — "Earnings by category" and "Earnings by pay period" both render with seeded data
+6. [ ] **Export** — Logs ⬇ → share sheet opens with logbook-filtered-*.csv
+7. [ ] **Bangla** — switch language: new labels present, dates keep Latin digits
+8. [ ] **Import round-trip** — Export all → Clear all data → Import: sessions keep their checkouts, check-in button available
+
+---
 Data screen → Load 1 year (seeds $28→$30→$32.50 rates, off week, over weeks).
 
 ## Rate history
