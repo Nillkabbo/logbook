@@ -20,6 +20,8 @@ verify screen wiring only tests can't. If only three minutes exist, do these.
 7. [ ] **Bangla** — switch language: new labels present, dates keep Latin digits
 8. [ ] **Import round-trip** — Export all → Clear all data → Import: sessions keep their checkouts, check-in button available
 9. [ ] **Categories** — Settings → Categories: add "Client call" → it appears in the session sheet chips and Logs filter immediately; rename a seeded category → Insights and Logs follow; remove one → confirm → its sessions turn uncategorised with hours intact
+10. [ ] **Keyboard sweep** (architecture round 2) — open any Settings input (e.g. weekly target): it scrolls into view and Save works with the keyboard up; the category picker's input rides above the keyboard; the session sheet's Save clears the home-indicator area on notched phones
+11. [ ] **Setup on a small screen** — if a smaller device/emulator is handy: setup's four questions scroll from the top, Start reachable (was center-clipped before the fix)
 
 ---
 Data screen → Load 1 year (seeds $28→$30→$32.50 rates, off week, over weeks).
