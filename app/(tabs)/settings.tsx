@@ -23,7 +23,7 @@ export default function SettingsScreen() {
   const theme = useTheme();
   const hour12 = useHour12();
   const { t, locale, weekdayShortName } = useI18n();
-  const { refresh, settings, saveSettings, blocks, rateHistory, addRateChange, removeRate } = useLogbook();
+  const { refresh, settings, saveSettings, blocks, rateHistory, addRateChange, removeRate, setCurrentRate } = useLogbook();
   const [showAddRate, setShowAddRate] = useState(false);
   const [newRateValue, setNewRateValue] = useState('');
   const [newRateDate, setNewRateDate] = useState(() => new Date());
@@ -41,8 +41,10 @@ export default function SettingsScreen() {
   const rate = useValidatedHours(
     settings.hourlyRate > 0 ? String(settings.hourlyRate) : '',
     validateHourlyRate,
-    useCallback((value: number) => saveSettings({ hourlyRate: value }), [saveSettings]),
-    0, // empty input commits as unset
+    // The "current rate" input is a rate change effective today — it writes to
+    // the history, not the flat field, so earnings follow immediately.
+    useCallback((value: number) => setCurrentRate(value), [setCurrentRate]),
+    0, // empty input commits as unset (clears every rate record)
   );
 
   useFocusEffect(

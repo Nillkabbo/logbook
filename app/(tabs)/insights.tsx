@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useLogbook } from '@/hooks/useLogbook';
+import { formatMoney } from '@/engine/money';
 import { categoryTrends, insightsModel, yearlyHeatmap } from '@/engine/insights';
 import { YearHeatmap } from '@/components/YearHeatmap';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
@@ -14,7 +15,7 @@ export default function InsightsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale } = useI18n();
-  const { refresh, sessions, settings, now } = useLogbook();
+  const { refresh, sessions, settings, now, rateHistory } = useLogbook();
 
   useFocusEffect(
     useCallback(() => {
@@ -22,7 +23,7 @@ export default function InsightsScreen() {
     }, [refresh]),
   );
 
-  const m = insightsModel(sessions, settings, now, locale);
+  const m = insightsModel(sessions, settings, now, locale, rateHistory);
   const heatmapDays = yearlyHeatmap(sessions, now);
   const catTrends = categoryTrends(sessions, now, locale);
   const weekdayName = (day: number) =>
@@ -50,9 +51,7 @@ export default function InsightsScreen() {
         <View style={[styles.periodStrip, { backgroundColor: theme.inset }]}>
           <Text style={[styles.periodText, { color: theme.muted }]}>
             {m.totalSessions} {t('sessions')} · {m.totalHoursLabel}
-            {settings.hourlyRate > 0 && m.totalHours > 0
-              ? ` · $${((m.totalHours) * settings.hourlyRate).toFixed(0)}`
-              : ''}
+            {m.totalEarnings !== null ? ` · ${formatMoney(m.totalEarnings)}` : ''}
           </Text>
         </View>
 

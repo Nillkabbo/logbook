@@ -9,7 +9,8 @@ import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
 import { categorySuggestions, sumCompletedSessions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
-import { formatWeekShareText, logsModel, monthDayTotals, type LogDay, type LogWeek } from '@/engine/logs';
+import { formatWeekShareText, logsModel, monthDayEarnings, monthDayTotals, type LogDay, type LogWeek } from '@/engine/logs';
+import { formatMoney, sumEarnings } from '@/engine/money';
 import { sessionsToCsv } from '@/engine/csv';
 import { exportCsvViaShareSheet } from '@/export/csvExport';
 import type { Session } from '@/engine/types';
@@ -34,7 +35,7 @@ interface MonthGroup {
   weekCount: number;
 }
 
-function groupByMonth(weeks: LogWeek[], locale: string, hourlyRate: number): MonthGroup[] {
+function groupByMonth(weeks: LogWeek[], locale: string): MonthGroup[] {
   const groups = new Map<string, MonthGroup>();
   for (const week of weeks) {
     const monthStart = new Date(week.range.start.getFullYear(), week.range.start.getMonth(), 1);
@@ -52,9 +53,7 @@ function groupByMonth(weeks: LogWeek[], locale: string, hourlyRate: number): Mon
     }
     g.totalSeconds += week.totalSeconds;
     g.weekCount++;
-    if (week.earningsLabel) {
-      g.earnings += parseFloat(week.earningsLabel.replace(/[$,]/g, ''));
-    }
+    g.earnings += week.totalEarnings;
   }
   return [...groups.values()];
 }
@@ -178,8 +177,8 @@ export default function LogsScreen() {
   }, locale, rateHistory);
   const suggestions = categorySuggestions(sessions);
   const monthGroups = useMemo(
-    () => groupByMonth(weeks, locale, settings.hourlyRate),
-    [weeks, locale, settings.hourlyRate],
+    () => groupByMonth(weeks, locale),
+    [weeks, locale],
   );
   const rows = buildRows(weeks, isExpanded, monthGroups, isMonthExpanded);
   const hasActiveFilter =
@@ -187,9 +186,11 @@ export default function LogsScreen() {
 
   // Grand total for the summary strip when no filter is active
   const grandTotalSeconds = useMemo(() => sumCompletedSessions(dayFiltered), [dayFiltered]);
-  const grandEarnings = settings.hourlyRate > 0
-    ? `$${((grandTotalSeconds / 3600) * settings.hourlyRate).toFixed(0)}`
-    : null;
+  const grandEarningsValue = useMemo(
+    () => sumEarnings(dayFiltered, rateHistory),
+    [dayFiltered, rateHistory],
+  );
+  const grandEarnings = grandEarningsValue > 0 ? formatMoney(grandEarningsValue) : null;
   const formatSecs = (secs: number) => {
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
@@ -198,6 +199,7 @@ export default function LogsScreen() {
 
   // Calendar data
   const dayTotals = monthDayTotals(sessions, calMonth.getFullYear(), calMonth.getMonth());
+  const dayEarnings = monthDayEarnings(sessions, calMonth.getFullYear(), calMonth.getMonth(), rateHistory);
 
   // Category distribution (stacked bar)
   const totalFilteredSeconds = sumCompletedSessions(dayFiltered);
@@ -417,7 +419,7 @@ export default function LogsScreen() {
             year={calMonth.getFullYear()}
             month={calMonth.getMonth()}
             dayTotals={dayTotals}
-            hourlyRate={settings.hourlyRate}
+            dayEarnings={dayEarnings}
             selectedDay={
               selectedDay !== null && selectedDay.startsWith(
                 `${calMonth.getFullYear()}-${String(calMonth.getMonth() + 1).padStart(2, '0')}`

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { logsModel } from './logs';
+import { logsModel, monthDayEarnings } from './logs';
 import { DEFAULT_SETTINGS, type Session } from './types';
 
 const RATE_30 = [{ id: 1, rate: 30, effectiveFrom: new Date(2000, 0, 1) }];
@@ -255,15 +255,39 @@ describe('logsModel filtered summary', () => {
   });
 
   it('counts sessions, total, and earnings for the filtered set', () => {
-    const r = logsModel([a, b], THURSDAY, now, { category: 'Deep work' });
+    const RATE_30 = [{ id: 1, rate: 30, effectiveFrom: new Date(2000, 0, 1) }];
+    const r = logsModel([a, b], THURSDAY, now, { category: 'Deep work' }, 'en-US', RATE_30);
     expect(r.summary?.sessionCount).toBe(2);
     expect(r.summary?.totalLabel).toBe('5:00');
     expect(r.summary?.earningsLabel).toBe('$150.00');
   });
 
   it('earnings null when no rate', () => {
-    const noRate = { ...THURSDAY, hourlyRate: 0 };
-    const r = logsModel([a, b], noRate, now, { category: 'Deep work' });
+    const r = logsModel([a, b], THURSDAY, now, { category: 'Deep work' });
     expect(r.summary?.earningsLabel).toBeNull();
+  });
+});
+
+describe('monthDayEarnings', () => {
+  it('sums per-day earnings at each session\'s own rate', () => {
+    const sessions = [
+      session(1, at(2026, 7, 10, 9, 0), at(2026, 7, 10, 13, 0)), // 4h at $25 → $100
+      session(2, at(2026, 7, 10, 14, 0), at(2026, 7, 10, 15, 0)), // 1h at $25 → $25
+      session(3, at(2026, 7, 20, 9, 0), at(2026, 7, 20, 11, 0)), // 2h at $30 → $60, other day
+      session(4, at(2026, 6, 5, 9, 0), at(2026, 6, 5, 10, 0)), // July session — excluded
+    ];
+    const history = [
+      { id: 1, rate: 25, effectiveFrom: at(2026, 0, 1, 0, 0) },
+      { id: 2, rate: 30, effectiveFrom: at(2026, 7, 11, 0, 0) },
+    ];
+    const earnings = monthDayEarnings(sessions, 2026, 7, history);
+    expect(earnings.get(10)).toBe(125); // both Aug 10 sessions at $25 (change lands Aug 11)
+    expect(earnings.get(20)).toBe(60);
+    expect(earnings.has(5)).toBe(false);
+  });
+
+  it('empty map when no rate covers any session', () => {
+    const sessions = [session(1, at(2026, 7, 10, 9, 0), at(2026, 7, 10, 13, 0))];
+    expect(monthDayEarnings(sessions, 2026, 7, []).size).toBe(0);
   });
 });

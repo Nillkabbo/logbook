@@ -96,3 +96,35 @@ describe('insightsModel', () => {
     expect(m.averageSessionLabel).toBe('1:30');
   });
 });
+
+describe('insightsModel earnings', () => {
+  const NOW = at(2026, 7, 28, 15, 0); // Friday Aug 28 2026
+  // 2h in May (rate $25) + 3h in August (rate $30)
+  const sessions = [
+    session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0)),
+    session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0)),
+  ];
+  const history = [
+    { id: 1, rate: 25, effectiveFrom: at(2026, 0, 1, 0, 0) },
+    { id: 2, rate: 30, effectiveFrom: at(2026, 6, 1, 0, 0) },
+  ];
+
+  it('totalEarnings sums each session at its own rate', () => {
+    const m = insightsModel(sessions, DEFAULT_SETTINGS, NOW, 'en-US', history);
+    expect(m.totalEarnings).toBe(50 + 90); // 2h×$25 + 3h×$30
+  });
+
+  it('monthlyTrends carry per-month earnings at the month\'s active rates', () => {
+    const m = insightsModel(sessions, DEFAULT_SETTINGS, NOW, 'en-US', history);
+    const may = m.monthlyTrends.find((mo) => mo.key === '2026-05');
+    const aug = m.monthlyTrends.find((mo) => mo.key === '2026-08');
+    expect(may?.earnings).toBe(50);
+    expect(aug?.earnings).toBe(90);
+  });
+
+  it('earnings stay null without rate history', () => {
+    const m = insightsModel(sessions, DEFAULT_SETTINGS, NOW);
+    expect(m.totalEarnings).toBeNull();
+    expect(m.monthlyTrends.every((mo) => mo.earnings === null)).toBe(true);
+  });
+});

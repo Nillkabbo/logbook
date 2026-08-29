@@ -1,5 +1,5 @@
 import { formatDuration } from './time';
-import { sessionEarnings, type RateRecord } from './money';
+import { formatMoney, sessionEarnings, sumEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import {
@@ -67,6 +67,8 @@ export interface LogWeek {
   overByLabel: string | null;
   /** Week earnings at the set rate; null when no rate is set. */
   earningsLabel: string | null;
+  /** Raw week earnings (per-session rates summed) — month totals sum this. */
+  totalEarnings: number;
   /** True when this week is marked Off — target judgment suspended. */
   off: boolean;
   /** Total completed seconds this week — month totals compute from this. */
@@ -130,10 +132,10 @@ export function logsModel(
     ? {
         sessionCount: effective.length,
         totalLabel: formatDuration(sumCompletedSessions(effective)),
-        earningsLabel:
-          settings.hourlyRate > 0
-            ? `$${((sumCompletedSessions(effective) / 3600) * settings.hourlyRate).toFixed(2)}`
-            : null,
+        earningsLabel: (() => {
+          const earned = sumEarnings(effective, rateHistory);
+          return earned > 0 ? formatMoney(earned) : null;
+        })(),
       }
     : null;
   const byWeek = new Map<number, { range: WeekRange; sessions: Session[] }>();
@@ -155,16 +157,7 @@ export function logsModel(
     const totalSeconds = sumCompletedSessions(sessions);
     const off = settings.offWeeks.includes(weekKey(range.start));
     // Per-session earnings: each session uses the rate at its check-in date
-    const weekEarnings = sessions
-      .filter((s) => s.checkOut !== null)
-      .reduce((sum, s) => {
-        const e = sessionEarnings(
-          (s.checkOut!.getTime() - s.checkIn.getTime()) / 1000,
-          s.checkIn,
-          rateHistory,
-        );
-        return sum + (e ?? 0);
-      }, 0);
+    const weekEarnings = sumEarnings(sessions, rateHistory);
     const summary = weekSummary(totalSeconds, targetSeconds, off, weekEarnings > 0 ? weekEarnings : null);
 
     const byCategory = new Map<string, number>();
@@ -244,6 +237,7 @@ export function logsModel(
       defaultExpanded: range.start.getTime() === currentWeekStart || summary.overTarget,
       isCurrent: range.start.getTime() === currentWeekStart,
       earningsLabel: summary.earningsLabel,
+      totalEarnings: weekEarnings,
       categoryBreakdown,
     };
   });
@@ -270,6 +264,33 @@ export function monthDayTotals(
     totals.set(day, (totals.get(day) ?? 0) + sessionDurationSeconds(session));
   }
   return totals;
+}
+
+/** Day-of-month → earnings at each session's own rate, for the calendar cells. */
+export function monthDayEarnings(
+  sessions: Session[],
+  year: number,
+  month: number, // 0-based, matching Date
+  rateHistory: RateRecord[],
+): Map<number, number> {
+  const earnings = new Map<number, number>();
+  for (const session of sessions) {
+    if (
+      session.checkOut === null ||
+      session.checkIn.getFullYear() !== year ||
+      session.checkIn.getMonth() !== month
+    ) {
+      continue;
+    }
+    const day = session.checkIn.getDate();
+    const earned =
+      sessionEarnings(sessionDurationSeconds(session), session.checkIn, rateHistory) ?? 0;
+    // Days without a covering rate stay absent — the calendar hides money there.
+    if (earned > 0 || earnings.has(day)) {
+      earnings.set(day, (earnings.get(day) ?? 0) + earned);
+    }
+  }
+  return earnings;
 }
 
 /** A share-ready text summary of one week — formatted for messaging apps. */

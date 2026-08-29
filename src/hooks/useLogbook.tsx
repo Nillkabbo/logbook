@@ -62,10 +62,12 @@ interface Logbook {
   loadSampleData: (weeks?: number) => Promise<number>;
   /** Rate history, oldest first. */
   rateHistory: RateRecord[];
-  /** Adds a rate change (inserts to db; updates settings.hourlyRate if it's the latest). */
+  /** Adds a rate change (replaces any record with the same effective date). */
   addRateChange: (rate: number, effectiveFrom: Date) => Promise<void>;
   /** Removes a rate record. */
   removeRate: (id: number) => Promise<void>;
+  /** Sets the rate effective today; 0 clears every record (earnings hidden). */
+  setCurrentRate: (rate: number) => Promise<void>;
   /** Deletes all sessions, blocks, and settings (after confirmation). */
   clearAllData: () => Promise<void>;
 }
@@ -162,6 +164,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       }
       for (const block of await listBlocks()) {
         await deleteBlockInDb(block.id);
+      }
+      for (const record of await listRateHistory()) {
+        await deleteRate(record.id);
       }
 
       // Deterministic PRNG (Lehmer/Park-Miller)
@@ -290,6 +295,9 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     for (const block of await listBlocks()) {
       await deleteBlockInDb(block.id);
     }
+    for (const record of await listRateHistory()) {
+      await deleteRate(record.id);
+    }
     await updateSettingsInDb({
       hourlyRate: 0,
       lastExportAt: null,
@@ -394,13 +402,20 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   );
 
   const addRateChange = useCallback(async (rate: number, effectiveFrom: Date) => {
-    await insertRate(rate, effectiveFrom);
-    // Sync settings.hourlyRate if this is the latest rate
-    const all = await listRateHistory();
-    const latest = all[all.length - 1];
-    if (latest && latest.id === (await listRateHistory()).find((r) => r.rate === rate)?.id) {
-      await updateSettingsInDb({ hourlyRate: rate });
+    // One record per effective date — re-adding the same date replaces it.
+    const before = await listRateHistory();
+    for (const record of before) {
+      if (record.effectiveFrom.getTime() === effectiveFrom.getTime()) {
+        await deleteRate(record.id);
+      }
     }
+    await insertRate(rate, effectiveFrom);
+    // settings.hourlyRate mirrors the latest-effective record (ties → newest insert).
+    const after = await listRateHistory();
+    const latest = after.reduce((a, b) =>
+      b.effectiveFrom.getTime() >= a.effectiveFrom.getTime() ? b : a,
+    );
+    await updateSettingsInDb({ hourlyRate: latest.rate });
     await refresh();
   }, [refresh]);
 
@@ -411,6 +426,25 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
     await updateSettingsInDb({ hourlyRate: latest?.rate ?? 0 });
     await refresh();
   }, [refresh]);
+
+  /** Sets the rate effective today — the "current rate" input's commit path. */
+  const setCurrentRate = useCallback(
+    async (rate: number) => {
+      if (rate > 0) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        await addRateChange(rate, today);
+        return;
+      }
+      // Unset: clear every record so earnings hide everywhere (matches the old flat-unset).
+      for (const record of await listRateHistory()) {
+        await deleteRate(record.id);
+      }
+      await updateSettingsInDb({ hourlyRate: 0 });
+      await refresh();
+    },
+    [addRateChange, refresh],
+  );
 
   // Memoised: consumers depend on this identity for effects (focus refresh).
   const value = useMemo<Logbook>(
@@ -436,6 +470,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       rateHistory,
       addRateChange,
       removeRate,
+      setCurrentRate,
     }),
     [
       sessions,

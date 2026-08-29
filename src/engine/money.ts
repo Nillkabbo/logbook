@@ -39,3 +39,25 @@ export function sessionEarnings(
   if (rate === null || rate <= 0) return null;
   return (durationSeconds / 3600) * rate;
 }
+
+/**
+ * Total earnings over a batch of sessions, each at its own check-in-date rate.
+ * Running sessions (checkOut null) contribute nothing. 0 when no rate covers
+ * any session — callers treat 0 as "hide earnings".
+ */
+export function sumEarnings(
+  sessions: ReadonlyArray<{ checkIn: Date; checkOut: Date | null }>,
+  history: RateRecord[],
+): number {
+  let sum = 0;
+  for (const session of sessions) {
+    if (session.checkOut === null) continue;
+    const earned = sessionEarnings(
+      (session.checkOut.getTime() - session.checkIn.getTime()) / 1000,
+      session.checkIn,
+      history,
+    );
+    sum += earned ?? 0;
+  }
+  return sum;
+}

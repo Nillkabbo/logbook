@@ -1,4 +1,5 @@
 import { formatDuration } from './time';
+import { sumEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { weekRange } from './weeks';
@@ -65,6 +66,8 @@ export interface InsightsModel {
   totalSessions: number;
   totalHours: number;
   totalHoursLabel: string;
+  /** All-time earnings at each session's own rate; null when no rate covers any. */
+  totalEarnings: number | null;
 }
 
 function isSameLocalDay(a: Date, b: Date): boolean {
@@ -85,6 +88,7 @@ export function insightsModel(
   settings: Settings,
   now: Date,
   locale = 'en-US',
+  rateHistory: RateRecord[] = [],
 ): InsightsModel {
   const completed = sessions.filter((s) => s.checkOut !== null);
 
@@ -197,18 +201,21 @@ export function insightsModel(
   for (let i = 11; i >= 0; i--) {
     const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
-    const monthSeconds = sumCompletedSessions(
-      completed.filter(
-        (s) => s.checkIn.getTime() >= monthStart.getTime() && s.checkIn.getTime() < monthEnd.getTime(),
-      ),
+    const monthSessions = completed.filter(
+      (s) => s.checkIn.getTime() >= monthStart.getTime() && s.checkIn.getTime() < monthEnd.getTime(),
     );
+    const monthSeconds = sumCompletedSessions(monthSessions);
+    const monthEarnings = sumEarnings(monthSessions, rateHistory);
     monthlyTrends.push({
       key: `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}`,
       label: monthStart.toLocaleDateString(locale, { month: 'short' }),
       hours: monthSeconds / 3600,
-      earnings: settings.hourlyRate > 0 ? ((monthSeconds / 3600) * settings.hourlyRate) : null,
+      earnings: monthEarnings > 0 ? monthEarnings : null,
     });
   }
+
+  // ── All-time earnings, each session at its own rate ──
+  const allTimeEarnings = sumEarnings(completed, rateHistory);
 
   return {
     monthlyTrends,
@@ -236,6 +243,7 @@ export function insightsModel(
     totalSessions: completed.length,
     totalHours: totalSeconds / 3600,
     totalHoursLabel: formatDuration(Math.round(totalSeconds)),
+    totalEarnings: allTimeEarnings > 0 ? allTimeEarnings : null,
   };
 }
 

@@ -10,20 +10,20 @@ export function CalendarView({
   year,
   month,
   dayTotals,
+  dayEarnings,
   selectedDay,
   onDayPress,
   onMonthChange,
-  hourlyRate = 0,
 }: {
   year: number;
   month: number;
   /** Day-of-month → completed seconds. */
   dayTotals: Map<number, number>;
+  /** Day-of-month → earnings at each session's own rate; empty hides all money. */
+  dayEarnings: Map<number, number>;
   selectedDay: number | null;
   onDayPress: (day: number | null) => void;
   onMonthChange: (delta: number) => void;
-  /** When > 0, cells show per-day earnings. */
-  hourlyRate?: number;
 }) {
   const theme = useTheme();
   const { locale } = useI18n();
@@ -36,6 +36,7 @@ export function CalendarView({
   const busiest = Math.max(0, ...dayTotals.values());
 
   const monthSeconds = [...dayTotals.values()].reduce((sum, s) => sum + s, 0);
+  const monthEarned = [...dayEarnings.values()].reduce((sum, e) => sum + e, 0);
   const monthName = new Date(year, month, 1).toLocaleDateString(locale, {
     month: 'long',
     year: 'numeric',
@@ -54,9 +55,8 @@ export function CalendarView({
     const intensity = busiest === 0 ? 0 : seconds / busiest;
     const isSelected = selectedDay === day;
     const isToday = isCurrentMonth && day === today;
-    const earnings = hourlyRate > 0 && seconds > 0
-      ? formatMoney((seconds / 3600) * hourlyRate)
-      : null;
+    const earned = dayEarnings.get(day) ?? 0;
+    const earnings = earned > 0 ? formatMoney(earned) : null;
 
     const bg = isSelected
       ? theme.accent
@@ -107,7 +107,7 @@ export function CalendarView({
           {monthSeconds > 0 && (
             <Text style={[styles.monthTotal, { color: theme.muted }]}>
               {formatDuration(monthSeconds)}
-              {hourlyRate > 0 ? ` · ${formatMoney((monthSeconds / 3600) * hourlyRate)}` : ''}
+              {monthEarned > 0 ? ` · ${formatMoney(monthEarned)}` : ''}
             </Text>
           )}
         </View>
