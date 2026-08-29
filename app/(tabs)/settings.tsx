@@ -89,6 +89,8 @@ export default function SettingsScreen() {
     <View style={{ flex: 1, backgroundColor: theme.canvas, paddingTop: insets.top + 12 }}>
     <ScrollView
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
       contentContainerStyle={styles.container}>
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('week')}</Text>
       <View style={[styles.card, cardStyle(theme)]}>

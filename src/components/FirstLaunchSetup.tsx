@@ -64,6 +64,7 @@ export function FirstLaunchSetup() {
       <ScrollView
         style={{ backgroundColor: theme.canvas }}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
         contentContainerStyle={[styles.container, { paddingBottom: 48 }]}>
         <Text style={[styles.title, { color: theme.text }]}>{t('welcome')}</Text>
         <Text style={[styles.intro, { color: theme.muted }]}>
