@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useState } from 'react';
-import { FlatList, Modal, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, Modal, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
@@ -10,6 +10,8 @@ import { useLogbook } from '@/hooks/useLogbook';
 import { categorySuggestions, sumCompletedSessions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
 import { formatWeekShareText, logsModel, monthDayTotals, type LogDay, type LogWeek } from '@/engine/logs';
+import { sessionsToCsv } from '@/engine/csv';
+import { exportCsvViaShareSheet } from '@/export/csvExport';
 import type { Session } from '@/engine/types';
 import { CalendarView } from '@/components/CalendarView';
 import { ChipRow } from '@/components/ChipRow';
@@ -356,6 +358,20 @@ export default function LogsScreen() {
             style={[styles.toolbarButton, { backgroundColor: calendarOpen || selectedDay ? theme.accent : theme.inset }]}
             onPress={() => setCalendarOpen((prev) => !prev)}>
             <Text style={{ fontSize: 16 }}>{selectedDay ? '●' : '📅'}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('exportFiltered', { n: dayFiltered.length })}
+            android_ripple={{ color: theme.muted, borderless: true, radius: 18 }}
+            hitSlop={8}
+            style={[styles.toolbarButton, { backgroundColor: theme.inset }]}
+            onPress={async () => {
+              const shared = await exportCsvViaShareSheet(sessionsToCsv(dayFiltered));
+              if (!shared) {
+                Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
+              }
+            }}>
+            <Text style={{ fontSize: 16 }}>⬇</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"

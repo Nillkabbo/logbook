@@ -4,7 +4,8 @@ import { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useLogbook } from '@/hooks/useLogbook';
-import { insightsModel } from '@/engine/insights';
+import { insightsModel, yearlyHeatmap } from '@/engine/insights';
+import { YearHeatmap } from '@/components/YearHeatmap';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
 import { useI18n } from '@/ui/i18n';
 
@@ -22,6 +23,7 @@ export default function InsightsScreen() {
   );
 
   const m = insightsModel(sessions, settings, now, locale);
+  const heatmapDays = yearlyHeatmap(sessions, now);
   const weekdayName = (day: number) =>
     new Date(2026, 0, 4 + day).toLocaleDateString(locale, { weekday: 'short' });
   const maxWeekdayHours = Math.max(...m.weekdayHours.map((w) => w.hours), 0.1);
@@ -166,6 +168,11 @@ export default function InsightsScreen() {
               );
             })}
           </View>
+        </View>
+
+        {/* Yearly heatmap */}
+        <View style={[styles.card, cardStyle(theme)]}>
+          <YearHeatmap days={heatmapDays} year={now.getFullYear()} />
         </View>
 
         {/* Streaks */}

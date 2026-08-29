@@ -238,3 +238,28 @@ export function insightsModel(
     totalHoursLabel: formatDuration(Math.round(totalSeconds)),
   };
 }
+
+/** Day-level intensity for the yearly heatmap: one entry per day with data. */
+export interface HeatmapDay {
+  /** ISO date key: YYYY-MM-DD */
+  key: string;
+  /** Hours worked that day. */
+  hours: number;
+}
+
+/** Computes day-level totals for the last 12 months, for the yearly heatmap. */
+export function yearlyHeatmap(sessions: Session[], now: Date): HeatmapDay[] {
+  const completed = sessions.filter((s) => s.checkOut !== null);
+  const daySeconds = new Map<string, number>();
+  const yearAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+
+  for (const s of completed) {
+    if (s.checkIn.getTime() < yearAgo.getTime()) continue;
+    const key = `${s.checkIn.getFullYear()}-${String(s.checkIn.getMonth() + 1).padStart(2, '0')}-${String(s.checkIn.getDate()).padStart(2, '0')}`;
+    daySeconds.set(key, (daySeconds.get(key) ?? 0) + sessionDurationSeconds(s));
+  }
+
+  return [...daySeconds.entries()]
+    .map(([key, sec]) => ({ key, hours: sec / 3600 }))
+    .sort((a, b) => a.key.localeCompare(b.key));
+}
