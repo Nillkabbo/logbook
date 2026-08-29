@@ -1,6 +1,6 @@
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Modal, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SessionDetailSheet } from '@/components/SessionDetailSheet';
@@ -25,7 +25,7 @@ type Row =
   | { kind: 'session'; key: string; session: Session }
   | { kind: 'collapsed'; key: string; week: LogWeek };
 
-/** Groups weeks by calendar month and computes month totals. */
+/** Groups weeks by calendar month and computes month totals from real seconds. */
 interface MonthGroup {
   key: string;
   label: string;
@@ -50,9 +50,7 @@ function groupByMonth(weeks: LogWeek[], locale: string, hourlyRate: number): Mon
       };
       groups.set(key, g);
     }
-    // Parse the total back from the label (H:MM format)
-    const [h, m] = week.totalLabel.split(':').map(Number);
-    g.totalSeconds += (h || 0) * 3600 + (m || 0) * 60;
+    g.totalSeconds += week.totalSeconds;
     g.weekCount++;
     if (week.earningsLabel) {
       g.earnings += parseFloat(week.earningsLabel.replace(/[$,]/g, ''));
@@ -117,12 +115,22 @@ export default function LogsScreen() {
   const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings } =
     useLogbook();
 
-  const toggleOff = (key: string) =>
-    saveSettings({
-      offWeeks: settings.offWeeks.includes(key)
-        ? settings.offWeeks.filter((k) => k !== key)
-        : [...settings.offWeeks, key],
-    });
+  const toggleOff = (key: string, currentlyOff: boolean) => {
+    const doToggle = () =>
+      saveSettings({
+        offWeeks: currentlyOff
+          ? settings.offWeeks.filter((k) => k !== key)
+          : [...settings.offWeeks, key],
+      });
+    if (currentlyOff) {
+      doToggle(); // marking on is safe — no confirmation needed
+      return;
+    }
+    Alert.alert(t('markOff'), t('markOffConfirm'), [
+      { text: t('cancel'), style: 'cancel' },
+      { text: t('markOff'), style: 'destructive', onPress: doToggle },
+    ]);
+  };
   const [selected, setSelected] = useState<Session | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'all'>('all');
@@ -169,10 +177,24 @@ export default function LogsScreen() {
     query: query.trim().length > 0 ? query : undefined,
   }, locale);
   const suggestions = categorySuggestions(sessions);
-  const monthGroups = groupByMonth(weeks, locale, settings.hourlyRate);
+  const monthGroups = useMemo(
+    () => groupByMonth(weeks, locale, settings.hourlyRate),
+    [weeks, locale, settings.hourlyRate],
+  );
   const rows = buildRows(weeks, isExpanded, monthGroups, isMonthExpanded);
   const hasActiveFilter =
     categoryFilter !== null || dateRange !== 'all' || query.trim().length > 0 || selectedDay !== null;
+
+  // Grand total for the summary strip when no filter is active
+  const grandTotalSeconds = useMemo(() => sumCompletedSessions(dayFiltered), [dayFiltered]);
+  const grandEarnings = settings.hourlyRate > 0
+    ? `$${((grandTotalSeconds / 3600) * settings.hourlyRate).toFixed(0)}`
+    : null;
+  const formatSecs = (secs: number) => {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    return `${h}:${String(m).padStart(2, '0')}`;
+  };
 
   // Calendar data
   const dayTotals = monthDayTotals(sessions, calMonth.getFullYear(), calMonth.getMonth());
@@ -212,7 +234,7 @@ export default function LogsScreen() {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
           accessibilityLabel={week.off ? t('markOn') : t('markOff')}
-          onPress={() => toggleOff(week.key)}>
+          onPress={() => toggleOff(week.key, week.off)}>
           <Text style={[styles.offToggle, { color: theme.muted }]}>
             {week.off ? t('markOn') : t('markOff')}
           </Text>
@@ -416,28 +438,43 @@ export default function LogsScreen() {
             }
           />
         )}
-        <View style={styles.dateRangeRow}>
-          {(['week', 'month', 'all'] as const).map((range) => (
-            <Pressable
-              key={range}
-              accessibilityRole="button"
-              accessibilityState={{ selected: dateRange === range }}
-              android_ripple={{ color: theme.muted, borderless: false }}
-              style={[
-                styles.dateRangeChip,
-                { backgroundColor: dateRange === range ? theme.text : theme.inset },
-              ]}
-              onPress={() => setDateRange(range)}>
-              <Text
+        {selectedDay !== null ? (
+          <Pressable
+            accessibilityRole="button"
+            style={[styles.dayChip, { backgroundColor: theme.accent }]}
+            onPress={() => setSelectedDay(null)}>
+            <Text style={[styles.dayChipText, { color: theme.onAccent }]}>
+              {new Date(
+                parseInt(selectedDay.slice(0, 4), 10),
+                parseInt(selectedDay.slice(5, 7), 10) - 1,
+                parseInt(selectedDay.slice(8, 10), 10),
+              ).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' })} ✕
+            </Text>
+          </Pressable>
+        ) : (
+          <View style={styles.dateRangeRow}>
+            {(['week', 'month', 'all'] as const).map((range) => (
+              <Pressable
+                key={range}
+                accessibilityRole="button"
+                accessibilityState={{ selected: dateRange === range }}
+                android_ripple={{ color: theme.muted, borderless: false }}
                 style={[
-                  styles.dateRangeText,
-                  { color: dateRange === range ? theme.surface : theme.text },
-                ]}>
-                {range === 'week' ? t('thisWeek') : range === 'month' ? t('month') : t('all')}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+                  styles.dateRangeChip,
+                  { backgroundColor: dateRange === range ? theme.text : theme.inset },
+                ]}
+                onPress={() => setDateRange(range)}>
+                <Text
+                  style={[
+                    styles.dateRangeText,
+                    { color: dateRange === range ? theme.surface : theme.text },
+                  ]}>
+                  {range === 'week' ? t('thisWeek') : range === 'month' ? t('month') : t('all')}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
         <TextInput
           style={[styles.searchInput, { color: theme.text, backgroundColor: theme.inset }]}
           value={query}
@@ -447,14 +484,13 @@ export default function LogsScreen() {
           autoCapitalize="none"
           autoCorrect={false}
         />
-        {hasActiveFilter && summary && (
-          <View style={[styles.summaryStrip, { backgroundColor: theme.inset }]}>
-            <Text style={[styles.summaryText, { color: theme.muted }]}>
-              {t('nSessions', { n: summary.sessionCount })} · {summary.totalLabel}
-              {summary.earningsLabel ? ` · ${summary.earningsLabel}` : ''}
-            </Text>
-          </View>
-        )}
+        <View style={[styles.summaryStrip, { backgroundColor: theme.inset }]}>
+          <Text style={[styles.summaryText, { color: theme.muted }]}>
+            {hasActiveFilter && summary
+              ? `${t('nSessions', { n: summary.sessionCount })} · ${summary.totalLabel}${summary.earningsLabel ? ` · ${summary.earningsLabel}` : ''}`
+              : `${t('nSessions', { n: dayFiltered.filter((x) => x.checkOut !== null).length })} · ${formatSecs(grandTotalSeconds)}${grandEarnings ? ` · ${grandEarnings}` : ''}`}
+          </Text>
+        </View>
         {totalFilteredSeconds > 0 && categoryShares.size > 1 && (
           <View style={styles.categoryBar}>
             {[...categoryShares.entries()]
@@ -651,6 +687,15 @@ const styles = StyleSheet.create({
   dateRangeRow: {
     flexDirection: 'row',
     gap: 8,
+  },
+  dayChip: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  dayChipText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   dateRangeChip: {
     flex: 1,

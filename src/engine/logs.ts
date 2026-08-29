@@ -68,6 +68,8 @@ export interface LogWeek {
   earningsLabel: string | null;
   /** True when this week is marked Off — target judgment suspended. */
   off: boolean;
+  /** Total completed seconds this week — month totals compute from this. */
+  totalSeconds: number;
   /** Whether this week first renders expanded: the current week and over-target weeks demand attention; the rest start collapsed. */
   defaultExpanded: boolean;
   /** True for the week that contains `now`. */
@@ -225,6 +227,7 @@ export function logsModel(
       overTarget: summary.overTarget,
       overByLabel: summary.overByLabel,
       off,
+      totalSeconds,
       defaultExpanded: range.start.getTime() === currentWeekStart || summary.overTarget,
       isCurrent: range.start.getTime() === currentWeekStart,
       earningsLabel: summary.earningsLabel,
