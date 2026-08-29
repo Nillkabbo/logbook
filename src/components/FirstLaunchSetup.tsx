@@ -5,21 +5,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
-import { validateWeeklyTarget } from '@/engine/validation';
+import { validateHourlyRate, validateWeeklyTarget } from '@/engine/validation';
 import type { Weekday } from '@/engine/types';
 import { RADIUS, useTheme } from '@/theme';
 import { useI18n, type StringKey } from '@/ui/i18n';
 
 /**
- * One-time setup shown on first launch: week-start day + weekly target.
- * Skippable — defaults (Sunday, 40h) apply and everything is changeable in Settings.
+ * One-time setup shown on first launch: week-start day + weekly target +
+ * optional hourly rate. Skippable — defaults (Sunday, 40h, no rate) apply and
+ * everything is changeable in Settings.
  */
 export function FirstLaunchSetup() {
   const theme = useTheme();
   const { t } = useI18n();
-  const { ready, settings, saveSettings } = useLogbook();
+  const { ready, settings, saveSettings, setCurrentRate } = useLogbook();
   const [weekStartDay, setWeekStartDay] = useState<Weekday>(0);
   const target = useValidatedHours('40', validateWeeklyTarget);
+  // Empty commits as 0 = unset; a value becomes a rate record effective today.
+  const rate = useValidatedHours('', validateHourlyRate, undefined, 0);
   const [busy, setBusy] = useState(false);
 
   // Don't flash the modal before settings have loaded.
@@ -37,7 +40,10 @@ export function FirstLaunchSetup() {
   const start = async () => {
     const hours = target.commitNow();
     if (hours === null) return;
+    const rateValue = rate.commitNow();
+    if (rateValue === null) return;
     await finish({ weekStartDay, weeklyTargetHours: hours });
+    if (rateValue > 0) await setCurrentRate(rateValue);
   };
 
   return (
@@ -65,6 +71,17 @@ export function FirstLaunchSetup() {
           placeholderTextColor={theme.muted}
         />
         {target.error && <Text style={[styles.error, { color: theme.stop }]}>{t(target.error as StringKey)}</Text>}
+
+        <Text style={[styles.label, { color: theme.muted }]}>{t('hourlyRate')}</Text>
+        <TextInput
+          style={[styles.input, { color: theme.text, backgroundColor: theme.inset }]}
+          value={rate.value}
+          onChangeText={rate.onChangeText}
+          keyboardType="decimal-pad"
+          placeholder="0.00"
+          placeholderTextColor={theme.muted}
+        />
+        {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
 
         <Pressable
           style={[styles.primaryButton, { backgroundColor: theme.accent }, busy && styles.buttonDisabled]}
