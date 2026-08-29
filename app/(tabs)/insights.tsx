@@ -188,7 +188,7 @@ export default function InsightsScreen() {
         {m.payPeriods && m.payPeriods.some((p) => p.earnings > 0 || p.totalSeconds > 0) && (
           <View style={[styles.card, cardStyle(theme)]}>
             <Text style={[styles.cardTitle, { color: theme.text }]}>{t('earningsByPeriod')}</Text>
-            {m.payPeriods.slice(0, 6).map((p) => (
+            {m.payPeriods.map((p) => (
               <View key={p.key} style={styles.shareRow}>
                 <View
                   style={[styles.shareDot, { backgroundColor: p.isCurrent ? theme.accent : theme.inset }]}

@@ -235,7 +235,7 @@ describe('insightsModel payPeriods', () => {
     expect(m.payPeriods).toBeNull();
   });
 
-  it('delegates to periodsModel: 12 newest-first, one current, temporal earnings, running excluded', () => {
+  it('delegates to periodsModel: the 6 it shows, newest-first, one current, temporal earnings', () => {
     const m = insightsModel(
       [
         session(1, at(2026, 7, 21, 9, 0), at(2026, 7, 21, 13, 0)), // 4h × $25
@@ -248,7 +248,7 @@ describe('insightsModel payPeriods', () => {
       HISTORY,
     );
     const periods = m.payPeriods!;
-    expect(periods).toHaveLength(12);
+    expect(periods).toHaveLength(6); // the card's count — the engine no longer computes 12 to show 6
     expect(periods[0].isCurrent).toBe(true);
     expect(periods.filter((p) => p.isCurrent)).toHaveLength(1);
     expect(periods[0].earnings).toBe(4 * 25 + 4 * 30);

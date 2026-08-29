@@ -12,32 +12,30 @@ import { Appearance, Platform } from 'react-native';
 
 import {
   completeSession,
-  deleteSession as deleteSessionInDb,
-  withTransaction,
-  getSettings,
-  insertCompletedSession,
-  insertSession,
-  insertBlock,
   deleteBlock as deleteBlockInDb,
+  deleteRate,
+  deleteSession as deleteSessionInDb,
+  getSettings,
+  insertBlock,
+  insertCategory,
+  insertCompletedSession,
+  insertRate,
+  insertSession,
   listBlocks,
+  listCategories,
+  listRateHistory,
   listSessions,
+  removeCategoryEverywhere,
+  renameCategoryEverywhere,
   updateSession as updateSessionInDb,
   updateSettings as updateSettingsInDb,
+  withTransaction,
 } from '@/db/database';
 import { syncNotifications } from '@/notifications/reminders';
 import { deleteEvent, editEvent, reminderDecision, type ReminderEvent } from '@/engine/reminders';
 import type { WorkBlock } from '@/engine/schedule';
 import { currentRate, type RateRecord } from '@/engine/money';
 import { categoryNameConflicts } from '@/engine/sessions';
-import {
-  insertCategory,
-  listCategories,
-  listRateHistory,
-  insertRate,
-  deleteRate,
-  removeCategoryEverywhere,
-  renameCategoryEverywhere,
-} from '@/db/database';
 import { parseSessionsCsv, type CsvImportResult } from '@/engine/csv';
 import { exportSessionsCsv } from '@/export/csvExport';
 import type { Session, SessionPatch, Settings, Weekday } from '@/engine/types';

@@ -50,6 +50,22 @@ export function payPeriodActive(settings: Settings): boolean {
   return false;
 }
 
+/**
+ * The one settings→range seam: the pay period containing `now`, with the
+ * anchor-fallback policy (unparseable anchor → today) in one place. Null when
+ * inactive. Every consumer — periodsModel, currentPeriod, the Logs 'period'
+ * filter — asks this instead of re-deriving it.
+ */
+export function resolveCurrentPeriodRange(
+  settings: Settings,
+  now: Date,
+): { type: ConfiguredPayPeriod; range: WeekRange } | null {
+  if (!payPeriodActive(settings)) return null;
+  const type = settings.payPeriodType as ConfiguredPayPeriod;
+  const anchor = parseLocalDayKey(settings.payPeriodAnchor ?? '') ?? now;
+  return { type, range: periodRange(now, type, anchor, settings.weekStartDay) };
+}
+
 /** The week-start key a fresh biweekly config anchors to: the most recent week-start. */
 export function defaultPayPeriodAnchor(weekStartDay: Weekday, now: Date): string {
   return localDayKey(weekRange(now, weekStartDay).start);
@@ -102,15 +118,16 @@ export function periodsModel(
   now: Date,
   locale = 'en-US',
   rateHistory: RateRecord[] = [],
+  /** How many periods to list, newest first. Screens pass what they show. */
+  count: number = PERIODS_SHOWN,
 ): PeriodsModel {
-  if (!payPeriodActive(settings)) {
+  const resolved = resolveCurrentPeriodRange(settings, now);
+  if (resolved === null) {
     return { periods: [], current: null };
   }
-  const type = settings.payPeriodType as ConfiguredPayPeriod;
-  const anchor = parseLocalDayKey(settings.payPeriodAnchor ?? '') ?? now;
-  const currentRange = periodRange(now, type, anchor, settings.weekStartDay);
+  const { type, range: currentRange } = resolved;
   const periods: PeriodSummary[] = [];
-  for (let i = 0; i < PERIODS_SHOWN; i++) {
+  for (let i = 0; i < count; i++) {
     const start = new Date(currentRange.start);
     start.setDate(start.getDate() - i * (type === 'biweekly' ? 14 : 7));
     const end = new Date(start);
@@ -128,17 +145,9 @@ export function currentPeriod(
   locale = 'en-US',
   rateHistory: RateRecord[] = [],
 ): PeriodSummary | null {
-  if (!payPeriodActive(settings)) return null;
-  const type = settings.payPeriodType as ConfiguredPayPeriod;
-  const anchor = parseLocalDayKey(settings.payPeriodAnchor ?? '') ?? now;
-  return summarizePeriod(
-    periodRange(now, type, anchor, settings.weekStartDay),
-    sessions,
-    settings,
-    now,
-    locale,
-    rateHistory,
-  );
+  const resolved = resolveCurrentPeriodRange(settings, now);
+  if (resolved === null) return null;
+  return summarizePeriod(resolved.range, sessions, settings, now, locale, rateHistory);
 }
 
 function summarizePeriod(

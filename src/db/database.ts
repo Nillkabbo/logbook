@@ -7,6 +7,7 @@ import {
   type Settings,
   type Weekday,
 } from '@/engine/types';
+import type { RateRecord } from '@/engine/money';
 import type { WorkBlock } from '@/engine/schedule';
 
 /**
@@ -312,8 +313,6 @@ export async function removeCategoryEverywhere(name: string): Promise<void> {
     await db.runAsync("UPDATE sessions SET category = '' WHERE category = ?", name);
   });
 }
-
-import type { RateRecord } from '@/engine/money';
 
 interface RateRow {
   id: number;

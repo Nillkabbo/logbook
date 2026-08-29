@@ -279,7 +279,9 @@ export function insightsModel(
     totalHours: totalSeconds / 3600,
     totalHoursLabel: formatDuration(Math.round(totalSeconds)),
     totalEarnings: allTimeEarnings > 0 ? allTimeEarnings : null,
-    payPeriods: payPeriodActive(settings) ? periodsModel(sessions, settings, now, locale, rateHistory).periods : null,
+    payPeriods: payPeriodActive(settings)
+      ? periodsModel(sessions, settings, now, locale, rateHistory, 6).periods
+      : null,
   };
 }
 

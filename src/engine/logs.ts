@@ -1,11 +1,10 @@
-import { currentPeriod, payPeriodActive, periodRange, type PeriodSummary } from './periods';
+import { currentPeriod, resolveCurrentPeriodRange, type PeriodSummary } from './periods';
 import { formatDuration } from './time';
 import { formatMoney, sessionEarnings, sumEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import {
   localDayKey,
-  parseLocalDayKey,
   weekKey,
   weekRange,
   weekRangeLabel,
@@ -114,12 +113,14 @@ export function logsModel(
   } else if (filter?.dateRange === 'month') {
     const cutoff = now.getTime() - 30 * 24 * 3600 * 1000;
     effective = effective.filter((s) => s.checkIn.getTime() >= cutoff);
-  } else if (filter?.dateRange === 'period' && payPeriodActive(settings)) {
-    const anchor = parseLocalDayKey(settings.payPeriodAnchor ?? '') ?? now;
-    const period = periodRange(now, settings.payPeriodType as 'weekly' | 'biweekly', anchor, settings.weekStartDay);
-    effective = effective.filter(
-      (s) => s.checkIn.getTime() >= period.start.getTime() && s.checkIn.getTime() < period.end.getTime(),
-    );
+  } else if (filter?.dateRange === 'period') {
+    const resolved = resolveCurrentPeriodRange(settings, now); // null → no filtering
+    if (resolved !== null) {
+      const { range } = resolved;
+      effective = effective.filter(
+        (s) => s.checkIn.getTime() >= range.start.getTime() && s.checkIn.getTime() < range.end.getTime(),
+      );
+    }
   }
   if (filter?.query && filter.query.trim().length > 0) {
     const q = filter.query.trim().toLowerCase();
