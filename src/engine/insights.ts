@@ -263,3 +263,49 @@ export function yearlyHeatmap(sessions: Session[], now: Date): HeatmapDay[] {
     .map(([key, sec]) => ({ key, hours: sec / 3600 }))
     .sort((a, b) => a.key.localeCompare(b.key));
 }
+
+/** One month's category breakdown for the trends chart. */
+export interface MonthlyCategoryTrend {
+  key: string;
+  label: string;
+  totalHours: number;
+  categories: Array<{ label: string; hours: number }>;
+}
+
+/** Computes per-month category breakdowns for the last 12 months. */
+export function categoryTrends(
+  sessions: Session[],
+  now: Date,
+  locale = 'en-US',
+): MonthlyCategoryTrend[] {
+  const completed = sessions.filter((s) => s.checkOut !== null);
+  const trends: MonthlyCategoryTrend[] = [];
+
+  for (let i = 11; i >= 0; i--) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+    const monthSessions = completed.filter(
+      (s) => s.checkIn.getTime() >= monthStart.getTime() && s.checkIn.getTime() < monthEnd.getTime(),
+    );
+
+    const catHours = new Map<string, number>();
+    let totalHours = 0;
+    for (const s of monthSessions) {
+      const hours = sessionDurationSeconds(s) / 3600;
+      totalHours += hours;
+      const cat = s.category || '';
+      catHours.set(cat, (catHours.get(cat) ?? 0) + hours);
+    }
+
+    trends.push({
+      key: `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}`,
+      label: monthStart.toLocaleDateString(locale, { month: 'short' }),
+      totalHours,
+      categories: [...catHours.entries()]
+        .map(([label, hours]) => ({ label, hours }))
+        .sort((a, b) => b.hours - a.hours),
+    });
+  }
+
+  return trends;
+}

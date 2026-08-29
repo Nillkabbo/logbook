@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useLogbook } from '@/hooks/useLogbook';
-import { insightsModel, yearlyHeatmap } from '@/engine/insights';
+import { categoryTrends, insightsModel, yearlyHeatmap } from '@/engine/insights';
 import { YearHeatmap } from '@/components/YearHeatmap';
 import { cardStyle, RADIUS, useTheme } from '@/theme';
 import { useI18n } from '@/ui/i18n';
@@ -24,6 +24,7 @@ export default function InsightsScreen() {
 
   const m = insightsModel(sessions, settings, now, locale);
   const heatmapDays = yearlyHeatmap(sessions, now);
+  const catTrends = categoryTrends(sessions, now, locale);
   const weekdayName = (day: number) =>
     new Date(2026, 0, 4 + day).toLocaleDateString(locale, { weekday: 'short' });
   const maxWeekdayHours = Math.max(...m.weekdayHours.map((w) => w.hours), 0.1);
@@ -174,6 +175,45 @@ export default function InsightsScreen() {
         <View style={[styles.card, cardStyle(theme)]}>
           <YearHeatmap days={heatmapDays} year={now.getFullYear()} />
         </View>
+
+        {/* Category trends */}
+        {catTrends.some((ct) => ct.totalHours > 0) && (
+          <View style={[styles.card, cardStyle(theme)]}>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>{t('categoryTrends')}</Text>
+            <View style={styles.catTrendChart}>
+              {catTrends.map((ct) => {
+                const maxTotal = Math.max(...catTrends.map((x) => x.totalHours), 1);
+                const barHeight = Math.max(4, (ct.totalHours / maxTotal) * 56);
+                const isCurrent = ct.key === `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                return (
+                  <View key={ct.key} style={styles.trendCol}>
+                    <View style={[styles.catTrendBar, { height: barHeight }]}>
+                      {ct.categories.map((c, ci) => {
+                        const segHeight = ct.totalHours > 0
+                          ? (c.hours / ct.totalHours) * barHeight
+                          : 0;
+                        return (
+                          <View
+                            key={c.label || '__none__'}
+                            style={{
+                              height: Math.max(segHeight, c.hours > 0 ? 2 : 0),
+                              backgroundColor: c.label === ''
+                                ? theme.inset
+                                : WEEK_COLORS[ci % WEEK_COLORS.length],
+                            }}
+                          />
+                        );
+                      })}
+                    </View>
+                    <Text style={[styles.trendLabel, { color: isCurrent ? theme.accent : theme.muted }]}>
+                      {ct.label}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
 
         {/* Streaks */}
         <View style={styles.compareRow}>
@@ -331,5 +371,18 @@ const styles = StyleSheet.create({
   trendLabel: {
     fontSize: 9,
     fontWeight: '500',
+  },
+  catTrendChart: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'flex-end',
+    height: 80,
+    marginTop: 8,
+  },
+  catTrendBar: {
+    width: '100%',
+    borderRadius: 3,
+    overflow: 'hidden',
+    flexDirection: 'column-reverse',
   },
 });
