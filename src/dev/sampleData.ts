@@ -12,11 +12,14 @@ import {
   deleteRate,
   deleteSession as deleteSessionInDb,
   insertBlock,
+  insertCategory,
   insertRate,
+  listCategories,
   insertSession,
   listBlocks,
   listRateHistory,
   listSessions,
+  removeCategoryEverywhere,
   updateSettings as updateSettingsInDb,
 } from '@/db/database';
 
@@ -31,6 +34,9 @@ export async function loadSampleData(weeks = 8): Promise<number> {
     }
     for (const record of await listRateHistory()) {
       await deleteRate(record.id);
+    }
+    for (const name of await listCategories()) {
+      await removeCategoryEverywhere(name);
     }
 
     // Deterministic PRNG (Lehmer/Park-Miller)
@@ -58,6 +64,12 @@ export async function loadSampleData(weeks = 8): Promise<number> {
     await insertBlock([6], 600, 840); // Sat 10:00–14:00
 
     // ── Rate history: $28 from Jan, $30 from Apr, $32.50 from Aug ──
+    // ── Categories: the seeded labels are managed, so the manager is exercisable ──
+    await insertCategory('Deep work');
+    await insertCategory('Meetings');
+    await insertCategory('Admin');
+    await insertCategory('Writing');
+
     await insertRate(28, new Date(now.getFullYear(), 0, 1));
     await insertRate(30, new Date(now.getFullYear(), 3, 1));
     await insertRate(32.5, new Date(now.getFullYear(), 7, 1));
