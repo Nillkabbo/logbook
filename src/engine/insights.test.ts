@@ -128,3 +128,100 @@ describe('insightsModel earnings', () => {
     expect(m.monthlyTrends.every((mo) => mo.earnings === null)).toBe(true);
   });
 });
+
+describe('insightsModel categoryEarnings', () => {
+  const NOW = at(2026, 7, 28, 15, 0);
+  const HISTORY = [
+    { id: 1, rate: 25, effectiveFrom: at(2026, 0, 1, 0, 0) },
+    { id: 2, rate: 30, effectiveFrom: at(2026, 6, 1, 0, 0) },
+  ];
+
+  it('sums per category at each session\'s own rate, largest first', () => {
+    const m = insightsModel(
+      [
+        session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), 'Deep work'), // 2h × $25
+        session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0), 'Meetings'), // 3h × $30
+      ],
+      DEFAULT_SETTINGS,
+      NOW,
+      'en-US',
+      HISTORY,
+    );
+    expect(m.categoryEarnings.map((c) => [c.label, c.earnings])).toEqual([
+      ['Meetings', 90],
+      ['Deep work', 50],
+    ]);
+    expect(m.categoryEarnings[0].percentage).toBeCloseTo(64.2857, 3);
+  });
+
+  it('accumulates mixed rate eras inside one category', () => {
+    const m = insightsModel(
+      [
+        session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), 'Deep work'), // $50
+        session(2, at(2026, 7, 27, 9, 0), at(2026, 7, 27, 12, 0), 'Deep work'), // $90
+      ],
+      DEFAULT_SETTINGS,
+      NOW,
+      'en-US',
+      HISTORY,
+    );
+    expect(m.categoryEarnings).toHaveLength(1);
+    expect(m.categoryEarnings[0].earnings).toBe(140);
+    expect(m.categoryEarnings[0].percentage).toBe(100);
+  });
+
+  it('percentages are earnings-weighted, not hours-weighted', () => {
+    // 1h × $50 and 10h × $5 both earn $50 — hours-weighting would say 9/91.
+    const twoRates = [
+      { id: 1, rate: 50, effectiveFrom: at(2026, 0, 1, 0, 0) },
+      { id: 2, rate: 5, effectiveFrom: at(2026, 3, 1, 0, 0) },
+    ];
+    const m = insightsModel(
+      [
+        session(1, at(2026, 2, 12, 9, 0), at(2026, 2, 12, 10, 0), 'A'), // 1h × $50 = $50
+        session(2, at(2026, 4, 13, 9, 0), at(2026, 4, 13, 19, 0), 'B'), // 10h × $5 = $50
+      ],
+      DEFAULT_SETTINGS,
+      NOW,
+      'en-US',
+      twoRates,
+    );
+    expect(m.categoryEarnings.map((c) => c.earnings)).toEqual([50, 50]);
+    expect(m.categoryEarnings[0].percentage).toBeCloseTo(50, 5);
+    expect(m.categoryEarnings[1].percentage).toBeCloseTo(50, 5);
+  });
+
+  it('uncategorised sessions keep the empty label; running sessions are excluded', () => {
+    const running = { ...session(9, at(2026, 7, 28, 14, 0), at(2026, 7, 28, 15, 0)), checkOut: null as unknown as Date };
+    const m = insightsModel(
+      [session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0)), running],
+      DEFAULT_SETTINGS,
+      NOW,
+      'en-US',
+      HISTORY,
+    );
+    expect(m.categoryEarnings).toHaveLength(1);
+    expect(m.categoryEarnings[0].label).toBe('');
+    expect(m.categoryEarnings[0].earnings).toBe(50);
+  });
+
+  it('empty when no rate covers anything; uncovered categories are absent, not $0', () => {
+    const m = insightsModel(
+      [session(1, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), 'Deep work')],
+      DEFAULT_SETTINGS,
+      NOW,
+    );
+    expect(m.categoryEarnings).toEqual([]);
+    const late = insightsModel(
+      [
+        session(1, at(2025, 11, 31, 9, 0), at(2025, 11, 31, 10, 0), 'Old'), // before any rate
+        session(2, at(2026, 4, 12, 9, 0), at(2026, 4, 12, 11, 0), 'New'), // $50
+      ],
+      DEFAULT_SETTINGS,
+      NOW,
+      'en-US',
+      HISTORY,
+    );
+    expect(late.categoryEarnings.map((c) => c.label)).toEqual(['New']);
+  });
+});

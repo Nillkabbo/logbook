@@ -28,3 +28,18 @@ export function categorySuggestions(sessions: Session[], limit?: number): string
   }
   return limit === undefined ? ordered : ordered.slice(0, limit);
 }
+
+/** List id for a session that doesn't exist yet — quick-add drafts only, never persisted. */
+export const NEW_SESSION_ID = -1;
+
+/**
+ * Quick-add draft: the last hour, snapped to 15-minute marks. Never future,
+ * checkout always after check-in, seconds zeroed. The dominant quick-add is
+ * "forgot to clock in earlier today"; yesterday is a two-tap picker change.
+ */
+export function newSessionDraft(now: Date): Session {
+  const checkOut = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes());
+  checkOut.setMinutes(Math.floor(checkOut.getMinutes() / 15) * 15, 0, 0);
+  const checkIn = new Date(checkOut.getTime() - 60 * 60 * 1000);
+  return { id: NEW_SESSION_ID, checkIn, checkOut, note: '', category: '' };
+}

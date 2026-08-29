@@ -15,6 +15,7 @@ import {
   deleteSession as deleteSessionInDb,
   withTransaction,
   getSettings,
+  insertCompletedSession,
   insertSession,
   insertBlock,
   deleteBlock as deleteBlockInDb,
@@ -50,6 +51,8 @@ interface Logbook {
   checkOut: () => Promise<void>;
   saveSession: (id: number, patch: SessionPatch) => Promise<void>;
   removeSession: (id: number) => Promise<void>;
+  /** Quick-adds a past session ("forgot to clock in"); never fires a checked-in reminder. */
+  createSession: (patch: SessionPatch) => Promise<void>;
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
   /** Runs the CSV export and records the timestamp; false when sharing is unavailable. */
   exportBackup: () => Promise<boolean>;
@@ -307,13 +310,16 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const checkIn = useCallback(async () => {
+    // The app supports one running session — the UI disables the toggle, but
+    // the store is the invariant's last line of defense.
+    if (running) return;
     const checkInAt = new Date();
     await insertSession(checkInAt);
     await refresh();
     // Sync after refresh: the OS permission prompt must never delay the
     // button/timer flipping to the running state.
     await syncAfter({ type: 'checked-in', checkIn: checkInAt });
-  }, [refresh, syncAfter]);
+  }, [running, refresh, syncAfter]);
 
   const checkOut = useCallback(async () => {
     if (!running) return;
@@ -358,13 +364,13 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   );
 
   const exportBackup = useCallback(async (): Promise<boolean> => {
-    const shared = await exportCsvViaShareSheet(sessionsToCsv(sessions));
+    const shared = await exportCsvViaShareSheet(sessionsToCsv(sessions, rateHistory));
     if (shared) {
       await updateSettingsInDb({ lastExportAt: Date.now() });
       await refresh();
     }
     return shared;
-  }, [sessions, refresh]);
+  }, [sessions, rateHistory, refresh]);
 
   // Block changes must rebuild the reminder too — a null reminder would
   // silently drop a running session's notification. The single seam handles it.
@@ -380,16 +386,35 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   const importCsv = useCallback(
     async (csv: string): Promise<CsvImportResult> => {
       const result = parseSessionsCsv(csv, sessions);
-      // One transaction: an import lands whole or not at all.
+      // One transaction: an import lands whole or not at all. Every row is
+      // completed (running rows are skipped by the parser), so an import can
+      // never introduce a running session.
       await withTransaction(async () => {
         for (const row of result.toImport) {
-          await insertSession(row.checkIn, row.note, row.category);
+          await insertCompletedSession(row.checkIn, row.checkOut, row.note, row.category);
         }
       });
       await refresh();
       return result;
     },
     [sessions, refresh],
+  );
+
+  /** Quick-adds a session ("forgot to clock in"). Never fires a checked-in reminder. */
+  const createSession = useCallback(
+    async (patch: SessionPatch) => {
+      await withTransaction(async () => {
+        const id = await insertSession(patch.checkIn, patch.note, patch.category);
+        if (patch.checkOut !== null) {
+          await completeSession(id, patch.checkOut);
+        }
+      });
+      await refresh();
+      // A backfilled completed session gets no reminder of its own; the null
+      // epilogue re-derives the current running session's reminder from truth.
+      await syncAfter(patch.checkOut === null ? { type: 'checked-in', checkIn: patch.checkIn } : null);
+    },
+    [refresh, syncAfter],
   );
 
   const removeBlock = useCallback(
@@ -459,6 +484,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       checkOut,
       saveSession,
       removeSession,
+      createSession,
       saveSettings,
       exportBackup,
       blocks,
@@ -483,6 +509,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
       checkOut,
       saveSession,
       removeSession,
+      createSession,
       saveSettings,
       exportBackup,
       blocks,

@@ -146,6 +146,44 @@ export default function InsightsScreen() {
           </View>
         )}
 
+        {/* Earnings by category — the money view of the slice above */}
+        {m.categoryEarnings.length > 0 && (
+          <View style={[styles.card, cardStyle(theme)]}>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>
+              {t('earningsByCategory')} · {t('allTime')}
+            </Text>
+            <View style={styles.shareBar}>
+              {m.categoryEarnings.map((c, i) => (
+                <View
+                  key={c.label || '__none__'}
+                  style={{
+                    flex: c.percentage / 100,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: c.label === '' ? theme.inset : WEEK_COLORS[i % WEEK_COLORS.length],
+                  }}
+                />
+              ))}
+            </View>
+            {m.categoryEarnings.slice(0, 5).map((c, i) => (
+              <View key={c.label || '__none__'} style={styles.shareRow}>
+                <View
+                  style={[
+                    styles.shareDot,
+                    { backgroundColor: c.label === '' ? theme.inset : WEEK_COLORS[i % WEEK_COLORS.length] },
+                  ]}
+                />
+                <Text style={[styles.shareLabel, { color: theme.text }]} numberOfLines={1}>
+                  {c.label || t('uncategorised')}
+                </Text>
+                <Text style={[styles.shareValue, { color: theme.muted }]}>
+                  {fmtPct(c.percentage)} · {formatMoney(c.earnings)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Monthly trends */}
         <View style={[styles.card, cardStyle(theme)]}>
           <Text style={[styles.cardTitle, { color: theme.text }]}>{t('monthlyTrends')}</Text>

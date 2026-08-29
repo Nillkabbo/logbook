@@ -7,7 +7,7 @@ import { SessionDetailSheet } from '@/components/SessionDetailSheet';
 import { SessionRow } from '@/components/SessionRow';
 import { WeekProgress } from '@/components/WeekProgress';
 import { useLogbook } from '@/hooks/useLogbook';
-import { categorySuggestions, sumCompletedSessions } from '@/engine/sessions';
+import { categorySuggestions, newSessionDraft, sumCompletedSessions } from '@/engine/sessions';
 import { useI18n } from '@/ui/i18n';
 import { formatWeekShareText, groupSessionsByMonth, logsModel, monthDayEarnings, monthDayTotals, type LogDay, type LogWeek, type MonthGroup } from '@/engine/logs';
 import { formatMoney, sumEarnings } from '@/engine/money';
@@ -79,7 +79,7 @@ export default function LogsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, locale, weekdayShortName } = useI18n();
-  const { refresh, sessions, settings, now, saveSession, removeSession, saveSettings, rateHistory } =
+  const { refresh, sessions, settings, now, saveSession, removeSession, createSession, saveSettings, rateHistory } =
     useLogbook();
 
   const toggleOff = (key: string, currentlyOff: boolean) => {
@@ -99,6 +99,8 @@ export default function LogsScreen() {
     ]);
   };
   const [selected, setSelected] = useState<Session | null>(null);
+  // Quick-add draft, snapshotted once at open — the ticking `now` must never re-seed the form.
+  const [draft, setDraft] = useState<Session | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'all'>('all');
   const [query, setQuery] = useState('');
@@ -343,6 +345,15 @@ export default function LogsScreen() {
         <View style={styles.toolbarRow}>
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={t('addSession')}
+            android_ripple={{ color: theme.muted, borderless: true, radius: 18 }}
+            hitSlop={8}
+            style={[styles.toolbarButton, { backgroundColor: theme.inset }]}
+            onPress={() => setDraft(newSessionDraft(new Date()))}>
+            <Text style={{ fontSize: 16 }}>＋</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel={t('calendar')}
             android_ripple={{ color: theme.muted, borderless: true, radius: 18 }}
             hitSlop={8}
@@ -357,7 +368,7 @@ export default function LogsScreen() {
             hitSlop={8}
             style={[styles.toolbarButton, { backgroundColor: theme.inset }]}
             onPress={async () => {
-              const shared = await exportCsvViaShareSheet(sessionsToCsv(dayFiltered));
+              const shared = await exportCsvViaShareSheet(sessionsToCsv(dayFiltered, rateHistory));
               if (!shared) {
                 Alert.alert(t('exportUnavailable'), t('exportUnavailableBody'));
               }
@@ -538,6 +549,16 @@ export default function LogsScreen() {
           onSave={(patch) => saveSession(selected.id, patch)}
           onDelete={removeSession}
           onClose={() => setSelected(null)}
+        />
+      )}
+      {draft && (
+        <SessionDetailSheet
+          session={draft}
+          isNew
+          suggestions={suggestions}
+          onSave={createSession}
+          onDelete={removeSession}
+          onClose={() => setDraft(null)}
         />
       )}
     </View>

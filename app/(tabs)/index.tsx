@@ -13,7 +13,7 @@ import { useLogbook } from '@/hooks/useLogbook';
 import { homeModel } from '@/engine/home';
 import { formatDurationWords, formatTimeOfDay } from '@/engine/time';
 import { formatDayLabel } from '@/engine/weeks';
-import { categorySuggestions } from '@/engine/sessions';
+import { categorySuggestions, newSessionDraft } from '@/engine/sessions';
 import { nextBlockOccurrence } from '@/engine/schedule';
 import type { Session } from '@/engine/types';
 import { useHour12 } from '@/ui/clock';
@@ -25,10 +25,12 @@ export default function HomeScreen() {
   const theme = useTheme();
   const { t, locale } = useI18n();
   const hour12 = useHour12();
-  const { refresh, checkIn, checkOut, sessions, settings, now, saveSession, removeSession, blocks, rateHistory } =
+  const { refresh, checkIn, checkOut, sessions, settings, now, saveSession, removeSession, createSession, blocks, rateHistory } =
     useLogbook();
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<Session | null>(null);
+  // Quick-add draft, snapshotted once at open — the ticking `now` must never re-seed the form.
+  const [draft, setDraft] = useState<Session | null>(null);
   // The just-ended session + a timer handle for the undo toast.
   const [undoable, setUndoable] = useState<Session | null>(null);
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -126,7 +128,17 @@ export default function HomeScreen() {
         />
       )}
 
-      <Text style={[styles.dateCaption, { color: theme.muted }]}>{model.dateLabel}</Text>
+      <View style={styles.dateRow}>
+        <Text style={[styles.dateCaption, { color: theme.muted }]}>{model.dateLabel}</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('addSession')}
+          hitSlop={10}
+          style={[styles.addButton, { backgroundColor: theme.inset }]}
+          onPress={() => setDraft(newSessionDraft(new Date()))}>
+          <Text style={[styles.addButtonText, { color: theme.text }]}>＋</Text>
+        </Pressable>
+      </View>
 
       <View style={[styles.weekBars, { borderColor: theme.inset }]}>
         {model.weekDayBars.map((bar) => (
@@ -237,6 +249,16 @@ export default function HomeScreen() {
           onClose={() => setSelected(null)}
         />
       )}
+      {draft && (
+        <SessionDetailSheet
+          session={draft}
+          isNew
+          suggestions={categorySuggestions(sessions)}
+          onSave={createSession}
+          onDelete={removeSession}
+          onClose={() => setDraft(null)}
+        />
+      )}
     </View>
   );
 }
@@ -258,11 +280,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontVariant: ['tabular-nums'],
   },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
   dateCaption: {
     fontSize: 13,
     fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 12,
+  },
+  addButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 22,
   },
   weekBars: {
     flexDirection: 'row',

@@ -136,6 +136,24 @@ export async function insertSession(checkIn: Date, note = '', category = ''): Pr
   return result.lastInsertRowId;
 }
 
+/** Inserts a session with a known checkout (quick-add, CSV import). One atomic statement. */
+export async function insertCompletedSession(
+  checkIn: Date,
+  checkOut: Date,
+  note = '',
+  category = '',
+): Promise<number> {
+  const db = await getDb();
+  const result = await db.runAsync(
+    'INSERT INTO sessions (check_in_utc, check_out_utc, note, category) VALUES (?, ?, ?, ?)',
+    checkIn.toISOString(),
+    checkOut.toISOString(),
+    note,
+    category,
+  );
+  return result.lastInsertRowId;
+}
+
 export async function completeSession(id: number, checkOut: Date): Promise<void> {
   const db = await getDb();
   await db.runAsync('UPDATE sessions SET check_out_utc = ? WHERE id = ?', checkOut.toISOString(), id);

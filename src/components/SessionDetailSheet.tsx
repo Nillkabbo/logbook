@@ -34,12 +34,14 @@ interface Props {
   onSave: (patch: SessionPatch) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   onClose: () => void;
+  /** Create mode: `session` is a newSessionDraft — no delete row, no running switch. */
+  isNew?: boolean;
 }
 
 const SHEET_HEIGHT = Math.round(Dimensions.get('window').height * 0.88);
 const DISMISS_THRESHOLD = 90;
 
-export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose }: Props) {
+export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onClose, isNew = false }: Props) {
   const theme = useTheme();
   const hour12 = useHour12();
   const { t } = useI18n();
@@ -177,7 +179,7 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
             </View>
             <View style={styles.titleRow}>
               <View style={styles.titleSpacer} />
-              <Text style={[styles.title, { color: theme.text }]}>{t('session')}</Text>
+              <Text style={[styles.title, { color: theme.text }]}>{isNew ? t('newSession') : t('session')}</Text>
               <View style={styles.titleSpacer}>
                 <Pressable
                   accessibilityRole="button"
@@ -203,12 +205,14 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.container}>
                 {renderField('in')}
-                <View style={[styles.runningCard, cardStyle(theme)]}>
-                  <Text style={[styles.runningLabel, { color: theme.text }]}>{t('stillRunning')}</Text>
-                  {/* Turning it off anchors the checkout at the check-in: the user must
-                      pick an explicit time before Save passes validation. */}
-                  <Switch value={running} onValueChange={(on) => setCheckOut(on ? null : checkIn)} />
-                </View>
+                {!isNew && (
+                  <View style={[styles.runningCard, cardStyle(theme)]}>
+                    <Text style={[styles.runningLabel, { color: theme.text }]}>{t('stillRunning')}</Text>
+                    {/* Turning it off anchors the checkout at the check-in: the user must
+                        pick an explicit time before Save passes validation. */}
+                    <Switch value={running} onValueChange={(on) => setCheckOut(on ? null : checkIn)} />
+                  </View>
+                )}
                 {renderField('out')}
 
                 {(checkOut === null || checkOut.getTime() > checkIn.getTime()) && (
@@ -262,11 +266,13 @@ export function SessionDetailSheet({ session, suggestions, onSave, onDelete, onC
                   onPress={save}>
                   <Text style={[styles.saveText, { color: theme.onAccent }]}>{t('save')}</Text>
                 </Pressable>
-                <View style={styles.deleteRow}>
-                  <Pressable onPress={confirmDelete}>
-                    <Text style={[styles.deleteText, { color: theme.stop }]}>{t('delete')}</Text>
-                  </Pressable>
-                </View>
+                {!isNew && (
+                  <View style={styles.deleteRow}>
+                    <Pressable onPress={confirmDelete}>
+                      <Text style={[styles.deleteText, { color: theme.stop }]}>{t('delete')}</Text>
+                    </Pressable>
+                  </View>
+                )}
               </ScrollView>
             </SafeAreaView>
           </KeyboardAvoidingView>

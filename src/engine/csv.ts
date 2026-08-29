@@ -1,3 +1,4 @@
+import { rateForDate, sessionEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds } from './sessions';
 import { localDayKey } from './weeks';
 import type { Session } from './types';
@@ -17,17 +18,25 @@ function escapeCsv(value: string): string {
 
 /**
  * Full CSV export, oldest session first:
- * `date,check_in,check_out,duration_minutes,note` — timestamps in the local
- * timezone; running sessions carry a blank checkout and blank duration.
+ * `date,check_in,check_out,duration_minutes,note,category,rate_applied,earnings` —
+ * timestamps in the local timezone; running sessions carry a blank checkout and
+ * blank duration. `rate_applied`/`earnings` come from the rate history at each
+ * session's check-in (ADR-0002); both are blank when no rate covers it, and
+ * `earnings` is blank for running sessions even when the rate is known.
  */
-export function sessionsToCsv(sessions: Session[]): string {
-  const lines = ['date,check_in,check_out,duration_minutes,note,category'];
+export function sessionsToCsv(sessions: Session[], rateHistory: RateRecord[] = []): string {
+  const lines = ['date,check_in,check_out,duration_minutes,note,category,rate_applied,earnings'];
   const ordered = [...sessions].sort((a, b) => a.checkIn.getTime() - b.checkIn.getTime());
   for (const session of ordered) {
     const durationMinutes =
       session.checkOut === null
         ? ''
         : String(Math.floor(sessionDurationSeconds(session) / 60));
+    const rate = rateForDate(rateHistory, session.checkIn);
+    const earned =
+      session.checkOut === null
+        ? null
+        : sessionEarnings(sessionDurationSeconds(session), session.checkIn, rateHistory);
     lines.push(
       [
         localDayKey(session.checkIn),
@@ -36,6 +45,8 @@ export function sessionsToCsv(sessions: Session[]): string {
         durationMinutes,
         escapeCsv(session.note),
         escapeCsv(session.category),
+        rate === null ? '' : rate.toFixed(2),
+        earned === null ? '' : earned.toFixed(2),
       ].join(','),
     );
   }
@@ -46,7 +57,8 @@ export function sessionsToCsv(sessions: Session[]): string {
 
 export interface ParsedCsvSession {
   checkIn: Date;
-  checkOut: Date | null;
+  /** Never null in `toImport` — running rows are counted in `skippedRunning` instead. */
+  checkOut: Date;
   note: string;
   category: string;
 }

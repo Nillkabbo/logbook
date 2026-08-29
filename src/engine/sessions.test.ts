@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { sessionDurationSeconds } from './sessions';
+import { sessionDurationSeconds, newSessionDraft, NEW_SESSION_ID } from './sessions';
+import { validateSessionTimes } from './validation';
 
 // Local-time constructors keep these examples independent of the machine's timezone:
 // the engine only ever compares Date objects, so instants are what matter.
@@ -23,5 +24,34 @@ describe('sessionDurationSeconds', () => {
   it('running session without `now` is a contract violation', () => {
     const session = { id: 1, checkIn: at(2026, 7, 27, 9, 0), checkOut: null, note: '', category: '' };
     expect(() => sessionDurationSeconds(session)).toThrow();
+  });
+});
+
+describe('newSessionDraft', () => {
+  const at = (y: number, mo: number, d: number, h: number, mi: number, s = 0) =>
+    new Date(y, mo, d, h, mi, s);
+
+  it('spans exactly the last hour on 15-minute boundaries with zeroed seconds', () => {
+    const draft = newSessionDraft(at(2026, 7, 27, 14, 37, 12));
+    expect(draft.checkOut!.getTime() - draft.checkIn.getTime()).toBe(60 * 60 * 1000);
+    expect(draft.checkOut!.getHours()).toBe(14);
+    expect(draft.checkOut!.getMinutes()).toBe(30); // 37 floored to 30
+    expect(draft.checkOut!.getSeconds()).toBe(0);
+    expect(draft.checkIn.getMinutes()).toBe(30);
+  });
+
+  it('never proposes future times and passes edit validation', () => {
+    const now = at(2026, 7, 27, 9, 3);
+    const draft = newSessionDraft(now);
+    expect(draft.checkIn.getTime()).toBeLessThanOrEqual(now.getTime());
+    expect(draft.checkOut!.getTime()).toBeLessThanOrEqual(now.getTime());
+    expect(validateSessionTimes(draft.checkIn, draft.checkOut, now)).toBeNull();
+  });
+
+  it('carries the draft id and empty note/category', () => {
+    const draft = newSessionDraft(at(2026, 7, 27, 14, 0));
+    expect(draft.id).toBe(NEW_SESSION_ID);
+    expect(draft.note).toBe('');
+    expect(draft.category).toBe('');
   });
 });

@@ -1,5 +1,5 @@
 import { formatDuration } from './time';
-import { sumEarnings, type RateRecord } from './money';
+import { sessionEarnings, sumEarnings, type RateRecord } from './money';
 import { sessionDurationSeconds, sumCompletedSessions } from './sessions';
 import type { Session, Settings } from './types';
 import { weekRange } from './weeks';
@@ -15,6 +15,15 @@ export interface WeekdayHours {
 export interface CategoryShare {
   label: string;
   hours: number;
+  percentage: number;
+}
+
+/** One category's share of total earnings, each session at its own check-in rate. */
+export interface CategoryEarning {
+  /** '' = uncategorised */
+  label: string;
+  earnings: number;
+  /** Share of total covered earnings, 0–100. */
   percentage: number;
 }
 
@@ -46,6 +55,8 @@ export interface InsightsModel {
 
   /** Category shares, largest first; '' = uncategorised. */
   categoryShares: CategoryShare[];
+  /** Per-category earnings at each session's own rate, largest first; empty when no rate covers any session — the card hides. */
+  categoryEarnings: CategoryEarning[];
 
   /** Consecutive days with ≥1 completed session, ending today or yesterday. */
   currentStreak: number;
@@ -119,6 +130,26 @@ export function insightsModel(
       percentage: totalSeconds > 0 ? (sec / totalSeconds) * 100 : 0,
     }))
     .sort((a, b) => b.hours - a.hours);
+
+  // ── Category earnings (each session at its own rate) ──
+  // Uncovered sessions contribute nothing; a category worked entirely before
+  // the first rate record is absent rather than shown as $0.00 (unknown ≠ earned nothing).
+  const catEarnings = new Map<string, number>();
+  let coveredEarnings = 0;
+  for (const s of completed) {
+    const earned = sessionEarnings(sessionDurationSeconds(s), s.checkIn, rateHistory);
+    if (earned === null) continue;
+    const cat = s.category || '';
+    catEarnings.set(cat, (catEarnings.get(cat) ?? 0) + earned);
+    coveredEarnings += earned;
+  }
+  const categoryEarnings: CategoryEarning[] = [...catEarnings.entries()]
+    .map(([label, earnings]) => ({
+      label,
+      earnings,
+      percentage: coveredEarnings > 0 ? (earnings / coveredEarnings) * 100 : 0,
+    }))
+    .sort((a, b) => b.earnings - a.earnings);
 
   // ── Streaks ──
   const dayKeys = new Set(completed.map((s) => localDayKey(s.checkIn)));
@@ -228,6 +259,7 @@ export function insightsModel(
     weekdayHours,
 
     categoryShares,
+    categoryEarnings,
 
     currentStreak,
     longestStreak,
