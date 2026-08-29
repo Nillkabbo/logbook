@@ -527,17 +527,15 @@ export default function LogsScreen() {
       />
 
       <Modal visible={sharePickerOpen} transparent animationType="fade" onRequestClose={() => setSharePickerOpen(false)}>
-        <View style={styles.shareOverlay}>
-          <Pressable
-            style={styles.shareScrim}
-            onPress={() => setSharePickerOpen(false)}
-          />
+        <Pressable
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}
+          onPress={() => setSharePickerOpen(false)}>
           <View style={[styles.shareSheet, { backgroundColor: theme.surface }]}>
             <View style={styles.shareGrabberRow}>
               <View style={[styles.shareGrabber, { backgroundColor: theme.inset }]} />
             </View>
             <Text style={[styles.shareTitle, { color: theme.text }]}>{t('shareWeek')}</Text>
-            <ScrollView style={styles.shareScroll} nestedScrollEnabled>
+            <ScrollView style={{ maxHeight: 400 }} nestedScrollEnabled>
               <View style={styles.shareList}>
                 {weeks.map((week) => (
                   <Pressable
@@ -561,7 +559,7 @@ export default function LogsScreen() {
               </View>
             </ScrollView>
           </View>
-        </View>
+        </Pressable>
       </Modal>
 
       {selected && (
@@ -639,18 +637,6 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     overflow: 'hidden',
   },
-  shareOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  shareScrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
   shareSheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -672,9 +658,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     paddingBottom: 12,
-  },
-  shareScroll: {
-    flex: 1,
   },
   shareList: {
     paddingHorizontal: 16,
