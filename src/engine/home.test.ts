@@ -122,7 +122,7 @@ describe('homeModel week-to-date', () => {
       SESSIONS,
       { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25, offWeeks: ['2026-08-27'] },
       NOW,
-    , RATE_25);
+      RATE_25);
     expect(off.off).toBe(true);
     expect(off.overTarget).toBe(false);
     expect(off.overByLabel).toBeNull();
@@ -137,7 +137,7 @@ describe('homeModel week-to-date', () => {
       SESSIONS,
       { ...DEFAULT_SETTINGS, weekStartDay: 4, hourlyRate: 25 },
       NOW,
-    , RATE_25);
+      RATE_25);
     // 2:15 completed × $25/h = 2.25h × 25 = $56.25
     expect(withRate.earningsLabel).toBe('$56.25');
     const withoutRate = homeModel(SESSIONS, { ...DEFAULT_SETTINGS, weekStartDay: 4 }, NOW);
