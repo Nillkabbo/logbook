@@ -56,8 +56,8 @@ interface Logbook {
   removeBlock: (id: number) => Promise<void>;
   /** Merges an exported CSV into the log; returns the counts for reporting. */
   importCsv: (csv: string) => Promise<CsvImportResult>;
-  /** Dev-only: populates ~2 months of sample data; returns the count loaded. */
-  loadSampleData: () => Promise<number>;
+  /** Dev-only: populates sample data; returns the count loaded. weeks=8 for 2mo, 52 for 1yr. */
+  loadSampleData: (weeks?: number) => Promise<number>;
   /** Deletes all sessions, blocks, and settings (after confirmation). */
   clearAllData: () => Promise<void>;
 }
@@ -143,7 +143,7 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
   // DEV-ONLY: 2 months of realistic sample data, explicitly triggered from
   // the Data sub-screen. Clears existing data first so re-loading never
   // duplicates. Remove after testing.
-  const loadSampleData = useCallback(async () => {
+  const loadSampleData = useCallback(async (weeks = 8) => {
     {
       // Clear existing data so re-loading is idempotent
       for (const session of await listSessions()) {
@@ -197,8 +197,8 @@ export function LogbookProvider({ children }: { children: ReactNode }) {
 
       let count = 0;
 
-      // ── Generate sessions: 8 weeks of data (56 days) ──
-      for (let weeksAgo = 8; weeksAgo >= 0; weeksAgo--) {
+      // ── Generate sessions ──
+      for (let weeksAgo = weeks; weeksAgo >= 0; weeksAgo--) {
         const wStart = weekStart(weeksAgo);
         const wEnd = weekEnd(weeksAgo);
         const isOff = weeksAgo === OFF_WEEK;

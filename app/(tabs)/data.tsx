@@ -100,23 +100,42 @@ export default function DataScreen() {
       </View>
 
       <View style={[styles.card, cardStyle(theme)]}>
-        <Pressable
-          android_ripple={{ color: theme.muted, borderless: false }}
-          style={[styles.secondary, insetInput(theme), loading && styles.disabled]}
-          disabled={loading}
-          onPress={async () => {
-            if (loading) return;
-            setLoading(true);
-            try {
-              const count = await loadSampleData();
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-              Alert.alert(t('data'), t('sampleLoaded', { n: count }));
-            } finally {
-              setLoading(false);
-            }
-          }}>
-          <Text style={[styles.secondaryText, { color: theme.accent }]}>{t('loadSample')}</Text>
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <Pressable
+            android_ripple={{ color: theme.muted, borderless: false }}
+            style={[styles.secondary, insetInput(theme), styles.halfWidth, loading && styles.disabled]}
+            disabled={loading}
+            onPress={async () => {
+              if (loading) return;
+              setLoading(true);
+              try {
+                const count = await loadSampleData(8);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+                Alert.alert(t('data'), t('sampleLoaded', { n: count }));
+              } finally {
+                setLoading(false);
+              }
+            }}>
+            <Text style={[styles.secondaryText, { color: theme.accent }]}>{t('loadSampleShort')}</Text>
+          </Pressable>
+          <Pressable
+            android_ripple={{ color: theme.muted, borderless: false }}
+            style={[styles.secondary, insetInput(theme), styles.halfWidth, loading && styles.disabled]}
+            disabled={loading}
+            onPress={async () => {
+              if (loading) return;
+              setLoading(true);
+              try {
+                const count = await loadSampleData(52);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+                Alert.alert(t('data'), t('sampleLoaded', { n: count }));
+              } finally {
+                setLoading(false);
+              }
+            }}>
+            <Text style={[styles.secondaryText, { color: theme.accent }]}>{t('loadSampleLong')}</Text>
+          </Pressable>
+        </View>
         <Pressable
           android_ripple={{ color: theme.muted, borderless: false }}
           style={[styles.secondary, insetInput(theme), clearing && styles.disabled]}
@@ -196,5 +215,8 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.6,
+  },
+  halfWidth: {
+    flex: 1,
   },
 });
