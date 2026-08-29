@@ -4,19 +4,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ChipRow } from '@/components/ChipRow';
+import { RateSection } from '@/components/RateSection';
 import { WeekdayPicker, useValidatedHours } from '@/components/settings-entry';
 import { useLogbook } from '@/hooks/useLogbook';
 import { blockRangeLabel } from '@/engine/schedule';
 import {
-  parseHoursInput,
-  validateHourlyRate,
-  validateRateChange,
   validateReminderThreshold,
   validateWeeklyTarget,
 } from '@/engine/validation';
 import { cardStyle, insetInput, RADIUS, useTheme } from '@/theme';
 import { useHour12 } from '@/ui/clock';
-import { DateTimeField } from '@/components/DateTimeField';
 import { useI18n, type LanguageSetting, type StringKey, type ThemeSetting } from '@/ui/i18n';
 import type { Weekday } from '@/engine/types';
 
@@ -26,10 +23,6 @@ export default function SettingsScreen() {
   const hour12 = useHour12();
   const { t, locale, weekdayShortName } = useI18n();
   const { refresh, settings, saveSettings, blocks, rateHistory, addRateChange, removeRate, setCurrentRate } = useLogbook();
-  const [showAddRate, setShowAddRate] = useState(false);
-  const [newRateValue, setNewRateValue] = useState('');
-  const [newRateDate, setNewRateDate] = useState(() => new Date());
-  const [rateError, setRateError] = useState<StringKey | null>(null);
 
   const target = useValidatedHours(
     String(settings.weeklyTargetHours),
@@ -40,14 +33,6 @@ export default function SettingsScreen() {
     String(settings.reminderThresholdHours),
     validateReminderThreshold,
     useCallback((hours: number) => saveSettings({ reminderThresholdHours: hours }), [saveSettings]),
-  );
-  const rate = useValidatedHours(
-    settings.hourlyRate > 0 ? String(settings.hourlyRate) : '',
-    validateHourlyRate,
-    // The "current rate" input is a rate change effective today — it writes to
-    // the history, not the flat field, so earnings follow immediately.
-    useCallback((value: number) => setCurrentRate(value), [setCurrentRate]),
-    0, // empty input commits as unset (clears every rate record)
   );
 
   useFocusEffect(
@@ -61,12 +46,10 @@ export default function SettingsScreen() {
   // this effect every render and clobber each keystroke.
   const { reset: resetTarget } = target;
   const { reset: resetThreshold } = threshold;
-  const { reset: resetRate } = rate;
   useEffect(() => {
     resetTarget(String(settings.weeklyTargetHours));
     resetThreshold(String(settings.reminderThresholdHours));
-    resetRate(settings.hourlyRate > 0 ? String(settings.hourlyRate) : '');
-  }, [settings.weeklyTargetHours, settings.reminderThresholdHours, settings.hourlyRate, resetTarget, resetThreshold, resetRate]);
+  }, [settings.weeklyTargetHours, settings.reminderThresholdHours, resetTarget, resetThreshold]);
 
   const labeledInput = (
     label: string,
@@ -117,102 +100,13 @@ export default function SettingsScreen() {
       </View>
 
       <Text style={[styles.sectionTitle, { color: theme.muted }]}>{t('earnings')}</Text>
-      <View style={[styles.card, styles.cardTight, cardStyle(theme)]}>
-        {labeledInput(t('hourlyRate'), rate.value, rate.onChangeText, rate.onBlur, t('rateHint'))}
-        {rate.error && <Text style={[styles.error, { color: theme.stop }]}>{t(rate.error as StringKey)}</Text>}
-
-        {/* Rate history */}
-        {rateHistory.length > 0 && (
-          <View style={styles.rateHistoryList}>
-            <Text style={[styles.rateHistoryTitle, { color: theme.muted }]}>{t('rateHistory')}</Text>
-            {rateHistory.map((record, index) => {
-              const isLatest = index === rateHistory.length - 1; // list is oldest-first
-              return (
-                <View key={record.id} style={styles.rateRow}>
-                  <View style={styles.rateValueStack}>
-                    <View style={styles.rateValueRow}>
-                      <Text style={[styles.rateValue, { color: theme.text }]}>
-                        ${record.rate.toFixed(2)}
-                      </Text>
-                      {isLatest && (
-                        <View style={[styles.currentBadge, { backgroundColor: theme.accentSoft }]}>
-                          <Text style={[styles.currentBadgeText, { color: theme.accent }]}>
-                            {t('currentRate')}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={[styles.rateDate, { color: theme.muted }]}>
-                      {t('from_date', { date: record.effectiveFrom.toLocaleDateString(locale) })}
-                    </Text>
-                  </View>
-                  <Pressable hitSlop={8} onPress={() => removeRate(record.id)}>
-                    <Text style={[styles.rateRemove, { color: theme.stop }]}>×</Text>
-                  </Pressable>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        {/* Add rate change */}
-        {showAddRate ? (
-          <View style={styles.addRateForm}>
-            <DateTimeField
-              label={t('effectiveFrom')}
-              value={newRateDate}
-              onChange={setNewRateDate}
-              mode="date"
-              variant="inset"
-            />
-            <Text style={[styles.rowLabel, { color: theme.text }]}>{t('hourlyRate')}</Text>
-            <TextInput
-              style={[styles.input, insetInput(theme), { color: theme.text }]}
-              value={newRateValue}
-              onChangeText={(next) => {
-                setNewRateValue(next);
-                setRateError(null);
-              }}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              placeholderTextColor={theme.muted}
-            />
-            {rateError && <Text style={[styles.error, { color: theme.stop }]}>{t(rateError)}</Text>}
-            <View style={styles.addRateButtons}>
-              <Pressable
-                style={[styles.addRateCancel, insetInput(theme)]}
-                onPress={() => {
-                  setShowAddRate(false);
-                  setRateError(null);
-                }}>
-                <Text style={{ color: theme.text, fontSize: 14 }}>{t('cancel')}</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.addRateConfirm, { backgroundColor: theme.accent }]}
-                onPress={async () => {
-                  const error = validateRateChange(parseHoursInput(newRateValue));
-                  if (error) {
-                    setRateError(error as StringKey);
-                    return;
-                  }
-                  await addRateChange(parseHoursInput(newRateValue), newRateDate);
-                  setNewRateValue('');
-                  setRateError(null);
-                  setShowAddRate(false);
-                }}>
-                <Text style={{ color: theme.onAccent, fontSize: 14, fontWeight: '600' }}>{t('save')}</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : (
-          <Pressable
-            android_ripple={{ color: theme.inset }}
-            style={styles.addRateButton}
-            onPress={() => setShowAddRate(true)}>
-            <Text style={{ color: theme.accent, fontSize: 14, fontWeight: '500' }}>+ {t('addRateChange')}</Text>
-          </Pressable>
-        )}
-      </View>
+      <RateSection
+        currentRate={settings.hourlyRate}
+        rateHistory={rateHistory}
+        onSetCurrentRate={setCurrentRate}
+        onAddRateChange={addRateChange}
+        onRemoveRate={removeRate}
+      />
 
       <View style={[styles.card, cardStyle(theme)]}>
         <Pressable
@@ -289,9 +183,6 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 24,
   },
-  cardTight: {
-    gap: 8,
-  },
   fieldStack: {
     gap: 8,
   },
@@ -307,77 +198,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
-  },
-  rateHistoryList: {
-    gap: 8,
-    marginTop: 16,
-  },
-  rateHistoryTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  rateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  rateValueStack: {
-    flex: 1,
-    gap: 2,
-  },
-  rateValueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  rateValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
-  currentBadge: {
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  currentBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-  },
-  rateDate: {
-    fontSize: 13,
-  },
-  rateRemove: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  addRateButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    marginTop: 8,
-  },
-  addRateForm: {
-    gap: 8,
-    marginTop: 16,
-  },
-  addRateButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  addRateCancel: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  addRateConfirm: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 12,
   },
   navDivider: {
     height: StyleSheet.hairlineWidth,
